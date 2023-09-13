@@ -117,6 +117,8 @@ public:
 	// 激活设备假人机器
 	void HiddenActiveMachine(CPlayer *pPlayer, CPlayer *pMachine)
 	{
+		if(m_Hidden.nowStep != STEP_S4)
+			return;
 		char aBuf[256];
 		m_Hidden.activedMachine++;
 		m_Hidden.stepEndTick = Server()->Tick() + Server()->TickSpeed() * Config()->m_HiddenStepDurationS4;

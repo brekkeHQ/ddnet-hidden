@@ -36,6 +36,8 @@ MACRO_CONFIG_INT(HiddenStepVoteS3BValue, hidden_step_vote_s3_b_value, 12, 1, 256
 MACRO_CONFIG_INT(HiddenStepVoteS3CValue, hidden_step_vote_s3_c_value, 24, 1, 256, CFGFLAG_SERVER, "S3的选项C的值")
 MACRO_CONFIG_INT(HiddenStepVoteS3DValue, hidden_step_vote_s3_d_value, 36, 1, 256, CFGFLAG_SERVER, "S3的选项D的值")
 
+MACRO_CONFIG_STR(HiddenSpectatorSeekerName, hidden_spectator_seeker_name, 256, "猎手", CFGFLAG_SERVER, "旁观玩家显示猎手的名字")
+
 MACRO_CONFIG_STR(HiddenSeekerWin, hidden_seeker_win, 256, "猎手胜利", CFGFLAG_SERVER, "猎人胜利提示")
 MACRO_CONFIG_STR(HiddenHiderWin, hidden_hider_win, 256, "求生者胜利", CFGFLAG_SERVER, "求生者胜利提示")
 

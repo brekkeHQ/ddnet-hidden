@@ -332,12 +332,15 @@ void CPlayer::Snap(int SnappingClient)
 	// Hidden Mode
 	// 此处处理了名字以及皮肤
 	CGameControllerDDRace *pController = (CGameControllerDDRace *)(GameServer()->m_pController);
+	CPlayer *pPlayerSnapTo = GameServer()->m_apPlayers[SnappingClient]; // 接收数据的玩家
+
 	bool hiddenState = pController->m_HiddenState;
 
 	bool isInGame = m_Hidden.m_InGame;
 	bool isPassedS1 = pController->m_Hidden.nowStep > STEP_S1;
 	bool isNotBeenKilled = this->m_Hidden.m_HasBeenKilled == false;
 	bool isNotMachine = this->m_Hidden.m_IsDummyMachine == false;
+	bool isSeeker = this->m_Hidden.m_IsSeeker;
 
 	char aName[256];
 	char aSkin[256];
@@ -348,7 +351,13 @@ void CPlayer::Snap(int SnappingClient)
 		if(isNotMachine)
 		{
 			// 名字
-			str_copy(aName, Server()->ClientName(m_ClientID));
+			if(isSeeker && pPlayerSnapTo->GetTeam() == TEAM_SPECTATORS)
+			{ // 旁观者显示谁是猎人
+				str_format(aName, sizeof(aName), ">>>%s<<<", GameServer()->Config()->m_HiddenSpectatorSeekerName);
+			}
+			else
+				str_copy(aName, Server()->ClientName(m_ClientID));
+
 			// 指定皮肤
 			str_copy(aSkin, GameServer()->m_Hidden.aSkins[id].c_str(), sizeof(aSkin));
 		}
@@ -422,13 +431,14 @@ void CPlayer::Snap(int SnappingClient)
 
 	if(!Server()->IsSixup(SnappingClient))
 	{
-		CPlayer *pPlayerSnapTo = GameServer()->m_apPlayers[SnappingClient];
 		CNetObj_PlayerInfo *pPlayerInfo = Server()->SnapNewItem<CNetObj_PlayerInfo>(id);
 		if(!pPlayerInfo)
 			return;
 
 		pPlayerInfo->m_Latency = Latency;
 		pPlayerInfo->m_Score = Score;
+
+		// hidden mode
 
 		bool isNotShowPlayerInfo =
 			hiddenState && isPassedS1 && pPlayerSnapTo &&
