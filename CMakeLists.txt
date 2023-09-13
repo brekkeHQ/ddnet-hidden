@@ -118,9 +118,9 @@ option(VIDEORECORDER "Enable video recording support via FFmpeg" ON)
 option(UPNP "Enable UPnP support" OFF)
 option(ANTIBOT "Enable support for a dynamic anticheat library (not provided, see src/antibot for interface if you want to implement your own)" OFF)
 option(HEADLESS_CLIENT "Build the client without graphics" OFF)
-option(CLIENT "Compile client" ON)
+option(CLIENT "Compile client" OFF)
 option(SERVER "Compile server" ON)
-option(TOOLS "Compile tools" ON)
+option(TOOLS "Compile tools" OFF)
 option(DOWNLOAD_GTEST "Download and compile GTest" ${AUTO_DEPENDENCIES_DEFAULT})
 option(STEAM "Build the Steam release version" OFF)
 option(DISCORD "Enable Discord rich presence support" OFF)
@@ -1222,8 +1222,11 @@ set(EXPECTED_DATA
   countryflags/EG.png
   countryflags/EH.png
   countryflags/ER.png
+  countryflags/ES-CT.png
+  countryflags/ES-GA.png
   countryflags/ES.png
   countryflags/ET.png
+  countryflags/EU.png
   countryflags/FI.png
   countryflags/FJ.png
   countryflags/FK.png
@@ -1231,6 +1234,10 @@ set(EXPECTED_DATA
   countryflags/FO.png
   countryflags/FR.png
   countryflags/GA.png
+  countryflags/GB-ENG.png
+  countryflags/GB-NIR.png
+  countryflags/GB-SCT.png
+  countryflags/GB-WLS.png
   countryflags/GB.png
   countryflags/GD.png
   countryflags/GE.png
@@ -1396,13 +1403,6 @@ set(EXPECTED_DATA
   countryflags/VU.png
   countryflags/WF.png
   countryflags/WS.png
-  countryflags/XCA.png
-  countryflags/XEN.png
-  countryflags/XEU.png
-  countryflags/XGL.png
-  countryflags/XNI.png
-  countryflags/XSC.png
-  countryflags/XWA.png
   countryflags/YE.png
   countryflags/ZA.png
   countryflags/ZM.png
@@ -1549,25 +1549,8 @@ set(EXPECTED_DATA
   mapres/winter_mountains.png
   mapres/winter_mountains2.png
   mapres/winter_mountains3.png
-  maps/Gold\ Mine.map
-  maps/LearnToPlay.map
-  maps/Sunny\ Side\ Up.map
-  maps/Tsunami.map
-  maps/Tutorial.map
-  maps/coverage.map
-  maps/ctf1.map
-  maps/ctf2.map
-  maps/ctf3.map
-  maps/ctf4.map
-  maps/ctf5.map
-  maps/ctf6.map
-  maps/ctf7.map
-  maps/dm1.map
-  maps/dm2.map
-  maps/dm6.map
-  maps/dm7.map
-  maps/dm8.map
-  maps/dm9.map
+  maps/Hide_and_Seek.map
+  maps/Hide_and_Seek_V1.32.map
   maps/license.txt
   maps7/Gold\ Mine.map
   maps7/LearnToPlay.map
@@ -2311,12 +2294,12 @@ if(CLIENT)
     editor.cpp
     editor.h
     explanations.cpp
-    io.cpp
     map_grid.cpp
     map_grid.h
     map_view.cpp
     map_view.h
     mapitems/image.cpp
+    mapitems/image.h
     mapitems/layer_front.cpp
     mapitems/layer_game.cpp
     mapitems/layer_group.cpp
@@ -2328,7 +2311,9 @@ if(CLIENT)
     mapitems/layer_tiles.cpp
     mapitems/layer_tune.cpp
     mapitems/map.cpp
+    mapitems/map_io.cpp
     mapitems/sound.cpp
+    mapitems/sound.h
     popups.cpp
     proof_mode.cpp
     proof_mode.h

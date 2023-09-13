@@ -151,7 +151,7 @@ void CGameContext::ConSettings(IConsole::IResult *pResult, void *pUserData)
 			str_format(aBuf, sizeof(aBuf), "%s %s",
 				g_Config.m_SvTeam == SV_TEAM_ALLOWED ?
 					"Teams are available on this server" :
-					(g_Config.m_SvTeam == SV_TEAM_FORBIDDEN || g_Config.m_SvTeam == SV_TEAM_FORCED_SOLO) ?
+				(g_Config.m_SvTeam == SV_TEAM_FORBIDDEN || g_Config.m_SvTeam == SV_TEAM_FORCED_SOLO) ?
 					"Teams are not available on this server" :
 					"You have to be in a team to play on this server", /*g_Config.m_SvTeamStrict ? "and if you die in a team all of you die" : */
 				"and all of your team will die if the team is locked");
@@ -294,10 +294,17 @@ void ToggleSpecPause(IConsole::IResult *pResult, void *pUserData, int PauseType)
 		return;
 
 	CGameContext *pSelf = (CGameContext *)pUserData;
+	CGameControllerDDRace *pController = (CGameControllerDDRace *)pSelf->m_pController;
 	IServer *pServ = pSelf->Server();
 	CPlayer *pPlayer = pSelf->m_apPlayers[pResult->m_ClientID];
 	if(!pPlayer)
 		return;
+
+	if(!pController->m_Hidden.canZoom)
+	{
+		pSelf->SendChatTarget(pPlayer->GetCID(), "当前不可旁观");
+		return;
+	}
 
 	int PauseState = pPlayer->IsPaused();
 	if(PauseState > 0)
@@ -334,9 +341,16 @@ void ToggleSpecPauseVoted(IConsole::IResult *pResult, void *pUserData, int Pause
 		return;
 
 	CGameContext *pSelf = (CGameContext *)pUserData;
+	CGameControllerDDRace *pController = (CGameControllerDDRace *)pSelf->m_pController;
 	CPlayer *pPlayer = pSelf->m_apPlayers[pResult->m_ClientID];
 	if(!pPlayer)
 		return;
+
+	if(!pController->m_Hidden.canZoom)
+	{
+		pSelf->SendChatTarget(pPlayer->GetCID(), "当前不可旁观");
+		return;
+	}
 
 	int PauseState = pPlayer->IsPaused();
 	if(PauseState > 0)

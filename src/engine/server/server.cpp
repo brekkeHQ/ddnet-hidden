@@ -33,6 +33,9 @@
 #include <engine/shared/rust_version.h>
 #include <engine/shared/snapshot.h>
 
+#include <game/server/gamecontext.h>
+#include <game/server/player.h>
+
 #include <game/version.h>
 
 // DDRace
@@ -43,6 +46,9 @@
 #include "databases/connection.h"
 #include "databases/connection_pool.h"
 #include "register.h"
+
+#include "cstring"
+#include "vector"
 
 extern bool IsInterrupted();
 
@@ -403,7 +409,6 @@ bool CServer::SetClientNameImpl(int ClientID, const char *pNameRequest, bool Set
 	dbg_assert(0 <= ClientID && ClientID < MAX_CLIENTS, "invalid client id");
 	if(m_aClients[ClientID].m_State < CClient::STATE_READY)
 		return false;
-
 	CNameBan *pBanned = IsNameBanned(pNameRequest, m_vNameBans);
 	if(pBanned)
 	{
@@ -443,7 +448,6 @@ bool CServer::SetClientNameImpl(int ClientID, const char *pNameRequest, bool Set
 	}
 
 	bool Changed = str_comp(m_aClients[ClientID].m_aName, aNameTry) != 0;
-
 	if(Set)
 	{
 		// set the client name
@@ -662,14 +666,23 @@ void CServer::GetClientAddr(int ClientID, char *pAddrStr, int Size) const
 		net_addr_str(m_NetServer.ClientAddr(ClientID), pAddrStr, Size, false);
 }
 
+// 返回正常客户端名
 const char *CServer::ClientName(int ClientID) const
 {
 	if(ClientID < 0 || ClientID >= MAX_CLIENTS || m_aClients[ClientID].m_State == CServer::CClient::STATE_EMPTY)
 		return "(invalid)";
 	if(m_aClients[ClientID].m_State == CServer::CClient::STATE_INGAME)
+	{
 		return m_aClients[ClientID].m_aName;
+	}
 	else
 		return "(connecting)";
+}
+
+// 开始游戏后返回空白客户端名
+const char *CServer::RealClientName(int ClientID) const
+{
+	return "";
 }
 
 const char *CServer::ClientClan(int ClientID) const
@@ -677,7 +690,9 @@ const char *CServer::ClientClan(int ClientID) const
 	if(ClientID < 0 || ClientID >= MAX_CLIENTS || m_aClients[ClientID].m_State == CServer::CClient::STATE_EMPTY)
 		return "";
 	if(m_aClients[ClientID].m_State == CServer::CClient::STATE_INGAME)
+	{
 		return m_aClients[ClientID].m_aClan;
+	}
 	else
 		return "";
 }
@@ -948,6 +963,12 @@ void CServer::DoSnapshot()
 		if(m_aClients[i].m_SnapRate == CClient::SNAPRATE_INIT && (Tick() % 10) != 0)
 			continue;
 
+		CGameContext *pGamecontext = (CGameContext *)GameServer();
+		CPlayer *pPlayer = (CPlayer *)pGamecontext->m_apPlayers[i];
+		// 客户端是假人机器设备，不发送快照
+		if(pPlayer->m_Hidden.m_IsDummyMachine)
+			continue;
+
 		{
 			m_SnapshotBuilder.Init(m_aClients[i].m_Sixup);
 
@@ -1137,7 +1158,7 @@ void CServer::InitDnsbl(int ClientID)
 {
 	NETADDR Addr = *m_NetServer.ClientAddr(ClientID);
 
-	//TODO: support ipv6
+	// TODO: support ipv6
 	if(Addr.type != NETTYPE_IPV4)
 		return;
 
@@ -1382,7 +1403,8 @@ void CServer::UpdateClientRconCommands()
 
 	if(m_aClients[ClientID].m_State != CClient::STATE_EMPTY && m_aClients[ClientID].m_Authed)
 	{
-		int ConsoleAccessLevel = m_aClients[ClientID].m_Authed == AUTHED_ADMIN ? IConsole::ACCESS_LEVEL_ADMIN : m_aClients[ClientID].m_Authed == AUTHED_MOD ? IConsole::ACCESS_LEVEL_MOD : IConsole::ACCESS_LEVEL_HELPER;
+		int ConsoleAccessLevel = m_aClients[ClientID].m_Authed == AUTHED_ADMIN ? IConsole::ACCESS_LEVEL_ADMIN : m_aClients[ClientID].m_Authed == AUTHED_MOD ? IConsole::ACCESS_LEVEL_MOD :
+																				      IConsole::ACCESS_LEVEL_HELPER;
 		for(int i = 0; i < MAX_RCONCMD_SEND && m_aClients[ClientID].m_pRconCmdToSend; ++i)
 		{
 			SendRconCmdAdd(m_aClients[ClientID].m_pRconCmdToSend, ClientID);
@@ -1614,7 +1636,7 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 				net_addr_str(m_NetServer.ClientAddr(ClientID), aAddrStr, sizeof(aAddrStr), true);
 
 				char aBuf[256];
-				str_format(aBuf, sizeof(aBuf), "player has entered the game. ClientID=%d addr=<{%s}> sixup=%d", ClientID, aAddrStr, IsSixup(ClientID));
+				str_format(aBuf, sizeof(aBuf), "%s has entered the game. ClientID=%d addr=<{%s}> sixup=%d", m_aClients[ClientID].m_aName, ClientID, aAddrStr, IsSixup(ClientID));
 				Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
 				m_aClients[ClientID].m_State = CClient::STATE_INGAME;
 				if(!IsSixup(ClientID))
@@ -1705,7 +1727,9 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 					Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
 					m_RconClientID = ClientID;
 					m_RconAuthLevel = m_aClients[ClientID].m_Authed;
-					Console()->SetAccessLevel(m_aClients[ClientID].m_Authed == AUTHED_ADMIN ? IConsole::ACCESS_LEVEL_ADMIN : m_aClients[ClientID].m_Authed == AUTHED_MOD ? IConsole::ACCESS_LEVEL_MOD : m_aClients[ClientID].m_Authed == AUTHED_HELPER ? IConsole::ACCESS_LEVEL_HELPER : IConsole::ACCESS_LEVEL_USER);
+					Console()->SetAccessLevel(m_aClients[ClientID].m_Authed == AUTHED_ADMIN ? IConsole::ACCESS_LEVEL_ADMIN : m_aClients[ClientID].m_Authed == AUTHED_MOD ? IConsole::ACCESS_LEVEL_MOD :
+																	 m_aClients[ClientID].m_Authed == AUTHED_HELPER      ? IConsole::ACCESS_LEVEL_HELPER :
+																							       IConsole::ACCESS_LEVEL_USER);
 					{
 						CRconClientLogger Logger(this, ClientID);
 						CLogScope Scope(&Logger);
@@ -1756,8 +1780,8 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 						if(!IsSixup(ClientID))
 						{
 							CMsgPacker Msgp(NETMSG_RCON_AUTH_STATUS, true);
-							Msgp.AddInt(1); //authed
-							Msgp.AddInt(1); //cmdlist
+							Msgp.AddInt(1); // authed
+							Msgp.AddInt(1); // cmdlist
 							SendMsg(&Msgp, MSGFLAG_VITAL, ClientID);
 						}
 						else
@@ -3023,6 +3047,17 @@ void CServer::ConRescue(CConsole::IResult *pResult, void *pUser)
 	pThis->Print(CConsole::OUTPUT_LEVEL_STANDARD, "console", aBuf);
 }
 
+// 皮肤配置
+void CServer::ConHiddenSkin(IConsole::IResult *pResult, void *pUser)
+{
+	if(pResult->NumArguments())
+	{
+		// 将cstr写入到配置文件中
+		CServer *pThis = static_cast<CServer *>(pUser);
+		str_copy(pThis->Config()->m_HiddenSkins, pResult->GetString(0), sizeof(pThis->Config()->m_HiddenSkins));
+	}
+}
+
 void CServer::ConKick(IConsole::IResult *pResult, void *pUser)
 {
 	if(pResult->NumArguments() > 1)
@@ -3058,8 +3093,9 @@ void CServer::ConStatus(IConsole::IResult *pResult, void *pUser)
 			if(pThis->Config()->m_SvDnsbl)
 			{
 				const char *pDnsblStr = pThis->m_aClients[i].m_DnsblState == CClient::DNSBL_STATE_WHITELISTED ? "white" :
-																pThis->m_aClients[i].m_DnsblState == CClient::DNSBL_STATE_BLACKLISTED ? "black" :
-																									pThis->m_aClients[i].m_DnsblState == CClient::DNSBL_STATE_PENDING ? "pending" : "n/a";
+							pThis->m_aClients[i].m_DnsblState == CClient::DNSBL_STATE_BLACKLISTED ? "black" :
+							pThis->m_aClients[i].m_DnsblState == CClient::DNSBL_STATE_PENDING     ? "pending" :
+																"n/a";
 
 				str_format(aDnsblStr, sizeof(aDnsblStr), " dnsbl=%s", pDnsblStr);
 			}
@@ -3068,9 +3104,10 @@ void CServer::ConStatus(IConsole::IResult *pResult, void *pUser)
 			aAuthStr[0] = '\0';
 			if(pThis->m_aClients[i].m_AuthKey >= 0)
 			{
-				const char *pAuthStr = pThis->m_aClients[i].m_Authed == AUTHED_ADMIN ? "(Admin)" :
-												       pThis->m_aClients[i].m_Authed == AUTHED_MOD ? "(Mod)" :
-																		     pThis->m_aClients[i].m_Authed == AUTHED_HELPER ? "(Helper)" : "";
+				const char *pAuthStr = pThis->m_aClients[i].m_Authed == AUTHED_ADMIN  ? "(Admin)" :
+						       pThis->m_aClients[i].m_Authed == AUTHED_MOD    ? "(Mod)" :
+						       pThis->m_aClients[i].m_Authed == AUTHED_HELPER ? "(Helper)" :
+													"";
 
 				str_format(aAuthStr, sizeof(aAuthStr), " key=%s %s", pThis->m_AuthManager.KeyIdent(pThis->m_aClients[i].m_AuthKey), pAuthStr);
 			}
@@ -3612,8 +3649,8 @@ void CServer::LogoutClient(int ClientID, const char *pReason)
 	if(!IsSixup(ClientID))
 	{
 		CMsgPacker Msg(NETMSG_RCON_AUTH_STATUS, true);
-		Msg.AddInt(0); //authed
-		Msg.AddInt(0); //cmdlist
+		Msg.AddInt(0); // authed
+		Msg.AddInt(0); // cmdlist
 		SendMsg(&Msg, MSGFLAG_VITAL, ClientID);
 	}
 	else

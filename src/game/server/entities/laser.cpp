@@ -10,6 +10,7 @@
 
 #include <game/server/gamecontext.h>
 #include <game/server/gamemodes/DDRace.h>
+#include <game/server/player.h>
 
 CLaser::CLaser(CGameWorld *pGameWorld, vec2 Pos, vec2 Direction, float StartEnergy, int Owner, int Type) :
 	CEntity(pGameWorld, CGameWorld::ENTTYPE_LASER)
@@ -90,6 +91,14 @@ bool CLaser::HitCharacter(vec2 From, vec2 To)
 		else
 		{
 			pHit->Core()->m_Vel = ClampVel(pHit->m_MoveRestrictions, pHit->Core()->m_Vel);
+		}
+
+		// Hidden Mode相关
+		CGameControllerDDRace *pController = (CGameControllerDDRace *)GameServer()->m_pController;
+		CPlayer *pPlayer = (CPlayer *)pHit->GetPlayer();
+		if(pController->m_HiddenState == true && pPlayer->m_Hidden.m_IsDummyMachine)
+		{ // Hidden Mode开启	是假人机器
+			pController->HiddenActiveMachine(pOwnerChar->GetPlayer(), pHit->GetPlayer()); // 激活机器数++
 		}
 	}
 	else if(m_Type == WEAPON_LASER)
@@ -258,7 +267,7 @@ void CLaser::DoBounce()
 		}
 	}
 
-	//m_Owner = -1;
+	// m_Owner = -1;
 }
 
 void CLaser::Reset()
@@ -315,7 +324,8 @@ void CLaser::Snap(int SnappingClient)
 		return;
 
 	int SnappingClientVersion = GameServer()->GetClientVersion(SnappingClient);
-	int LaserType = m_Type == WEAPON_LASER ? LASERTYPE_RIFLE : m_Type == WEAPON_SHOTGUN ? LASERTYPE_SHOTGUN : -1;
+	int LaserType = m_Type == WEAPON_LASER ? LASERTYPE_RIFLE : m_Type == WEAPON_SHOTGUN ? LASERTYPE_SHOTGUN :
+											      -1;
 
 	GameServer()->SnapLaserObject(CSnapContext(SnappingClientVersion), GetID(),
 		m_Pos, m_From, m_EvalTick, m_Owner, LaserType, 0, m_Number);
@@ -323,5 +333,6 @@ void CLaser::Snap(int SnappingClient)
 
 void CLaser::SwapClients(int Client1, int Client2)
 {
-	m_Owner = m_Owner == Client1 ? Client2 : m_Owner == Client2 ? Client1 : m_Owner;
+	m_Owner = m_Owner == Client1 ? Client2 : m_Owner == Client2 ? Client1 :
+								      m_Owner;
 }

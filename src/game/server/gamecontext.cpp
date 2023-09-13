@@ -2,6 +2,7 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include "gamecontext.h"
 
+#include <cstring>
 #include <vector>
 
 #include "teeinfo.h"
@@ -18,6 +19,7 @@
 #include <engine/shared/json.h>
 #include <engine/shared/linereader.h>
 #include <engine/shared/memheap.h>
+#include <engine/shared/network.h>
 #include <engine/storage.h>
 
 #include <game/collision.h>
@@ -32,6 +34,7 @@
 #include "gamemodes/DDRace.h"
 #include "player.h"
 #include "score.h"
+#include <engine/server/server.h>
 
 // Not thread-safe!
 class CClientChatLogger : public ILogger
@@ -238,7 +241,7 @@ void CGameContext::FillAntibot(CAntibotRoundData *pData)
 void CGameContext::CreateDamageInd(vec2 Pos, float Angle, int Amount, CClientMask Mask)
 {
 	float a = 3 * pi / 2 + Angle;
-	//float a = get_angle(dir);
+	// float a = get_angle(dir);
 	float s = a - pi / 3;
 	float e = a + pi / 3;
 	for(int i = 0; i < Amount; i++)
@@ -425,7 +428,8 @@ bool CGameContext::SnapPickup(const CSnapContext &Context, int SnapID, const vec
 		pPickup->m_Y = (int)Pos.y;
 
 		if(Type == POWERUP_WEAPON)
-			pPickup->m_Type = SubType == WEAPON_SHOTGUN ? protocol7::PICKUP_SHOTGUN : SubType == WEAPON_GRENADE ? protocol7::PICKUP_GRENADE : protocol7::PICKUP_LASER;
+			pPickup->m_Type = SubType == WEAPON_SHOTGUN ? protocol7::PICKUP_SHOTGUN : SubType == WEAPON_GRENADE ? protocol7::PICKUP_GRENADE :
+															      protocol7::PICKUP_LASER;
 		else if(Type == POWERUP_NINJA)
 			pPickup->m_Type = protocol7::PICKUP_NINJA;
 	}
@@ -534,6 +538,7 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 	char aBuf[256], aText[256];
 	str_copy(aText, pText, sizeof(aText));
 	if(ChatterClientID >= 0 && ChatterClientID < MAX_CLIENTS)
+		// str_format(aBuf, sizeof(aBuf), "%d:%d:%s: %s", ChatterClientID, Team, Server()->ClientName(ChatterClientID), aText);
 		str_format(aBuf, sizeof(aBuf), "%d:%d:%s: %s", ChatterClientID, Team, Server()->ClientName(ChatterClientID), aText);
 	else if(ChatterClientID == -2)
 	{
@@ -542,11 +547,13 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 		ChatterClientID = -1;
 	}
 	else
+	{
 		str_format(aBuf, sizeof(aBuf), "*** %s", aText);
+	}
 	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, Team != CHAT_ALL ? "teamchat" : "chat", aBuf);
 
 	if(Team == CHAT_ALL)
-	{
+	{ // 公屏聊天
 		CNetMsg_Sv_Chat Msg;
 		Msg.m_Team = 0;
 		Msg.m_ClientID = ChatterClientID;
@@ -556,23 +563,58 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 		if(g_Config.m_SvDemoChat)
 			Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NOSEND, SERVER_DEMO_CLIENT);
 
+		// hidden mode
+		CGameControllerDDRace *pController = (CGameControllerDDRace *)m_pController;
 		// send to the clients
 		for(int i = 0; i < Server()->MaxClients(); i++)
 		{
-			if(!m_apPlayers[i])
-				continue;
-			bool Send = (Server()->IsSixup(i) && (Flags & CHAT_SIXUP)) ||
-				    (!Server()->IsSixup(i) && (Flags & CHAT_SIX));
+			if(ChatterClientID >= 0 && ChatterClientID < MAX_CLIENTS)
+			{ // 正常玩家聊天
+				CPlayer *pChatterPlayer = m_apPlayers[ChatterClientID];
+				CPlayer *pReciverPlayer = m_apPlayers[i];
+				if(!pChatterPlayer || !pReciverPlayer)
+					continue;
 
-			if(!m_apPlayers[i]->m_DND && Send)
-				Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, i);
+				CNetMsg_Sv_Chat Msg2;
+				Msg2.m_Team = 0;
+				Msg2.m_ClientID = ChatterClientID;
+
+				bool isChatterGameOver = pController->HiddenIsPlayerGameOver(pChatterPlayer);
+				bool isReciverGameOver = pController->HiddenIsPlayerGameOver(pReciverPlayer);
+
+				bool IsNeedModifyText =
+					isChatterGameOver && !isReciverGameOver;
+				if(IsNeedModifyText)
+				{
+					Msg2.m_pMessage = ">>> 您无法查看旁观者消息";
+				}
+				else
+				{
+					Msg2.m_pMessage = aText;
+				}
+				bool Send = (Server()->IsSixup(i) && (Flags & CHAT_SIXUP)) ||
+					    (!Server()->IsSixup(i) && (Flags & CHAT_SIX));
+
+				if(!m_apPlayers[i]->m_DND && Send)
+					Server()->SendPackMsg(&Msg2, MSGFLAG_VITAL | MSGFLAG_NORECORD, i);
+			}
+			else
+			{ // 系统消息
+				if(!m_apPlayers[i])
+					continue;
+				bool Send = (Server()->IsSixup(i) && (Flags & CHAT_SIXUP)) ||
+					    (!Server()->IsSixup(i) && (Flags & CHAT_SIX));
+
+				if(!m_apPlayers[i]->m_DND && Send)
+					Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, i);
+			}
 		}
 
 		str_format(aBuf, sizeof aBuf, "Chat: %s", aText);
 		LogEvent(aBuf, ChatterClientID);
 	}
 	else
-	{
+	{ // 队伍聊天
 		CTeamsCore *pTeams = &((CGameControllerDDRace *)m_pController)->m_Teams.m_Core;
 		CNetMsg_Sv_Chat Msg;
 		Msg.m_Team = 1;
@@ -597,6 +639,12 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 				}
 				else
 				{
+					CGameControllerDDRace *pControllerDDrace = (CGameControllerDDRace *)(m_pController);
+					if(pControllerDDrace->m_HiddenState == true && m_apPlayers[i]->m_Hidden.m_InGame == true)
+					{ // Hidden Mode启动时，消息仅发送给出局玩家（队伍）
+						continue;
+					}
+
 					if(pTeams->Team(i) == Team && m_apPlayers[i]->GetTeam() != CHAT_SPEC)
 					{
 						Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, i);
@@ -950,7 +998,7 @@ void CGameContext::OnTick()
 	m_World.m_Core.m_aTuning[0] = m_Tuning;
 	m_World.Tick();
 
-	//if(world.paused) // make sure that the game object always updates
+	// if(world.paused) // make sure that the game object always updates
 	m_pController->Tick();
 
 	for(int i = 0; i < MAX_CLIENTS; i++)
@@ -1008,6 +1056,8 @@ void CGameContext::OnTick()
 				{
 					if(!m_apPlayers[i] || aVoteChecked[i])
 						continue;
+					if(m_apPlayers[i]->m_Hidden.m_IsDummyMachine)
+						continue; // 机器(设备、假人)不参与投票
 
 					if((IsKickVote() || IsSpecVote()) && (m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS ||
 										     (GetPlayerChar(m_VoteCreator) && GetPlayerChar(i) &&
@@ -1122,7 +1172,7 @@ void CGameContext::OnTick()
 				EndVote();
 				SendChat(-1, CGameContext::CHAT_ALL, "Vote failed enforced by authorized player", -1, CHAT_SIX);
 			}
-			//else if(m_VoteEnforce == VOTE_ENFORCE_NO || time_get() > m_VoteCloseTime)
+			// else if(m_VoteEnforce == VOTE_ENFORCE_NO || time_get() > m_VoteCloseTime)
 			else if(m_VoteEnforce == VOTE_ENFORCE_NO || (time_get() > m_VoteCloseTime && g_Config.m_SvVoteMajority))
 			{
 				EndVote();
@@ -1859,7 +1909,8 @@ void *CGameContext::PreProcessMsg(int *pMsgID, CUnpacker *pUnpacker, int ClientI
 			if(pMsg7->m_Force)
 			{
 				str_format(s_aRawMsg, sizeof(s_aRawMsg), "force_vote \"%s\" \"%s\" \"%s\"", pMsg7->m_pType, pMsg7->m_pValue, pMsg7->m_pReason);
-				Console()->SetAccessLevel(Authed == AUTHED_ADMIN ? IConsole::ACCESS_LEVEL_ADMIN : Authed == AUTHED_MOD ? IConsole::ACCESS_LEVEL_MOD : IConsole::ACCESS_LEVEL_HELPER);
+				Console()->SetAccessLevel(Authed == AUTHED_ADMIN ? IConsole::ACCESS_LEVEL_ADMIN : Authed == AUTHED_MOD ? IConsole::ACCESS_LEVEL_MOD :
+																	 IConsole::ACCESS_LEVEL_HELPER);
 				Console()->ExecuteLine(s_aRawMsg, ClientID, false);
 				Console()->SetAccessLevel(IConsole::ACCESS_LEVEL_ADMIN);
 				return 0;
@@ -2028,7 +2079,8 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 					Console()->SetFlagMask(CFGFLAG_CHAT);
 					int Authed = Server()->GetAuthedState(ClientID);
 					if(Authed)
-						Console()->SetAccessLevel(Authed == AUTHED_ADMIN ? IConsole::ACCESS_LEVEL_ADMIN : Authed == AUTHED_MOD ? IConsole::ACCESS_LEVEL_MOD : IConsole::ACCESS_LEVEL_HELPER);
+						Console()->SetAccessLevel(Authed == AUTHED_ADMIN ? IConsole::ACCESS_LEVEL_ADMIN : Authed == AUTHED_MOD ? IConsole::ACCESS_LEVEL_MOD :
+																			 IConsole::ACCESS_LEVEL_HELPER);
 					else
 						Console()->SetAccessLevel(IConsole::ACCESS_LEVEL_USER);
 
@@ -2334,7 +2386,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			if(pPlayer->GetTeam() == pMsg->m_Team || (g_Config.m_SvSpamprotection && pPlayer->m_LastSetTeam && pPlayer->m_LastSetTeam + Server()->TickSpeed() * g_Config.m_SvTeamChangeDelay > Server()->Tick()))
 				return;
 
-			//Kill Protection
+			// Kill Protection
 			CCharacter *pChr = pPlayer->GetCharacter();
 			if(pChr)
 			{
@@ -2624,7 +2676,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			if(!pChr)
 				return;
 
-			//Kill Protection
+			// Kill Protection
 			int CurrTime = (Server()->Tick() - pChr->m_StartTime) / Server()->TickSpeed();
 			if(g_Config.m_SvKillProtection != 0 && CurrTime >= (60 * g_Config.m_SvKillProtection) && pChr->m_DDRaceState == DDRACE_STARTED)
 			{
@@ -3324,6 +3376,138 @@ void CGameContext::ConchainSpecialMotdupdate(IConsole::IResult *pResult, void *p
 	}
 }
 
+// ConHammerToggle 锤子效果切换
+void CGameContext::ConHammerToggle(IConsole::IResult *pResult, void *pUserData)
+{
+	char aBuf[256];
+
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	CGameControllerDDRace *pController = (CGameControllerDDRace *)(pSelf->m_pController);
+
+	// 输入的开关状态
+	bool toggle = str_comp_nocase(pResult->GetString(0), "1") == 0 ? true : false;
+	if(toggle == pController->m_KillHammer)
+	{
+		if(toggle == true)
+		{
+			pSelf->SendBroadcast("先关闭才能开启", -1);
+		}
+		else
+		{
+			pSelf->SendBroadcast("开启后才能关闭", -1);
+		}
+		return;
+	}
+
+	// toggle Hammer Mode 切换锤子模式
+	pController->m_KillHammer = toggle;
+
+	str_format(aBuf, sizeof(aBuf), "Kill Hammer: %s", toggle ? "打开" : "关闭");
+	pSelf->SendBroadcast(aBuf, -1, true);
+}
+
+// Spawn Machine 生成机器
+void CGameContext::ConMachineSpawn(IConsole::IResult *pResult, void *pUserData)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	CGameControllerDDRace *pController = (CGameControllerDDRace *)(pSelf->m_pController);
+
+	pSelf->SendBroadcast("机器生成中……", -1, true);
+	pController->EndRound();
+}
+
+// Hidden Mode 切换
+void CGameContext::ConHiddenToggle(IConsole::IResult *pResult, void *pUserData)
+{
+	char aBuf[256];
+
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	CGameControllerDDRace *pController = (CGameControllerDDRace *)(pSelf->m_pController);
+
+	if(!pController->HiddemModeCanTurnOn())
+	{ // 地图不是躲猫猫地图
+		pSelf->SendBroadcast("此地图无法开启Hidden Mode", -1);
+		return;
+	}
+
+	// 输入的开关状态
+	bool toggle = str_comp_nocase(pResult->GetString(0), "1") == 0 ? true : false;
+	if(toggle == pController->m_HiddenState)
+	{
+		if(toggle == true)
+		{
+			pSelf->SendBroadcast("先关闭才能开启", -1);
+		}
+		else
+		{
+			pSelf->SendBroadcast("开启后才能关闭", -1);
+		}
+		return;
+	}
+
+	// toggle Hidden State 切换Hidden State状态
+	pController->m_HiddenState = toggle;
+
+	if(toggle == true)
+	{
+		if(pController->m_KillHammer == false)
+		{ // 如果Hidden Mode启动时Kill Hammer为关闭则打开Kill Hammer
+			// 由于此时参数一致，可以直接将ConHiddenToggle接收到的参数传给ConHammerToggle
+			pSelf->ConHammerToggle(pResult, pUserData);
+		}
+		for(CPlayer *pPlayer : pSelf->m_apPlayers)
+		{
+			if(!pPlayer)
+				continue;
+			if(pPlayer->GetTeam() == TEAM_SPECTATORS)
+				continue;
+
+			pPlayer->m_Hidden.m_InGame = true;
+			pPlayer->m_Hidden.m_IsSeeker = false;
+			pPlayer->m_Hidden.m_HasBeenKilled = false;
+
+			// 游戏开始后打开玩家信息锁
+			pPlayer->m_Hidden.m_IsLockedTeeInfos = true;
+		}
+
+		// DDRaceController信息变更
+		pController->HiddenStepUpdate(STEP_S1);
+
+		// 皮肤洗牌
+		pSelf->m_Hidden.aSkins = CPlayer::ShuffleSkin(pSelf->m_Hidden.aSkins);
+	}
+	else
+	{
+		pSelf->HiddenModeStop();
+	}
+	// 发送广播消息
+	str_format(aBuf, sizeof(aBuf), "Hidden state: %s", toggle ? "已启用" : "关闭");
+	pSelf->SendBroadcast(aBuf, -1, true);
+}
+
+void CGameContext::HiddenModeStop()
+{
+	for(CPlayer *pPlayer : this->m_apPlayers)
+	{
+		if(!pPlayer)
+			continue;
+		if(pPlayer->m_Hidden.m_IsDummyMachine)
+			continue;
+
+		pPlayer->HiddenStateReset();
+
+		if(pPlayer->GetTeam() == TEAM_SPECTATORS)
+		{ // 旁观玩家进入TEAM_FLOCK
+			pPlayer->SetTeam(TEAM_FLOCK);
+		}
+
+		// 游戏结束后关闭玩家信息锁
+		pPlayer->m_Hidden.m_IsLockedTeeInfos = false;
+	}
+	CGameControllerDDRace *pController = (CGameControllerDDRace *)this->m_pController;
+	pController->m_HiddenState = false;
+}
+
 void CGameContext::OnConsoleInit()
 {
 	m_pServer = Kernel()->RequestInterface<IServer>();
@@ -3332,6 +3516,9 @@ void CGameContext::OnConsoleInit()
 	m_pEngine = Kernel()->RequestInterface<IEngine>();
 	m_pStorage = Kernel()->RequestInterface<IStorage>();
 
+	Console()->Register("hammer_toggle", "i[value]", CFGFLAG_SERVER, ConHammerToggle, this, "Toggle hammer mode between normal and kill");
+	Console()->Register("machine_spawn", "", CFGFLAG_SERVER, ConMachineSpawn, this, "Spawn machine on the specified");
+	Console()->Register("hidden_toggle", "i[value]", CFGFLAG_SERVER, ConHiddenToggle, this, "Toggle hidden mode");
 	Console()->Register("tune", "s[tuning] ?i[value]", CFGFLAG_SERVER | CFGFLAG_GAME, ConTuneParam, this, "Tune variable to value or show current value");
 	Console()->Register("toggle_tune", "s[tuning] i[value 1] i[value 2]", CFGFLAG_SERVER | CFGFLAG_GAME, ConToggleTuneParam, this, "Toggle tune variable");
 	Console()->Register("tune_reset", "?s[tuning]", CFGFLAG_SERVER, ConTuneReset, this, "Reset all or one tuning variable to default");
@@ -3454,7 +3641,6 @@ void CGameContext::OnInit(const void *pPersistentData)
 	}
 
 	Console()->ExecuteFile(g_Config.m_SvResetFile, -1);
-
 	LoadMapSettings();
 
 	m_MapBugs.Dump();
@@ -3580,6 +3766,54 @@ void CGameContext::OnInit(const void *pPersistentData)
 
 	m_pAntibot->RoundStart(this);
 
+	CGameControllerDDRace *pController = (CGameControllerDDRace *)m_pController;
+	// Hidden Mode需要假人，生成四个假人
+	for(int id = 0; id < 4; id++)
+	{
+		CServer *pServer = (CServer *)Server();
+
+		pServer->m_aClients[id].m_State = CServer::CClient::STATE_INGAME;
+		pServer->m_NetServer.m_aSlots[id].m_Connection.HiddenSetState(NET_CONNSTATE_ONLINE);
+		str_copy(pServer->m_aClients[id].m_aName, Config()->m_HiddenMachineName);
+		OnClientConnected(id, nullptr);
+
+		CPlayer *pPlayer = m_apPlayers[id];
+		str_copy(pPlayer->m_TeeInfos.m_aSkinName, Config()->m_HiddenMachineSkinName);
+		pPlayer->m_TeeInfos.m_UseCustomColor = 0;
+		pPlayer->m_Hidden.m_IsDummyMachine = true;
+		pPlayer->SetAfk(false);
+	}
+	printf("假人生成完毕\n");
+
+	// 地图是否支持Hidden Mode
+	if(pController->HiddemModeCanTurnOn())
+	{
+		for(int id = 0; id < 4; id++)
+		{
+			CPlayer *pPlayer = m_apPlayers[id];
+			pController->TeleportPlayerToCheckPoint(pPlayer, 241);
+		}
+
+		// 解析m_Hidden.aSkins
+		{
+			char *str = Config()->m_HiddenSkins;
+			char *cstr = new char[str_length(str)]; // 创建一个字符数组，用来存储字符串的内容
+			std::strcpy(cstr, str); // 将字符串的内容复制到字符数组中
+
+			char *token = std::strtok(cstr, ","); // 使用strtok()函数，按照逗号切分字符串，返回第一个子字符串
+			while(token != NULL)
+			{ // 循环直到没有子字符串为止
+				std::string sub = token; // 将子字符串转换为std::string类型
+				sub.erase(0, sub.find("\"") + 1); // 去掉子字符串左边的引号和方括号
+				sub.erase(sub.find("\""), sub.length()); // 去掉子字符串右边的引号和方括号
+				m_Hidden.aSkins.push_back(sub); // 将子字符串放入到m_Hidden.aSkins中
+				token = std::strtok(NULL, ","); // 继续使用strtok()函数，返回下一个子字符串
+			}
+
+			delete[] cstr; // 删除字符数组
+			printf("皮肤解析完毕\n");
+		}
+	}
 #ifdef CONF_DEBUG
 	if(g_Config.m_DbgDummies)
 	{
@@ -3977,7 +4211,7 @@ void CGameContext::SendRecord(int ClientID)
 	CNetMsg_Sv_Record Msg;
 	CNetMsg_Sv_RecordLegacy MsgLegacy;
 	MsgLegacy.m_PlayerTimeBest = Msg.m_PlayerTimeBest = Score()->PlayerData(ClientID)->m_BestTime * 100.0f;
-	MsgLegacy.m_ServerTimeBest = Msg.m_ServerTimeBest = m_pController->m_CurrentRecord * 100.0f; //TODO: finish this
+	MsgLegacy.m_ServerTimeBest = Msg.m_ServerTimeBest = m_pController->m_CurrentRecord * 100.0f; // TODO: finish this
 	Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, ClientID);
 	if(!Server()->IsSixup(ClientID) && GetClientVersion(ClientID) < VERSION_DDNET_MSG_LEGACY)
 	{
@@ -4213,14 +4447,14 @@ void CGameContext::WhisperID(int ClientID, int VictimID, const char *pMessage)
 	}
 	else if(GetClientVersion(VictimID) >= VERSION_DDNET_WHISPER)
 	{
-		CNetMsg_Sv_Chat Msg2;
-		Msg2.m_Team = CHAT_WHISPER_RECV;
-		Msg2.m_ClientID = ClientID;
-		Msg2.m_pMessage = aCensoredMessage;
+		CNetMsg_Sv_Chat Msg;
+		Msg.m_Team = CHAT_WHISPER_RECV;
+		Msg.m_ClientID = ClientID;
+		Msg.m_pMessage = aCensoredMessage;
 		if(g_Config.m_SvDemoChat)
-			Server()->SendPackMsg(&Msg2, MSGFLAG_VITAL, VictimID);
+			Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, VictimID);
 		else
-			Server()->SendPackMsg(&Msg2, MSGFLAG_VITAL | MSGFLAG_NORECORD, VictimID);
+			Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, VictimID);
 	}
 	else
 	{

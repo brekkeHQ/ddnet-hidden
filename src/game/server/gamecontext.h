@@ -169,6 +169,16 @@ public:
 
 	void Clear();
 
+	// Hidden Mode相关
+	struct
+	{
+		std::vector<std::string> aSkins;
+	} m_Hidden;
+	static void ConHiddenToggle(IConsole::IResult *pResult, void *pUserData);
+	static void ConMachineSpawn(IConsole::IResult *pResult, void *pUserData);
+	static void ConHammerToggle(IConsole::IResult *pResult, void *pUserData);
+	void HiddenModeStop();
+
 	CEventHandler m_Events;
 	CPlayer *m_apPlayers[MAX_CLIENTS];
 	// keep last input to always apply when none is sent

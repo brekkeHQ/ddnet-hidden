@@ -16,6 +16,7 @@
 
 #include <game/server/gamecontext.h>
 #include <game/server/gamecontroller.h>
+#include <game/server/gamemodes/DDRace.h>
 #include <game/server/player.h>
 #include <game/server/score.h>
 #include <game/server/teams.h>
@@ -452,13 +453,52 @@ void CCharacter::FireWeapon()
 		{
 			auto *pTarget = static_cast<CCharacter *>(apEnts[i]);
 
-			//if ((pTarget == this) || Collision()->IntersectLine(ProjStartPos, pTarget->m_Pos, NULL, NULL))
+			// if ((pTarget == this) || Collision()->IntersectLine(ProjStartPos, pTarget->m_Pos, NULL, NULL))
 			if((pTarget == this || (pTarget->IsAlive() && !CanCollide(pTarget->GetPlayer()->GetCID()))))
 				continue;
 
 			// set his velocity to fast upward (for now)
 			if(length(pTarget->m_Pos - ProjStartPos) > 0.0f)
+			{
+				// 受害者被锤
 				GameServer()->CreateHammerHit(pTarget->m_Pos - normalize(pTarget->m_Pos - ProjStartPos) * GetProximityRadius() * 0.5f, TeamMask());
+				// Hidden Mode相关
+				CGameControllerDDRace *pController = (CGameControllerDDRace *)(GameServer()->m_pController);
+
+				bool isTurnOnHidden = pController->m_KillHammer; // 开启Hidden Mode
+				bool isNotMachine = pTarget->GetPlayer()->m_Hidden.m_IsDummyMachine == false; // 不是机器(假人、设备)
+
+				// 击杀MSG提示
+				CNetMsg_Sv_KillMsg Msg;
+				Msg.m_Weapon = WEAPON_HAMMER;
+
+				if(isTurnOnHidden && isNotMachine)
+				{
+					if(pController->m_Hidden.nowStep >= STEP_S4)
+					{ // 投票进入了S4以后的房间
+					  // 受害者状态改变->被杀(淘汰、出局)
+						pTarget->GetPlayer()->m_Hidden.m_HasBeenKilled = true;
+						// 受害者旁观ID设置为杀手ID
+						pTarget->GetPlayer()->m_SpectatorID = this->GetPlayer()->GetCID();
+						// 添加到最后一次行动
+						pController->m_Hidden.lastActiveClientID = this->GetPlayer()->GetCID();
+
+						Msg.m_Killer = pTarget->GetPlayer()->GetCID();
+						Msg.m_Victim = pTarget->GetPlayer()->GetCID();
+						Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, -1);
+					}
+					else if(pController->m_Hidden.nowStep == STEP_S0)
+					{ // 未开始投票
+						// 受害者死亡
+						pTarget->Die(pTarget->GetPlayer()->GetCID(), WEAPON_HAMMER, false);
+
+						Msg.m_Killer = this->GetPlayer()->GetCID();
+						Msg.m_Victim = pTarget->GetPlayer()->GetCID();
+
+						Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, -1);
+					}
+				}
+			}
 			else
 				GameServer()->CreateHammerHit(ProjStartPos, TeamMask());
 
@@ -514,15 +554,15 @@ void CCharacter::FireWeapon()
 
 			new CProjectile(
 				GameWorld(),
-				WEAPON_GUN, //Type
-				m_pPlayer->GetCID(), //Owner
-				ProjStartPos, //Pos
-				Direction, //Dir
-				Lifetime, //Span
-				false, //Freeze
-				false, //Explosive
-				-1, //SoundImpact
-				MouseTarget //InitDir
+				WEAPON_GUN, // Type
+				m_pPlayer->GetCID(), // Owner
+				ProjStartPos, // Pos
+				Direction, // Dir
+				Lifetime, // Span
+				false, // Freeze
+				false, // Explosive
+				-1, // SoundImpact
+				MouseTarget // InitDir
 			);
 
 			GameServer()->CreateSound(m_Pos, SOUND_GUN_FIRE, TeamMask());
@@ -553,14 +593,14 @@ void CCharacter::FireWeapon()
 
 		new CProjectile(
 			GameWorld(),
-			WEAPON_GRENADE, //Type
-			m_pPlayer->GetCID(), //Owner
-			ProjStartPos, //Pos
-			Direction, //Dir
-			Lifetime, //Span
-			false, //Freeze
-			true, //Explosive
-			SOUND_GRENADE_EXPLODE, //SoundImpact
+			WEAPON_GRENADE, // Type
+			m_pPlayer->GetCID(), // Owner
+			ProjStartPos, // Pos
+			Direction, // Dir
+			Lifetime, // Span
+			false, // Freeze
+			true, // Explosive
+			SOUND_GRENADE_EXPLODE, // SoundImpact
 			MouseTarget // MouseTarget
 		);
 
@@ -610,7 +650,7 @@ void CCharacter::FireWeapon()
 
 void CCharacter::HandleWeapons()
 {
-	//ninja
+	// ninja
 	HandleNinja();
 	HandleJetpack();
 
@@ -792,7 +832,7 @@ void CCharacter::TickDeferred()
 		m_ReckoningCore.Quantize();
 	}
 
-	//lastsentcore
+	// lastsentcore
 	vec2 StartPos = m_Core.m_Pos;
 	vec2 StartVel = m_Core.m_Vel;
 	bool StuckBefore = Collision()->TestBox(m_Core.m_Pos, CCharacterCore::PhysicalSizeVec2());
@@ -912,6 +952,14 @@ bool CCharacter::IncreaseArmor(int Amount)
 
 void CCharacter::Die(int Killer, int Weapon, bool SendKillMsg)
 {
+	CGameControllerDDRace *pController = (CGameControllerDDRace *)GameServer()->m_pController;
+	if(pController->m_HiddenState == true)
+	{ // Hidden Mode启用
+	  // 受害者广播
+		GameServer()->SendBroadcast("你死了!", this->GetPlayer()->GetCID());
+		this->GetPlayer()->m_Hidden.m_HasBeenKilled = true;
+	}
+
 	if(Server()->IsRecording(m_pPlayer->GetCID()))
 		Server()->StopRecord(m_pPlayer->GetCID());
 
@@ -964,7 +1012,7 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 	return true;
 }
 
-//TODO: Move the emote stuff to a function
+// TODO: Move the emote stuff to a function
 void CCharacter::SnapCharacter(int SnappingClient, int ID)
 {
 	int SnappingClientVersion = GameServer()->GetClientVersion(SnappingClient);
@@ -1220,7 +1268,8 @@ void CCharacter::Snap(int SnappingClient)
 	if(m_Core.m_LiveFrozen)
 		pDDNetCharacter->m_Flags |= CHARACTERFLAG_MOVEMENTS_DISABLED;
 
-	pDDNetCharacter->m_FreezeEnd = m_Core.m_DeepFrozen ? -1 : m_FreezeTime == 0 ? 0 : Server()->Tick() + m_FreezeTime;
+	pDDNetCharacter->m_FreezeEnd = m_Core.m_DeepFrozen ? -1 : m_FreezeTime == 0 ? 0 :
+										      Server()->Tick() + m_FreezeTime;
 	pDDNetCharacter->m_Jumps = m_Core.m_Jumps;
 	pDDNetCharacter->m_TeleCheckpoint = m_TeleCheckpoint;
 	pDDNetCharacter->m_StrongWeakID = m_StrongWeakID;
@@ -1425,7 +1474,7 @@ void CCharacter::SetTimeCheckpoint(int TimeCheckpoint)
 void CCharacter::HandleTiles(int Index)
 {
 	int MapIndex = Index;
-	//int PureMapIndex = Collision()->GetPureMapIndex(m_Pos);
+	// int PureMapIndex = Collision()->GetPureMapIndex(m_Pos);
 	m_TileIndex = Collision()->GetTileIndex(MapIndex);
 	m_TileFIndex = Collision()->GetFTileIndex(MapIndex);
 	m_MoveRestrictions = Collision()->GetMoveRestrictions(IsSwitchActiveCb, this, m_Pos, 18.0f, MapIndex);
@@ -2332,5 +2381,6 @@ CClientMask CCharacter::TeamMask()
 
 void CCharacter::SwapClients(int Client1, int Client2)
 {
-	m_Core.SetHookedPlayer(m_Core.m_HookedPlayer == Client1 ? Client2 : m_Core.m_HookedPlayer == Client2 ? Client1 : m_Core.m_HookedPlayer);
+	m_Core.SetHookedPlayer(m_Core.m_HookedPlayer == Client1 ? Client2 : m_Core.m_HookedPlayer == Client2 ? Client1 :
+													       m_Core.m_HookedPlayer);
 }

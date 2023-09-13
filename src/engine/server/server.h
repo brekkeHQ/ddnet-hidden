@@ -231,7 +231,7 @@ public:
 	IEngineMap *m_pMap;
 
 	int64_t m_GameStartTime;
-	//int m_CurrentGameTick;
+	// int m_CurrentGameTick;
 
 	enum
 	{
@@ -299,9 +299,9 @@ public:
 
 	void DemoRecorder_HandleAutoStart() override;
 
-	//int Tick()
+	// int Tick()
 	int64_t TickStartTime(int Tick);
-	//int TickSpeed()
+	// int TickSpeed()
 
 	int Init();
 
@@ -314,6 +314,7 @@ public:
 	void SetClientDDNetVersion(int ClientID, int DDNetVersion) override;
 	void GetClientAddr(int ClientID, char *pAddrStr, int Size) const override;
 	const char *ClientName(int ClientID) const override;
+	const char *RealClientName(int ClientID) const override;
 	const char *ClientClan(int ClientID) const override;
 	int ClientCountry(int ClientID) const override;
 	bool ClientIngame(int ClientID) const override;
@@ -400,6 +401,7 @@ public:
 
 	int Run();
 
+	static void ConHiddenSkin(IConsole::IResult *pResult, void *pUser);
 	static void ConTestingCommands(IConsole::IResult *pResult, void *pUser);
 	static void ConRescue(IConsole::IResult *pResult, void *pUser);
 	static void ConKick(IConsole::IResult *pResult, void *pUser);

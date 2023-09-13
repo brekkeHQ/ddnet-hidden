@@ -4,6 +4,7 @@
 #include "entities/character.h"
 #include "gamecontext.h"
 #include "gamecontroller.h"
+#include "gamemodes/DDRace.h"
 #include "score.h"
 
 #include <base/system.h>
@@ -328,13 +329,70 @@ void CPlayer::Snap(int SnappingClient)
 	if(!pClientInfo)
 		return;
 
-	StrToInts(&pClientInfo->m_Name0, 4, Server()->ClientName(m_ClientID));
-	StrToInts(&pClientInfo->m_Clan0, 3, Server()->ClientClan(m_ClientID));
-	pClientInfo->m_Country = Server()->ClientCountry(m_ClientID);
-	StrToInts(&pClientInfo->m_Skin0, 6, m_TeeInfos.m_aSkinName);
-	pClientInfo->m_UseCustomColor = m_TeeInfos.m_UseCustomColor;
-	pClientInfo->m_ColorBody = m_TeeInfos.m_ColorBody;
-	pClientInfo->m_ColorFeet = m_TeeInfos.m_ColorFeet;
+	// Hidden Mode
+	// 此处处理了名字以及皮肤
+	CGameControllerDDRace *pController = (CGameControllerDDRace *)(GameServer()->m_pController);
+	bool hiddenState = pController->m_HiddenState;
+
+	bool isInGame = m_Hidden.m_InGame;
+	bool isPassedS1 = pController->m_Hidden.nowStep > STEP_S1;
+	bool isNotBeenKilled = this->m_Hidden.m_HasBeenKilled == false;
+	bool isNotMachine = this->m_Hidden.m_IsDummyMachine == false;
+
+	char aName[256];
+	char aSkin[256];
+	char aClan[256];
+
+	if(hiddenState == true && isInGame && isPassedS1)
+	{ // hidden mode开启	已经通过S1
+		if(isNotMachine)
+		{
+			// 名字
+			str_copy(aName, Server()->ClientName(m_ClientID));
+			// 指定皮肤
+			str_copy(aSkin, GameServer()->m_Hidden.aSkins[id].c_str(), sizeof(aSkin));
+		}
+		else
+		{ // 名字
+			str_copy(aName, "DEVICE");
+			// 皮肤
+			str_copy(aSkin, "Robot");
+		}
+	}
+	else
+	{ // 其他状况
+		if(isNotMachine)
+		{ // 不是假人
+			// 名字
+			str_copy(aName, Server()->ClientName(m_ClientID));
+			// 皮肤
+			str_copy(aSkin, m_TeeInfos.m_aSkinName);
+		}
+		else
+		{ // 假人
+			// 名字
+			str_copy(aName, "GIFT");
+			// 皮肤
+			str_copy(aSkin, "giftee_red");
+		}
+	}
+
+	str_copy(aClan, Server()->ClientClan(m_ClientID));
+
+	StrToInts(&pClientInfo->m_Name0, 4, aName); // 名字
+	StrToInts(&pClientInfo->m_Skin0, 6, aSkin); // 皮肤
+	StrToInts(&pClientInfo->m_Clan0, 3, aClan); // 战队名
+	if(this->m_Hidden.m_IsLockedTeeInfos == false)
+	{ // Tee信息锁
+		// 国家
+		pClientInfo->m_Country = Server()->ClientCountry(m_ClientID);
+		// 自定义颜色是否启动
+		pClientInfo->m_UseCustomColor = m_TeeInfos.m_UseCustomColor;
+		// 自定义身体颜色
+		pClientInfo->m_ColorBody = m_TeeInfos.m_ColorBody;
+		// 自定义脚颜色
+		pClientInfo->m_ColorFeet = m_TeeInfos.m_ColorFeet;
+	}
 
 	int SnappingClientVersion = GameServer()->GetClientVersion(SnappingClient);
 	int Latency = SnappingClient == SERVER_DEMO_CLIENT ? m_Latency.m_Min : GameServer()->m_apPlayers[SnappingClient]->m_aCurLatency[m_ClientID];
@@ -364,14 +422,34 @@ void CPlayer::Snap(int SnappingClient)
 
 	if(!Server()->IsSixup(SnappingClient))
 	{
+		CPlayer *pPlayerSnapTo = GameServer()->m_apPlayers[SnappingClient];
 		CNetObj_PlayerInfo *pPlayerInfo = Server()->SnapNewItem<CNetObj_PlayerInfo>(id);
 		if(!pPlayerInfo)
 			return;
 
 		pPlayerInfo->m_Latency = Latency;
 		pPlayerInfo->m_Score = Score;
+
+		bool isNotShowPlayerInfo =
+			hiddenState && isPassedS1 && pPlayerSnapTo &&
+			!pPlayerSnapTo->IsPaused() && !this->IsPaused() &&
+			isInGame && pPlayerSnapTo->m_Hidden.m_InGame &&
+			isNotBeenKilled && !pPlayerSnapTo->m_Hidden.m_HasBeenKilled &&
+			!this->m_Hidden.m_IsLose && !pPlayerSnapTo->m_Hidden.m_IsLose &&
+			this->GetCID() != pPlayerSnapTo->GetCID() && !this->m_Hidden.m_IsDummyMachine;
+
+		bool isNotShowMachineInfo =
+			hiddenState == false && this->m_Hidden.m_IsDummyMachine;
+
+		if(isNotShowPlayerInfo || isNotShowMachineInfo)
+		{ // 不显示玩家信息
+			pPlayerInfo->m_ClientID = -1;
+		}
+		else
+		{
+			pPlayerInfo->m_ClientID = id;
+		}
 		pPlayerInfo->m_Local = (int)(m_ClientID == SnappingClient && (m_Paused != PAUSE_PAUSED || SnappingClientVersion >= VERSION_DDNET_OLD));
-		pPlayerInfo->m_ClientID = id;
 		pPlayerInfo->m_Team = m_Team;
 		if(SnappingClientVersion < VERSION_DDNET_INDEPENDENT_SPECTATORS_TEAM)
 		{
@@ -424,7 +502,6 @@ void CPlayer::Snap(int SnappingClient)
 	CNetObj_DDNetPlayer *pDDNetPlayer = Server()->SnapNewItem<CNetObj_DDNetPlayer>(id);
 	if(!pDDNetPlayer)
 		return;
-
 	pDDNetPlayer->m_AuthLevel = Server()->GetAuthedState(id);
 	pDDNetPlayer->m_Flags = 0;
 	if(m_Afk)
@@ -614,7 +691,9 @@ void CPlayer::SetTeam(int Team, bool DoChatMsg)
 	m_Team = Team;
 	m_LastSetTeam = Server()->Tick();
 	m_LastActionTick = Server()->Tick();
-	m_SpectatorID = SPEC_FREEVIEW;
+
+	// 修复旁观不能锁定他人的bug，注释掉下面一行代码即可
+	// m_SpectatorID = SPEC_FREEVIEW;
 
 	protocol7::CNetMsg_Sv_Team Msg;
 	Msg.m_ClientID = m_ClientID;
@@ -623,7 +702,9 @@ void CPlayer::SetTeam(int Team, bool DoChatMsg)
 	Msg.m_CooldownTick = m_LastSetTeam + Server()->TickSpeed() * g_Config.m_SvTeamChangeDelay;
 	Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, -1);
 
-	if(Team == TEAM_SPECTATORS)
+	// 如果没有开启Hiden Mode则在旁观模式时自动旁观自己
+	CGameControllerDDRace *pControllerDDRace = (CGameControllerDDRace *)(GameServer()->m_pController);
+	if(Team == TEAM_SPECTATORS && pControllerDDRace->m_HiddenState == false)
 	{
 		// update spectator modes
 		for(auto &pPlayer : GameServer()->m_apPlayers)

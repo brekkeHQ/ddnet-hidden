@@ -13,6 +13,10 @@
 #include <memory>
 #include <optional>
 
+#include "algorithm"
+#include "random"
+#include "vector"
+
 class CCharacter;
 class CGameContext;
 class IServer;
@@ -64,6 +68,16 @@ public:
 	CCharacter *GetCharacter();
 
 	void SpectatePlayerName(const char *pName);
+	// 打乱皮肤数组
+	// 例如["default","cow","dragon"]
+	// 变为["cow","dragon","default"]
+	static std::vector<std::string> ShuffleSkin(std::vector<std::string> arr)
+	{
+		std::random_device rd; // 创建一个随机数生成器
+		std::mt19937 g(rd()); // 创建一个梅森旋转算法引擎
+		std::shuffle(arr.begin(), arr.end(), g); // 使用shuffle()函数打乱数组
+		return arr; // 返回打乱后的数组
+	}
 
 	//---------------------------------------------------------
 	// this is used for snapping so we know how we can clip the view for the player
@@ -73,6 +87,39 @@ public:
 
 	// states if the client is chatting, accessing a menu etc.
 	int m_PlayerFlags;
+
+	// hidden mode state for the player 躲猫猫模式玩家状态结构体
+	struct
+	{
+		// 在游戏中
+		bool m_InGame = false;
+		// 是猎人
+		bool m_IsSeeker = false;
+		// 是假人
+		bool m_IsDummyMachine = false;
+		// 锁定皮肤
+		bool m_IsLockedTeeInfos = false;
+		// 被猎人杀害
+		bool m_HasBeenKilled = false;
+		// 该玩家胜利
+		bool m_IsWin = false;
+		// 该玩家失败
+		bool m_IsLose = false;
+
+		// 设备、假人、机器属性
+		int endTick = -1;
+	} m_Hidden;
+	// 状态重置
+	void HiddenStateReset()
+	{
+		m_Hidden.m_InGame = false;
+		m_Hidden.m_IsSeeker = false;
+		m_Hidden.m_IsDummyMachine = false;
+		m_Hidden.m_IsLockedTeeInfos = false;
+		m_Hidden.m_HasBeenKilled = false;
+		m_Hidden.m_IsWin = false;
+		m_Hidden.m_IsLose = false;
+	}
 
 	// used for snapping to just update latency if the scoreboard is active
 	int m_aCurLatency[MAX_CLIENTS];
@@ -217,7 +264,7 @@ public:
 	bool m_NotEligibleForFinish;
 	int64_t m_EligibleForFinishCheck;
 	bool m_VotedForPractice;
-	int m_SwapTargetsClientID; //Client ID of the swap target for the given player
+	int m_SwapTargetsClientID; // Client ID of the swap target for the given player
 	bool m_BirthdayAnnounced;
 };
 

@@ -266,6 +266,22 @@ public:
 	const char *ErrorString();
 	void SignalResend();
 	int State() const { return m_State; }
+	// Hidden Mode 相关
+	// 设置连接状态
+	void HiddenSetState(unsigned int state) { m_State = state; }
+	// 刷新上次接收时间
+	void HiddenFreshLastRecvTime()
+	{
+		int64_t now = time_get();
+		m_LastRecvTime = now;
+	}
+	// 刷新首次发送时间
+	void HiddenFreshFirstSendTime()
+	{
+		int64_t now = time_get();
+		m_Buffer.First()->m_FirstSendTime = now;
+	}
+
 	const NETADDR *PeerAddress() const { return &m_PeerAddr; }
 	void ConnectAddresses(const NETADDR **ppAddrs, int *pNumAddrs) const
 	{
@@ -363,6 +379,8 @@ class CNetServer
 	NETADDR m_Address;
 	NETSOCKET m_Socket;
 	CNetBan *m_pNetBan;
+
+public:
 	CSlot m_aSlots[NET_MAX_CLIENTS];
 	int m_MaxClients;
 	int m_MaxClientsPerIP;

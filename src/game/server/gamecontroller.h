@@ -115,8 +115,8 @@ public:
 	// game
 	void DoWarmup(int Seconds);
 
-	void StartRound();
-	void EndRound();
+	virtual void StartRound();
+	virtual void EndRound();
 	void ChangeMap(const char *pToMap);
 
 	bool IsForceBalanced();
@@ -130,7 +130,7 @@ public:
 
 	virtual void Snap(int SnappingClient);
 
-	//spawn
+	// spawn
 	virtual bool CanSpawn(int Team, vec2 *pOutPos, int DDTeam);
 
 	virtual void DoTeamChange(class CPlayer *pPlayer, int Team, bool DoChatMsg = true);

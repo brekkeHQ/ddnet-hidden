@@ -31,6 +31,9 @@
 #include <game/generated/client_data.h>
 #include <game/localization.h>
 
+#include <game/editor/mapitems/image.h>
+#include <game/editor/mapitems/sound.h>
+
 #include "auto_map.h"
 #include "editor.h"
 
@@ -7348,10 +7351,17 @@ void CEditor::RenderSavingIndicator(CUIRect View)
 	if(m_WriterFinishJobs.empty())
 		return;
 
+	const char *pText = "Saving…";
+	const float FontSize = 24.0f;
+
 	UI()->MapScreen();
-	CUIRect Label;
-	View.Margin(20.0f, &Label);
-	UI()->DoLabel(&Label, "Saving…", 24.0f, TEXTALIGN_BR);
+	CUIRect Label, Spinner;
+	View.Margin(20.0f, &View);
+	View.HSplitBottom(FontSize, nullptr, &View);
+	View.VSplitRight(TextRender()->TextWidth(FontSize, pText) + 2.0f, &Spinner, &Label);
+	Spinner.VSplitRight(Spinner.h, nullptr, &Spinner);
+	UI()->DoLabel(&Label, pText, FontSize, TEXTALIGN_MR);
+	UI()->RenderProgressSpinner(Spinner.Center(), 8.0f);
 }
 
 void CEditor::FreeDynamicPopupMenus()
@@ -7822,6 +7832,109 @@ void CEditor::LoadCurrentMap()
 	vec2 Center = pGameClient->m_Camera.m_Center;
 
 	MapView()->SetWorldOffset(Center);
+}
+
+bool CEditor::Save(const char *pFilename)
+{
+	// Check if file with this name is already being saved at the moment
+	if(std::any_of(std::begin(m_WriterFinishJobs), std::end(m_WriterFinishJobs), [pFilename](const std::shared_ptr<CDataFileWriterFinishJob> &Job) { return str_comp(pFilename, Job->GetRealFileName()) == 0; }))
+		return false;
+
+	return m_Map.Save(pFilename);
+}
+
+bool CEditor::HandleMapDrop(const char *pFileName, int StorageType)
+{
+	if(HasUnsavedData())
+	{
+		str_copy(m_aFileNamePending, pFileName);
+		m_PopupEventType = CEditor::POPEVENT_LOADDROP;
+		m_PopupEventActivated = true;
+		return true;
+	}
+	else
+	{
+		return Load(pFileName, IStorage::TYPE_ALL_OR_ABSOLUTE);
+	}
+}
+
+bool CEditor::Load(const char *pFileName, int StorageType)
+{
+	const auto &&ErrorHandler = [this](const char *pErrorMessage) {
+		ShowFileDialogError("%s", pErrorMessage);
+		Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "editor/load", pErrorMessage);
+	};
+
+	Reset();
+	bool Result = m_Map.Load(pFileName, StorageType, std::move(ErrorHandler));
+	if(Result)
+	{
+		str_copy(m_aFileName, pFileName);
+		SortImages();
+		SelectGameLayer();
+		MapView()->OnMapLoad();
+	}
+	else
+	{
+		m_aFileName[0] = 0;
+		Reset();
+	}
+	return Result;
+}
+
+bool CEditor::Append(const char *pFileName, int StorageType)
+{
+	CEditorMap NewMap;
+	NewMap.m_pEditor = this;
+
+	const auto &&ErrorHandler = [this](const char *pErrorMessage) {
+		ShowFileDialogError("%s", pErrorMessage);
+		Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "editor/append", pErrorMessage);
+	};
+	if(!NewMap.Load(pFileName, StorageType, std::move(ErrorHandler)))
+		return false;
+
+	// modify indices
+	static const auto &&s_ModifyAddIndex = [](int AddAmount) {
+		return [AddAmount](int *pIndex) {
+			if(*pIndex >= 0)
+				*pIndex += AddAmount;
+		};
+	};
+	NewMap.ModifyImageIndex(s_ModifyAddIndex(m_Map.m_vpImages.size()));
+	NewMap.ModifySoundIndex(s_ModifyAddIndex(m_Map.m_vpSounds.size()));
+	NewMap.ModifyEnvelopeIndex(s_ModifyAddIndex(m_Map.m_vpEnvelopes.size()));
+
+	// transfer images
+	for(const auto &pImage : NewMap.m_vpImages)
+		m_Map.m_vpImages.push_back(pImage);
+	NewMap.m_vpImages.clear();
+
+	// transfer sounds
+	for(const auto &pSound : NewMap.m_vpSounds)
+		m_Map.m_vpSounds.push_back(pSound);
+	NewMap.m_vpSounds.clear();
+
+	// transfer envelopes
+	for(const auto &pEnvelope : NewMap.m_vpEnvelopes)
+		m_Map.m_vpEnvelopes.push_back(pEnvelope);
+	NewMap.m_vpEnvelopes.clear();
+
+	// transfer groups
+	for(const auto &pGroup : NewMap.m_vpGroups)
+	{
+		if(pGroup != NewMap.m_pGameGroup)
+		{
+			pGroup->m_pMap = &m_Map;
+			m_Map.m_vpGroups.push_back(pGroup);
+		}
+	}
+	NewMap.m_vpGroups.clear();
+
+	SortImages();
+
+	// all done \o/
+	return true;
 }
 
 IEditor *CreateEditor() { return new CEditor; }

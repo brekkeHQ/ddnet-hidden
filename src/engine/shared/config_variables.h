@@ -6,6 +6,39 @@
 // TODO: remove this
 #include "././game/variables.h"
 
+// Hidden相关变量
+MACRO_CONFIG_STR(HiddenSkins, hidden_skins, 16384, "[\"default\",\"cow\",\"dragon\"]", CFGFLAG_SERVER, "The skins of players for hidden mode")
+
+MACRO_CONFIG_INT(HiddenStepDurationS1, hidden_duration_s1, 10, 0, 60, CFGFLAG_SERVER, "The duration of the step s1")
+MACRO_CONFIG_INT(HiddenStepDurationS2, hidden_duration_s2, 10, 0, 60, CFGFLAG_SERVER, "The duration of the step s2")
+MACRO_CONFIG_INT(HiddenStepDurationS3, hidden_duration_s3, 10, 0, 60, CFGFLAG_SERVER, "The duration of the step s3")
+MACRO_CONFIG_INT(HiddenStepDurationS4, hidden_duration_s4, 120, 0, 60, CFGFLAG_SERVER, "The duration of the step s4")
+
+MACRO_CONFIG_STR(HiddenMachineName, hidden_machine_name, 256, "DEVICE", CFGFLAG_SERVER, "The name of the dummy machine")
+MACRO_CONFIG_STR(HiddenMachineSkinName, hidden_machine_skin_name, 256, "Robot", CFGFLAG_SERVER, "The name of the dummy machine skin")
+
+MACRO_CONFIG_STR(HiddenStepVoteS1A, hidden_step_vote_s1_a, 256, "☺☺☺", CFGFLAG_SERVER, "")
+MACRO_CONFIG_STR(HiddenStepVoteS1B, hidden_step_vote_s1_b, 256, "☹☹☹", CFGFLAG_SERVER, "")
+
+MACRO_CONFIG_STR(HiddenStepVoteS2A, hidden_step_vote_s2_a, 256, "A", CFGFLAG_SERVER, "")
+MACRO_CONFIG_STR(HiddenStepVoteS2B, hidden_step_vote_s2_b, 256, "B", CFGFLAG_SERVER, "")
+MACRO_CONFIG_STR(HiddenStepVoteS2C, hidden_step_vote_s2_c, 256, "C", CFGFLAG_SERVER, "")
+MACRO_CONFIG_STR(HiddenStepVoteS2D, hidden_step_vote_s2_d, 256, "D", CFGFLAG_SERVER, "")
+MACRO_CONFIG_INT(HiddenStepVoteS2BValue, hidden_step_vote_s2_b_value, 1, 1, 64, CFGFLAG_SERVER, "")
+MACRO_CONFIG_INT(HiddenStepVoteS2CValue, hidden_step_vote_s2_c_value, 2, 1, 64, CFGFLAG_SERVER, "")
+MACRO_CONFIG_INT(HiddenStepVoteS2DValue, hidden_step_vote_s2_d_value, 3, 1, 64, CFGFLAG_SERVER, "")
+
+MACRO_CONFIG_STR(HiddenStepVoteS3A, hidden_step_vote_s3_a, 256, "A", CFGFLAG_SERVER, "")
+MACRO_CONFIG_STR(HiddenStepVoteS3B, hidden_step_vote_s3_b, 256, "B", CFGFLAG_SERVER, "")
+MACRO_CONFIG_STR(HiddenStepVoteS3C, hidden_step_vote_s3_c, 256, "C", CFGFLAG_SERVER, "")
+MACRO_CONFIG_STR(HiddenStepVoteS3D, hidden_step_vote_s3_d, 256, "D", CFGFLAG_SERVER, "")
+MACRO_CONFIG_INT(HiddenStepVoteS3BValue, hidden_step_vote_s3_b_value, 12, 1, 256, CFGFLAG_SERVER, "")
+MACRO_CONFIG_INT(HiddenStepVoteS3CValue, hidden_step_vote_s3_c_value, 24, 1, 256, CFGFLAG_SERVER, "")
+MACRO_CONFIG_INT(HiddenStepVoteS3DValue, hidden_step_vote_s3_d_value, 36, 1, 256, CFGFLAG_SERVER, "")
+
+MACRO_CONFIG_STR(HiddenSeekerWin, hidden_seeker_win, 256, "猎人胜利", CFGFLAG_SERVER, "")
+MACRO_CONFIG_STR(HiddenHiderWin, hidden_hider_win, 256, "求生者胜利", CFGFLAG_SERVER, "")
+
 MACRO_CONFIG_STR(PlayerName, player_name, 16, "", CFGFLAG_SAVE | CFGFLAG_CLIENT | CFGFLAG_INSENSITIVE, "Name of the player")
 MACRO_CONFIG_STR(PlayerClan, player_clan, 12, "", CFGFLAG_SAVE | CFGFLAG_CLIENT | CFGFLAG_INSENSITIVE, "Clan of the player")
 MACRO_CONFIG_INT(PlayerCountry, player_country, -1, -1, 1000, CFGFLAG_SAVE | CFGFLAG_CLIENT | CFGFLAG_INSENSITIVE, "Country of the player")
@@ -212,7 +245,7 @@ MACRO_CONFIG_INT(SvTestingCommands, sv_test_cmds, 0, 0, 1, CFGFLAG_SERVER, "Turn
 MACRO_CONFIG_INT(SvFreezeDelay, sv_freeze_delay, 3, 1, 30, CFGFLAG_SERVER | CFGFLAG_GAME, "How many seconds the players will remain frozen (applies to all except delayed freeze in switch layer & deepfreeze)")
 MACRO_CONFIG_INT(ClDDRaceBindsSet, cl_race_binds_set, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "What level the DDRace binds are set to (this is automated, you don't need to use this)")
 MACRO_CONFIG_INT(SvEndlessSuperHook, sv_endless_super_hook, 0, 0, 1, CFGFLAG_SERVER, "Endless hook for super players on/off")
-MACRO_CONFIG_INT(SvHideScore, sv_hide_score, 0, 0, 1, CFGFLAG_SERVER, "Whether players scores will be announced or not")
+MACRO_CONFIG_INT(SvHideScore, sv_hide_score, 1, 0, 1, CFGFLAG_SERVER, "Whether players scores will be announced or not")
 MACRO_CONFIG_INT(SvSaveWorseScores, sv_save_worse_scores, 1, 0, 1, CFGFLAG_SERVER | CFGFLAG_GAME, "Whether to save worse scores when you already have a better one")
 MACRO_CONFIG_INT(SvPauseable, sv_pauseable, 0, 0, 1, CFGFLAG_SERVER | CFGFLAG_GAME, "Whether players can pause their char or not")
 MACRO_CONFIG_INT(SvPauseMessages, sv_pause_messages, 0, 0, 1, CFGFLAG_SERVER, "Whether to show messages when a player pauses and resumes")
@@ -272,7 +305,7 @@ MACRO_CONFIG_STR(SvRulesLine8, sv_rules_line8, 128, "", CFGFLAG_SERVER, "Rules l
 MACRO_CONFIG_STR(SvRulesLine9, sv_rules_line9, 128, "", CFGFLAG_SERVER, "Rules line 9")
 MACRO_CONFIG_STR(SvRulesLine10, sv_rules_line10, 128, "", CFGFLAG_SERVER, "Rules line 10")
 
-MACRO_CONFIG_INT(SvTeam, sv_team, 1, 0, 3, CFGFLAG_SERVER | CFGFLAG_GAME, "Teams configuration (0 = off, 1 = on but optional, 2 = must play only with teams, 3 = forced random team only for you)")
+MACRO_CONFIG_INT(SvTeam, sv_team, 0, 0, 3, CFGFLAG_SERVER | CFGFLAG_GAME, "Teams configuration (0 = off, 1 = on but optional, 2 = must play only with teams, 3 = forced random team only for you)")
 MACRO_CONFIG_INT(SvMinTeamSize, sv_min_team_size, 2, 1, MAX_CLIENTS, CFGFLAG_SERVER | CFGFLAG_GAME, "Minimum team size (finishing in a team smaller than this size gives you no teamrank)")
 MACRO_CONFIG_INT(SvMaxTeamSize, sv_max_team_size, MAX_CLIENTS, 1, MAX_CLIENTS, CFGFLAG_SERVER | CFGFLAG_GAME, "Maximum team size")
 MACRO_CONFIG_INT(SvMapVote, sv_map_vote, 1, 0, 1, CFGFLAG_SERVER, "Whether to allow /map")
@@ -285,7 +318,7 @@ MACRO_CONFIG_INT(SvOldLaser, sv_old_laser, 0, 0, 1, CFGFLAG_SERVER | CFGFLAG_GAM
 MACRO_CONFIG_INT(SvSlashMe, sv_slash_me, 0, 0, 1, CFGFLAG_SERVER, "Whether /me is active on the server or not")
 MACRO_CONFIG_INT(SvRejoinTeam0, sv_rejoin_team_0, 1, 0, 1, CFGFLAG_SERVER, "Make a team automatically rejoin team 0 after finish (only if not locked)")
 
-MACRO_CONFIG_INT(SvNoWeakHook, sv_no_weak_hook, 0, 0, 1, CFGFLAG_SERVER | CFGFLAG_GAME, "Whether to use an alternative calculation for world ticks, that makes the hook behave like all players have strong.")
+MACRO_CONFIG_INT(SvNoWeakHook, sv_no_weak_hook, 1, 0, 1, CFGFLAG_SERVER | CFGFLAG_GAME, "Whether to use an alternative calculation for world ticks, that makes the hook behave like all players have strong.")
 
 MACRO_CONFIG_INT(ClReconnectTimeout, cl_reconnect_timeout, 120, 0, 600, CFGFLAG_CLIENT | CFGFLAG_SAVE, "How many seconds to wait before reconnecting (after timeout, 0 for off)")
 MACRO_CONFIG_INT(ClReconnectFull, cl_reconnect_full, 5, 0, 600, CFGFLAG_CLIENT | CFGFLAG_SAVE, "How many seconds to wait before reconnecting (when server is full, 0 for off)")

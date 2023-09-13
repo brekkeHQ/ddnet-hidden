@@ -4,6 +4,7 @@
 
 #include <game/generated/protocol.h>
 #include <game/mapitems.h>
+#include <game/server/gamemodes/DDRace.h>
 #include <game/teamscore.h>
 
 #include "gamecontext.h"
@@ -201,11 +202,11 @@ bool IGameController::OnEntity(int Index, int x, int y, int Layer, int Flags, bo
 			if(aSides[i] >= ENTITY_LASER_SHORT && aSides[i] <= ENTITY_LASER_LONG)
 			{
 				new CDoor(
-					&GameServer()->m_World, //GameWorld
-					Pos, //Pos
-					pi / 4 * i, //Rotation
-					32 * 3 + 32 * (aSides[i] - ENTITY_LASER_SHORT) * 3, //Length
-					Number //Number
+					&GameServer()->m_World, // GameWorld
+					Pos, // Pos
+					pi / 4 * i, // Rotation
+					32 * 3 + 32 * (aSides[i] - ENTITY_LASER_SHORT) * 3, // Length
+					Number // Number
 				);
 			}
 		}
@@ -224,14 +225,14 @@ bool IGameController::OnEntity(int Index, int x, int y, int Layer, int Flags, bo
 		float Deg = Dir * (pi / 2);
 		CProjectile *pBullet = new CProjectile(
 			&GameServer()->m_World,
-			WEAPON_SHOTGUN, //Type
-			-1, //Owner
-			Pos, //Pos
-			vec2(std::sin(Deg), std::cos(Deg)), //Dir
-			-2, //Span
-			true, //Freeze
-			true, //Explosive
-			(g_Config.m_SvShotgunBulletSound) ? SOUND_GRENADE_EXPLODE : -1, //SoundImpact
+			WEAPON_SHOTGUN, // Type
+			-1, // Owner
+			Pos, // Pos
+			vec2(std::sin(Deg), std::cos(Deg)), // Dir
+			-2, // Span
+			true, // Freeze
+			true, // Explosive
+			(g_Config.m_SvShotgunBulletSound) ? SOUND_GRENADE_EXPLODE : -1, // SoundImpact
 			vec2(std::sin(Deg), std::cos(Deg)), // InitDir
 			Layer,
 			Number);
@@ -251,13 +252,13 @@ bool IGameController::OnEntity(int Index, int x, int y, int Layer, int Flags, bo
 		float Deg = Dir * (pi / 2);
 		CProjectile *pBullet = new CProjectile(
 			&GameServer()->m_World,
-			WEAPON_SHOTGUN, //Type
-			-1, //Owner
-			Pos, //Pos
-			vec2(std::sin(Deg), std::cos(Deg)), //Dir
-			-2, //Span
-			true, //Freeze
-			false, //Explosive
+			WEAPON_SHOTGUN, // Type
+			-1, // Owner
+			Pos, // Pos
+			vec2(std::sin(Deg), std::cos(Deg)), // Dir
+			-2, // Span
+			true, // Freeze
+			false, // Explosive
 			SOUND_GRENADE_EXPLODE,
 			vec2(std::sin(Deg), std::cos(Deg)), // InitDir
 			Layer,
@@ -410,12 +411,14 @@ void IGameController::OnPlayerDisconnect(class CPlayer *pPlayer, const char *pRe
 	int ClientID = pPlayer->GetCID();
 	if(Server()->ClientIngame(ClientID))
 	{
+		// 玩家退出信息
 		char aBuf[512];
 		if(pReason && *pReason)
 			str_format(aBuf, sizeof(aBuf), "'%s' has left the game (%s)", Server()->ClientName(ClientID), pReason);
 		else
 			str_format(aBuf, sizeof(aBuf), "'%s' has left the game", Server()->ClientName(ClientID));
-		GameServer()->SendChat(-1, CGameContext::CHAT_ALL, aBuf, -1, CGameContext::CHAT_SIX);
+		// GameServer()->SendChat(-1, CGameContext::CHAT_ALL, aBuf, -1, CGameContext::CHAT_SIX);
+		GameServer()->SendChatTarget(-1, aBuf);
 
 		str_format(aBuf, sizeof(aBuf), "leave player='%d:%s'", ClientID, Server()->ClientName(ClientID));
 		GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "game", aBuf);
@@ -578,24 +581,33 @@ void IGameController::Snap(int SnappingClient)
 		return;
 
 	pGameInfoEx->m_Flags =
-		GAMEINFOFLAG_TIMESCORE |
-		GAMEINFOFLAG_GAMETYPE_RACE |
-		GAMEINFOFLAG_GAMETYPE_DDRACE |
-		GAMEINFOFLAG_GAMETYPE_DDNET |
+		// GAMEINFOFLAG_TIMESCORE |
+		// GAMEINFOFLAG_GAMETYPE_RACE |
+		// GAMEINFOFLAG_GAMETYPE_DDRACE |
+		// GAMEINFOFLAG_GAMETYPE_DDNET |
 		GAMEINFOFLAG_UNLIMITED_AMMO |
 		GAMEINFOFLAG_RACE_RECORD_MESSAGE |
 		GAMEINFOFLAG_ALLOW_EYE_WHEEL |
-		GAMEINFOFLAG_ALLOW_HOOK_COLL |
-		GAMEINFOFLAG_ALLOW_ZOOM |
-		GAMEINFOFLAG_BUG_DDRACE_GHOST |
-		GAMEINFOFLAG_BUG_DDRACE_INPUT |
+		// GAMEINFOFLAG_ALLOW_HOOK_COLL |
+		// GAMEINFOFLAG_BUG_DDRACE_GHOST |
+		// GAMEINFOFLAG_BUG_DDRACE_INPUT |
 		GAMEINFOFLAG_PREDICT_DDRACE |
 		GAMEINFOFLAG_PREDICT_DDRACE_TILES |
-		GAMEINFOFLAG_ENTITIES_DDNET |
-		GAMEINFOFLAG_ENTITIES_DDRACE |
-		GAMEINFOFLAG_ENTITIES_RACE |
+		GAMEINFOFLAG_ENTITIES_FNG |
+		GAMEINFOFLAG_DONT_MASK_ENTITIES |
 		GAMEINFOFLAG_RACE;
-	pGameInfoEx->m_Flags2 = GAMEINFOFLAG2_HUD_DDRACE;
+
+	// hidden mode
+	CGameControllerDDRace *pController = (CGameControllerDDRace *)GameServer()->m_pController;
+	if(pController->m_Hidden.canZoom)
+	{
+		pGameInfoEx->m_Flags |= GAMEINFOFLAG_ALLOW_ZOOM;
+	}
+
+	pGameInfoEx->m_Flags2 =
+		// GAMEINFOFLAG2_HUD_DDRACE |
+		// GAMEINFOFLAG2_ENTITIES_FDDRACE;
+		GAMEINFOFLAG2_HUD_DDRACE;
 	if(g_Config.m_SvNoWeakHook)
 		pGameInfoEx->m_Flags2 |= GAMEINFOFLAG2_NO_WEAK_HOOK;
 	pGameInfoEx->m_Version = GAMEINFO_CURVERSION;
