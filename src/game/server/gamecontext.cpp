@@ -582,11 +582,13 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 				bool isChatterGameOver = pController->HiddenIsPlayerGameOver(pChatterPlayer);
 				bool isReciverGameOver = pController->HiddenIsPlayerGameOver(pReciverPlayer);
 
+				// 需要修改内容
+				// 当说话的人出局而接收的人没有出局
 				bool IsNeedModifyText =
 					isChatterGameOver && !isReciverGameOver;
 				if(IsNeedModifyText)
 				{
-					Msg2.m_pMessage = ">>> 您无法查看旁观者消息";
+					Msg2.m_pMessage = Config()->m_HiddenCantSeeMSG;
 				}
 				else
 				{

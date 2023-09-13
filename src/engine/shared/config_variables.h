@@ -7,37 +7,39 @@
 #include "././game/variables.h"
 
 // Hidden相关变量
-MACRO_CONFIG_STR(HiddenSkins, hidden_skins, 16384, "[\"default\",\"cow\",\"dragon\"]", CFGFLAG_SERVER, "The skins of players for hidden mode")
+MACRO_CONFIG_STR(HiddenSkins, hidden_skins, 16384, "[\"default\",\"cow\",\"dragon\"]", CFGFLAG_SERVER, "皮肤库，必须大于64")
 
 MACRO_CONFIG_INT(HiddenStepDurationS1, hidden_duration_s1, 10, 0, 60, CFGFLAG_SERVER, "The duration of the step s1")
 MACRO_CONFIG_INT(HiddenStepDurationS2, hidden_duration_s2, 10, 0, 60, CFGFLAG_SERVER, "The duration of the step s2")
 MACRO_CONFIG_INT(HiddenStepDurationS3, hidden_duration_s3, 10, 0, 60, CFGFLAG_SERVER, "The duration of the step s3")
-MACRO_CONFIG_INT(HiddenStepDurationS4, hidden_duration_s4, 120, 0, 60, CFGFLAG_SERVER, "The duration of the step s4")
+MACRO_CONFIG_INT(HiddenStepDurationS4, hidden_duration_s4, 120, 0, 600, CFGFLAG_SERVER, "The duration of the step s4")
 
 MACRO_CONFIG_STR(HiddenMachineName, hidden_machine_name, 256, "DEVICE", CFGFLAG_SERVER, "The name of the dummy machine")
 MACRO_CONFIG_STR(HiddenMachineSkinName, hidden_machine_skin_name, 256, "Robot", CFGFLAG_SERVER, "The name of the dummy machine skin")
 
-MACRO_CONFIG_STR(HiddenStepVoteS1A, hidden_step_vote_s1_a, 256, "☺☺☺", CFGFLAG_SERVER, "")
-MACRO_CONFIG_STR(HiddenStepVoteS1B, hidden_step_vote_s1_b, 256, "☹☹☹", CFGFLAG_SERVER, "")
+MACRO_CONFIG_STR(HiddenStepVoteS1A, hidden_step_vote_s1_a, 256, "☺☺☺", CFGFLAG_SERVER, "S1的选项A")
+MACRO_CONFIG_STR(HiddenStepVoteS1B, hidden_step_vote_s1_b, 256, "☹☹☹", CFGFLAG_SERVER, "S1的选项B")
 
-MACRO_CONFIG_STR(HiddenStepVoteS2A, hidden_step_vote_s2_a, 256, "A", CFGFLAG_SERVER, "")
-MACRO_CONFIG_STR(HiddenStepVoteS2B, hidden_step_vote_s2_b, 256, "B", CFGFLAG_SERVER, "")
-MACRO_CONFIG_STR(HiddenStepVoteS2C, hidden_step_vote_s2_c, 256, "C", CFGFLAG_SERVER, "")
-MACRO_CONFIG_STR(HiddenStepVoteS2D, hidden_step_vote_s2_d, 256, "D", CFGFLAG_SERVER, "")
-MACRO_CONFIG_INT(HiddenStepVoteS2BValue, hidden_step_vote_s2_b_value, 1, 1, 64, CFGFLAG_SERVER, "")
-MACRO_CONFIG_INT(HiddenStepVoteS2CValue, hidden_step_vote_s2_c_value, 2, 1, 64, CFGFLAG_SERVER, "")
-MACRO_CONFIG_INT(HiddenStepVoteS2DValue, hidden_step_vote_s2_d_value, 3, 1, 64, CFGFLAG_SERVER, "")
+MACRO_CONFIG_STR(HiddenStepVoteS2A, hidden_step_vote_s2_a, 256, "A", CFGFLAG_SERVER, "S2的选项A")
+MACRO_CONFIG_STR(HiddenStepVoteS2B, hidden_step_vote_s2_b, 256, "B", CFGFLAG_SERVER, "S2的选项B")
+MACRO_CONFIG_STR(HiddenStepVoteS2C, hidden_step_vote_s2_c, 256, "C", CFGFLAG_SERVER, "S2的选项C")
+MACRO_CONFIG_STR(HiddenStepVoteS2D, hidden_step_vote_s2_d, 256, "D", CFGFLAG_SERVER, "S2的选项D")
+MACRO_CONFIG_INT(HiddenStepVoteS2BValue, hidden_step_vote_s2_b_value, 1, 1, 64, CFGFLAG_SERVER, "S2的选项B的值")
+MACRO_CONFIG_INT(HiddenStepVoteS2CValue, hidden_step_vote_s2_c_value, 2, 1, 64, CFGFLAG_SERVER, "S2的选项C的值")
+MACRO_CONFIG_INT(HiddenStepVoteS2DValue, hidden_step_vote_s2_d_value, 3, 1, 64, CFGFLAG_SERVER, "S2的选项D的值")
 
-MACRO_CONFIG_STR(HiddenStepVoteS3A, hidden_step_vote_s3_a, 256, "A", CFGFLAG_SERVER, "")
-MACRO_CONFIG_STR(HiddenStepVoteS3B, hidden_step_vote_s3_b, 256, "B", CFGFLAG_SERVER, "")
-MACRO_CONFIG_STR(HiddenStepVoteS3C, hidden_step_vote_s3_c, 256, "C", CFGFLAG_SERVER, "")
-MACRO_CONFIG_STR(HiddenStepVoteS3D, hidden_step_vote_s3_d, 256, "D", CFGFLAG_SERVER, "")
-MACRO_CONFIG_INT(HiddenStepVoteS3BValue, hidden_step_vote_s3_b_value, 12, 1, 256, CFGFLAG_SERVER, "")
-MACRO_CONFIG_INT(HiddenStepVoteS3CValue, hidden_step_vote_s3_c_value, 24, 1, 256, CFGFLAG_SERVER, "")
-MACRO_CONFIG_INT(HiddenStepVoteS3DValue, hidden_step_vote_s3_d_value, 36, 1, 256, CFGFLAG_SERVER, "")
+MACRO_CONFIG_STR(HiddenStepVoteS3A, hidden_step_vote_s3_a, 256, "A", CFGFLAG_SERVER, "S3的选项A的值")
+MACRO_CONFIG_STR(HiddenStepVoteS3B, hidden_step_vote_s3_b, 256, "B", CFGFLAG_SERVER, "S3的选项B的值")
+MACRO_CONFIG_STR(HiddenStepVoteS3C, hidden_step_vote_s3_c, 256, "C", CFGFLAG_SERVER, "S3的选项C的值")
+MACRO_CONFIG_STR(HiddenStepVoteS3D, hidden_step_vote_s3_d, 256, "D", CFGFLAG_SERVER, "S3的选项D的值")
+MACRO_CONFIG_INT(HiddenStepVoteS3BValue, hidden_step_vote_s3_b_value, 12, 1, 256, CFGFLAG_SERVER, "S3的选项B的值")
+MACRO_CONFIG_INT(HiddenStepVoteS3CValue, hidden_step_vote_s3_c_value, 24, 1, 256, CFGFLAG_SERVER, "S3的选项C的值")
+MACRO_CONFIG_INT(HiddenStepVoteS3DValue, hidden_step_vote_s3_d_value, 36, 1, 256, CFGFLAG_SERVER, "S3的选项D的值")
 
-MACRO_CONFIG_STR(HiddenSeekerWin, hidden_seeker_win, 256, "猎人胜利", CFGFLAG_SERVER, "")
-MACRO_CONFIG_STR(HiddenHiderWin, hidden_hider_win, 256, "求生者胜利", CFGFLAG_SERVER, "")
+MACRO_CONFIG_STR(HiddenSeekerWin, hidden_seeker_win, 256, "猎手胜利", CFGFLAG_SERVER, "猎人胜利提示")
+MACRO_CONFIG_STR(HiddenHiderWin, hidden_hider_win, 256, "求生者胜利", CFGFLAG_SERVER, "求生者胜利提示")
+
+MACRO_CONFIG_STR(HiddenCantSeeMSG, hidden_cant_see_msg, 256, "... [您无法查看此消息]", CFGFLAG_SERVER, "")
 
 MACRO_CONFIG_STR(PlayerName, player_name, 16, "", CFGFLAG_SAVE | CFGFLAG_CLIENT | CFGFLAG_INSENSITIVE, "Name of the player")
 MACRO_CONFIG_STR(PlayerClan, player_clan, 12, "", CFGFLAG_SAVE | CFGFLAG_CLIENT | CFGFLAG_INSENSITIVE, "Clan of the player")
