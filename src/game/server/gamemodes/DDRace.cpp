@@ -738,10 +738,14 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 			{ // 玩家是猎人
 				pController->TeleportPlayerToCheckPoint(pPlayer, 232);
 				printf("%s ", Server()->ClientName(pPlayer->GetCID()));
+				GameServer()->SendBroadcast(Config()->m_HiddenStepTipsS4A1, pPlayer->GetCID());
+				GameServer()->WhisperID(0, pPlayer->GetCID(), Config()->m_HiddenStepTipsS4A2);
 			}
 			else
 			{ // 不是猎人
 				pController->TeleportPlayerToCheckPoint(pPlayer, 231);
+				GameServer()->SendBroadcast(Config()->m_HiddenStepTipsS4B1, pPlayer->GetCID());
+				GameServer()->WhisperID(0, pPlayer->GetCID(), Config()->m_HiddenStepTipsS4B2);
 			}
 
 			currentIndex++;

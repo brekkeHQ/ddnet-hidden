@@ -17,3 +17,7 @@ CC-BY-SA license
 Tutorial:
 Copyright unique2 & Alisa
 CC-BY-SA license
+
+Hide_and_Seek:
+Copyright FightFire
+CC-BY-SA license

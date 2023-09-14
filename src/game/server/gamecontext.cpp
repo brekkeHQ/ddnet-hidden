@@ -571,8 +571,8 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 			if(ChatterClientID >= 0 && ChatterClientID < MAX_CLIENTS)
 			{ // 正常玩家聊天
 				CPlayer *pChatterPlayer = m_apPlayers[ChatterClientID];
-				CPlayer *pReciverPlayer = m_apPlayers[i];
-				if(!pChatterPlayer || !pReciverPlayer)
+				CPlayer *pReceiverPlayer = m_apPlayers[i];
+				if(!pChatterPlayer || !pReceiverPlayer)
 					continue;
 
 				CNetMsg_Sv_Chat Msg2;
@@ -580,20 +580,33 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 				Msg2.m_ClientID = ChatterClientID;
 
 				bool isChatterGameOver = pController->HiddenIsPlayerGameOver(pChatterPlayer);
-				bool isReciverGameOver = pController->HiddenIsPlayerGameOver(pReciverPlayer);
+				bool isReceiverGameOver = pController->HiddenIsPlayerGameOver(pReceiverPlayer);
 
 				// 需要修改内容
 				// 当说话的人出局而接收的人没有出局
-				bool IsNeedModifyText =
-					isChatterGameOver && !isReciverGameOver;
-				if(IsNeedModifyText)
+				bool IsCase1 =
+					isChatterGameOver && !isReceiverGameOver;
+				// 说话人没出局但是接收的出局了
+				bool IsCase2 =
+					!isChatterGameOver && isReceiverGameOver;
+
+				bool needModifyTextFlag = false; // 需要修改聊天文本
+
+				if(IsCase1)
 				{
+					Msg2.m_Team = 1;
+					needModifyTextFlag = true;
+				}
+				else if(IsCase2)
+				{
+					Msg2.m_Team = 1;
+				}
+
+				if(needModifyTextFlag)
 					Msg2.m_pMessage = Config()->m_HiddenCantSeeMSG;
-				}
 				else
-				{
 					Msg2.m_pMessage = aText;
-				}
+
 				bool Send = (Server()->IsSixup(i) && (Flags & CHAT_SIXUP)) ||
 					    (!Server()->IsSixup(i) && (Flags & CHAT_SIX));
 
@@ -617,6 +630,9 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 	}
 	else
 	{ // 队伍聊天
+		SendChatTarget(ChatterClientID, Config()->m_HiddenCantChatInTeamMSG);
+		return;
+
 		CTeamsCore *pTeams = &((CGameControllerDDRace *)m_pController)->m_Teams.m_Core;
 		CNetMsg_Sv_Chat Msg;
 		Msg.m_Team = 1;

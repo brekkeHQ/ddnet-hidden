@@ -28,20 +28,27 @@ MACRO_CONFIG_INT(HiddenStepVoteS2BValue, hidden_step_vote_s2_b_value, 1, 1, 64, 
 MACRO_CONFIG_INT(HiddenStepVoteS2CValue, hidden_step_vote_s2_c_value, 2, 1, 64, CFGFLAG_SERVER, "S2的选项C的值")
 MACRO_CONFIG_INT(HiddenStepVoteS2DValue, hidden_step_vote_s2_d_value, 3, 1, 64, CFGFLAG_SERVER, "S2的选项D的值")
 
-MACRO_CONFIG_STR(HiddenStepVoteS3A, hidden_step_vote_s3_a, 256, "A", CFGFLAG_SERVER, "S3的选项A的值")
-MACRO_CONFIG_STR(HiddenStepVoteS3B, hidden_step_vote_s3_b, 256, "B", CFGFLAG_SERVER, "S3的选项B的值")
-MACRO_CONFIG_STR(HiddenStepVoteS3C, hidden_step_vote_s3_c, 256, "C", CFGFLAG_SERVER, "S3的选项C的值")
-MACRO_CONFIG_STR(HiddenStepVoteS3D, hidden_step_vote_s3_d, 256, "D", CFGFLAG_SERVER, "S3的选项D的值")
+MACRO_CONFIG_STR(HiddenStepVoteS3A, hidden_step_vote_s3_a, 256, "A", CFGFLAG_SERVER, "S3的选项A")
+MACRO_CONFIG_STR(HiddenStepVoteS3B, hidden_step_vote_s3_b, 256, "B", CFGFLAG_SERVER, "S3的选项B")
+MACRO_CONFIG_STR(HiddenStepVoteS3C, hidden_step_vote_s3_c, 256, "C", CFGFLAG_SERVER, "S3的选项C")
+MACRO_CONFIG_STR(HiddenStepVoteS3D, hidden_step_vote_s3_d, 256, "D", CFGFLAG_SERVER, "S3的选项D")
 MACRO_CONFIG_INT(HiddenStepVoteS3BValue, hidden_step_vote_s3_b_value, 12, 1, 256, CFGFLAG_SERVER, "S3的选项B的值")
 MACRO_CONFIG_INT(HiddenStepVoteS3CValue, hidden_step_vote_s3_c_value, 24, 1, 256, CFGFLAG_SERVER, "S3的选项C的值")
 MACRO_CONFIG_INT(HiddenStepVoteS3DValue, hidden_step_vote_s3_d_value, 36, 1, 256, CFGFLAG_SERVER, "S3的选项D的值")
+
+MACRO_CONFIG_STR(HiddenStepTipsS4A1, hidden_step_tips_s4_a1, 256, "你是————→猎手", CFGFLAG_SERVER, "被选择为猎人的个人广播")
+MACRO_CONFIG_STR(HiddenStepTipsS4A2, hidden_step_tips_s4_a2, 256, "猎手：使用锤子击杀求生者", CFGFLAG_SERVER, "被选择为猎人的聊天提示")
+
+MACRO_CONFIG_STR(HiddenStepTipsS4B1, hidden_step_tips_s4_b1, 256, "你是————→求生者", CFGFLAG_SERVER, "被选择为求生者的个人广播")
+MACRO_CONFIG_STR(HiddenStepTipsS4B2, hidden_step_tips_s4_b2, 256, "逃生者：使用散弹枪击激活设备", CFGFLAG_SERVER, "被选择为求生者的聊天提示")
 
 MACRO_CONFIG_STR(HiddenSpectatorSeekerName, hidden_spectator_seeker_name, 256, "猎手", CFGFLAG_SERVER, "旁观玩家显示猎手的名字")
 
 MACRO_CONFIG_STR(HiddenSeekerWin, hidden_seeker_win, 256, "猎手胜利", CFGFLAG_SERVER, "猎人胜利提示")
 MACRO_CONFIG_STR(HiddenHiderWin, hidden_hider_win, 256, "求生者胜利", CFGFLAG_SERVER, "求生者胜利提示")
 
-MACRO_CONFIG_STR(HiddenCantSeeMSG, hidden_cant_see_msg, 256, "... [您无法查看此消息]", CFGFLAG_SERVER, "")
+MACRO_CONFIG_STR(HiddenCantSeeMSG, hidden_cant_see_msg, 256, "... [您无法查看此消息]", CFGFLAG_SERVER, "游戏中玩家查看旁观玩家消息提示")
+MACRO_CONFIG_STR(HiddenCantChatInTeamMSG, hidden_cant_chat_in_team_msg, 256, "你不能进行队伍聊天", CFGFLAG_SERVER, "拒绝玩家队伍聊天提示")
 
 MACRO_CONFIG_STR(PlayerName, player_name, 16, "", CFGFLAG_SAVE | CFGFLAG_CLIENT | CFGFLAG_INSENSITIVE, "Name of the player")
 MACRO_CONFIG_STR(PlayerClan, player_clan, 12, "", CFGFLAG_SAVE | CFGFLAG_CLIENT | CFGFLAG_INSENSITIVE, "Clan of the player")
