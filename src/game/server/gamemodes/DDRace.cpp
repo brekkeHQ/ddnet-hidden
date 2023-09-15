@@ -279,6 +279,8 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 	{
 		int vote201Num = 0;
 		int vote202Num = 0;
+		static int lastVote201Num = 0;
+		static int lastVote202Num = 0;
 
 		vec2 tele201Pos = pController->m_TeleOuts[201 - 1][0];
 		vec2 tele202Pos = pController->m_TeleOuts[202 - 1][0];
@@ -296,8 +298,14 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 				vote202Num++;
 		}
 
-		str_format(aBuf, sizeof(aBuf), "%s:%d \t\t\t %s:%d", Config()->m_HiddenStepVoteS1A, vote201Num, Config()->m_HiddenStepVoteS1B, vote202Num);
-		GameServer()->SendBroadcast(aBuf, -1);
+		if(vote201Num != lastVote201Num || vote202Num != lastVote202Num)
+		{
+			str_format(aBuf, sizeof(aBuf), "%s:%d \t\t\t %s:%d", Config()->m_HiddenStepVoteS1A, vote201Num, Config()->m_HiddenStepVoteS1B, vote202Num);
+			GameServer()->SendBroadcast(aBuf, -1);
+
+			lastVote201Num = vote201Num;
+			lastVote202Num = vote202Num;
+		}
 
 		if(nowTick == endTick)
 		{ // 选择时间结束，开始判断
@@ -324,6 +332,10 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 		int vote212Num = 0;
 		int vote213Num = 0;
 		int vote214Num = 0;
+		static int lastVote211Num = 0;
+		static int lastVote212Num = 0;
+		static int lastVote213Num = 0;
+		static int lastVote214Num = 0;
 
 		vec2 tele211Pos = pController->m_TeleOuts[211 - 1][0];
 		vec2 tele212Pos = pController->m_TeleOuts[212 - 1][0];
@@ -356,8 +368,16 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 			}
 		}
 
-		str_format(aBuf, sizeof(aBuf), "%s:%d \t %s:%d \t %s:%d \t %s:%d", Config()->m_HiddenStepVoteS2A, vote211Num, Config()->m_HiddenStepVoteS2B, vote212Num, Config()->m_HiddenStepVoteS2C, vote213Num, Config()->m_HiddenStepVoteS2D, vote214Num);
-		GameServer()->SendBroadcast(aBuf, -1);
+		if(lastVote211Num != vote211Num || lastVote212Num != vote212Num || lastVote213Num != vote213Num || lastVote214Num != vote214Num)
+		{
+			str_format(aBuf, sizeof(aBuf), "%s:%d \t %s:%d \t %s:%d \t %s:%d", Config()->m_HiddenStepVoteS2A, vote211Num, Config()->m_HiddenStepVoteS2B, vote212Num, Config()->m_HiddenStepVoteS2C, vote213Num, Config()->m_HiddenStepVoteS2D, vote214Num);
+			GameServer()->SendBroadcast(aBuf, -1);
+
+			lastVote211Num = vote211Num;
+			lastVote212Num = vote212Num;
+			lastVote213Num = vote213Num;
+			lastVote214Num = vote214Num;
+		}
 
 		if(nowTick == endTick)
 		{ // 选择时间结束，开始判断
@@ -396,6 +416,10 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 		int vote222Num = 0;
 		int vote223Num = 0;
 		int vote224Num = 0;
+		static int lastVote221Num = 0;
+		static int lastVote222Num = 0;
+		static int lastVote223Num = 0;
+		static int lastVote224Num = 0;
 
 		vec2 tele221Pos = pController->m_TeleOuts[221 - 1][0];
 		vec2 tele222Pos = pController->m_TeleOuts[222 - 1][0];
@@ -407,29 +431,37 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 			if(HiddenIsPlayerGameOver(pPlayer))
 				continue;
 			vec2 vPlayerPos = pPlayer->GetCharacter()->GetPos();
-			double distance211 = sqrt(pow(vPlayerPos.x - tele221Pos.x, 2) + pow(vPlayerPos.y - tele221Pos.y, 2));
-			double distance212 = sqrt(pow(vPlayerPos.x - tele222Pos.x, 2) + pow(vPlayerPos.y - tele222Pos.y, 2));
-			double distance213 = sqrt(pow(vPlayerPos.x - tele223Pos.x, 2) + pow(vPlayerPos.y - tele223Pos.y, 2));
-			double distance214 = sqrt(pow(vPlayerPos.x - tele224Pos.x, 2) + pow(vPlayerPos.y - tele224Pos.y, 2));
+			double distance221 = sqrt(pow(vPlayerPos.x - tele221Pos.x, 2) + pow(vPlayerPos.y - tele221Pos.y, 2));
+			double distance222 = sqrt(pow(vPlayerPos.x - tele222Pos.x, 2) + pow(vPlayerPos.y - tele222Pos.y, 2));
+			double distance223 = sqrt(pow(vPlayerPos.x - tele223Pos.x, 2) + pow(vPlayerPos.y - tele223Pos.y, 2));
+			double distance224 = sqrt(pow(vPlayerPos.x - tele224Pos.x, 2) + pow(vPlayerPos.y - tele224Pos.y, 2));
 
-			if(distance212 < distance213)
+			if(distance222 < distance223)
 			{ // 更靠近左边
-				if(distance211 < distance212)
+				if(distance221 < distance222)
 					vote221Num++;
 				else
 					vote222Num++;
 			}
 			else
 			{ // 更靠近右边
-				if(distance213 < distance214)
+				if(distance223 < distance224)
 					vote223Num++;
 				else
 					vote224Num++;
 			}
 		}
 
-		str_format(aBuf, sizeof(aBuf), "%s:%d \t %s:%d \t %s:%d \t %s:%d", Config()->m_HiddenStepVoteS3A, vote221Num, Config()->m_HiddenStepVoteS3B, vote222Num, Config()->m_HiddenStepVoteS3C, vote223Num, Config()->m_HiddenStepVoteS3D, vote224Num);
-		GameServer()->SendBroadcast(aBuf, -1);
+		if(lastVote221Num != vote221Num || lastVote222Num != vote222Num || lastVote223Num != vote223Num || lastVote224Num != vote224Num)
+		{
+			str_format(aBuf, sizeof(aBuf), "%s:%d \t %s:%d \t %s:%d \t %s:%d", Config()->m_HiddenStepVoteS3A, vote221Num, Config()->m_HiddenStepVoteS3B, vote222Num, Config()->m_HiddenStepVoteS3C, vote223Num, Config()->m_HiddenStepVoteS3D, vote224Num);
+			GameServer()->SendBroadcast(aBuf, -1);
+
+			lastVote221Num = vote221Num;
+			lastVote222Num = vote222Num;
+			lastVote223Num = vote223Num;
+			lastVote224Num = vote224Num;
+		}
 
 		if(nowTick == endTick)
 		{ // 选择时间结束，开始判断
