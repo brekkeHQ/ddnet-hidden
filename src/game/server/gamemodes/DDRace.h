@@ -80,7 +80,7 @@ public:
 	bool HiddenIsPlayerGameOver(CPlayer *pPlayer); // 判断玩家是否被淘汰
 
 	bool m_HiddenState = false; // Hidden Mode状态
-	bool m_KillHammer = true; // 杀人锤子状态
+	bool m_KillHammer = false; // 杀人锤子状态
 
 	struct
 	{ // Hidden Mode 模式数据

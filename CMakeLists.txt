@@ -1551,6 +1551,7 @@ set(EXPECTED_DATA
   mapres/winter_mountains3.png
   maps/Hide_and_Seek.map
   maps/Hide_and_Seek_V1.32.map
+  maps/Sunny\ Side\ Up.map
   maps/license.txt
   maps7/Gold\ Mine.map
   maps7/LearnToPlay.map

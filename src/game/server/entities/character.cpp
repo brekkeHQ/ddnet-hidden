@@ -465,14 +465,14 @@ void CCharacter::FireWeapon()
 				// Hidden Mode相关
 				CGameControllerDDRace *pController = (CGameControllerDDRace *)(GameServer()->m_pController);
 
-				bool isTurnOnHidden = pController->m_KillHammer; // 开启Hidden Mode
+				bool isTurnOnKillHammer = pController->m_KillHammer; // 开启Hidden Mode
 				bool isNotMachine = pTarget->GetPlayer()->m_Hidden.m_IsDummyMachine == false; // 不是机器(假人、设备)
 
 				// 击杀MSG提示
 				CNetMsg_Sv_KillMsg Msg;
 				Msg.m_Weapon = WEAPON_HAMMER;
 
-				if(isTurnOnHidden && isNotMachine)
+				if(isTurnOnKillHammer && isNotMachine)
 				{
 					if(pController->m_Hidden.nowStep >= STEP_S4)
 					{ // 投票进入了S4以后的房间

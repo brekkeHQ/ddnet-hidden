@@ -3800,17 +3800,17 @@ void CGameContext::OnInit(const void *pPersistentData)
 		pPlayer->m_TeeInfos.m_UseCustomColor = 0;
 		pPlayer->m_Hidden.m_IsDummyMachine = true;
 		pPlayer->SetAfk(false);
+
+		// 假人传送到241
+		pController->TeleportPlayerToCheckPoint(pPlayer, 241);
 	}
 	printf("假人生成完毕\n");
 
 	// 地图是否支持Hidden Mode
 	if(pController->HiddemModeCanTurnOn())
 	{
-		for(int id = 0; id < 4; id++)
-		{
-			CPlayer *pPlayer = m_apPlayers[id];
-			pController->TeleportPlayerToCheckPoint(pPlayer, 241);
-		}
+		// 启用Kill Hammer
+		pController->m_KillHammer = true;
 
 		// 解析m_Hidden.aSkins
 		{
