@@ -15,6 +15,7 @@
 #include <engine/map.h>
 #include <engine/server/server.h>
 #include <engine/shared/config.h>
+#include <engine/shared/console.h>
 #include <engine/shared/datafile.h>
 #include <engine/shared/json.h>
 #include <engine/shared/linereader.h>
@@ -1052,11 +1053,15 @@ void CGameContext::OnTick()
 			bool Veto = false, VetoStop = false;
 			if(m_VoteUpdate)
 			{
+				CGameControllerDDRace *pController = (CGameControllerDDRace *)m_pController;
 				// count votes
 				char aaBuf[MAX_CLIENTS][NETADDR_MAXSTRSIZE] = {{0}}, *pIP = NULL;
 				bool SinglePlayer = true;
 				for(int i = 0; i < MAX_CLIENTS; i++)
 				{
+					if(pController->HiddenIsMachine(m_apPlayers[i]))
+						continue; // 机器(设备、假人)不参与投票
+
 					if(m_apPlayers[i])
 					{
 						Server()->GetClientAddr(i, aaBuf[i], NETADDR_MAXSTRSIZE);
@@ -1074,7 +1079,7 @@ void CGameContext::OnTick()
 				{
 					if(!m_apPlayers[i] || aVoteChecked[i])
 						continue;
-					if(m_apPlayers[i]->m_Hidden.m_IsDummyMachine)
+					if(pController->HiddenIsMachine(m_apPlayers[i]))
 						continue; // 机器(设备、假人)不参与投票
 
 					if((IsKickVote() || IsSpecVote()) && (m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS ||
@@ -3429,9 +3434,28 @@ void CGameContext::ConMachineSpawn(IConsole::IResult *pResult, void *pUserData)
 {
 	CGameContext *pSelf = (CGameContext *)pUserData;
 	CGameControllerDDRace *pController = (CGameControllerDDRace *)(pSelf->m_pController);
+	CServer *pServer = (CServer *)(pSelf->m_pServer);
+	int checkpoint = pResult->GetInteger(0);
 
 	pSelf->SendBroadcast("机器生成中……", -1, true);
-	pController->EndRound();
+
+	for(int id = 0; id < 55; id++)
+	{
+		if(pSelf->m_apPlayers[id])
+			continue; // 该位置已存在玩家，跳过
+
+		pServer->m_aClients[id].m_State = CServer::CClient::STATE_INGAME;
+		str_copy(pServer->m_aClients[id].m_aName, pSelf->Config()->m_HiddenMachineName);
+		pSelf->OnClientConnected(id, nullptr);
+
+		CPlayer *pPlayer = pSelf->m_apPlayers[id];
+		str_copy(pPlayer->m_TeeInfos.m_aSkinName, pSelf->Config()->m_HiddenMachineSkinName);
+		pPlayer->m_TeeInfos.m_UseCustomColor = 0;
+		pPlayer->SetAfk(false);
+		pPlayer->m_Hidden.m_IsPlaceholder = true;
+
+		pController->TeleportPlayerToCheckPoint(pPlayer, checkpoint);
+	}
 }
 
 // Hidden Mode 切换
@@ -3468,31 +3492,7 @@ void CGameContext::ConHiddenToggle(IConsole::IResult *pResult, void *pUserData)
 
 	if(toggle == true)
 	{
-		if(pController->m_KillHammer == false)
-		{ // 如果Hidden Mode启动时Kill Hammer为关闭则打开Kill Hammer
-			// 由于此时参数一致，可以直接将ConHiddenToggle接收到的参数传给ConHammerToggle
-			pSelf->ConHammerToggle(pResult, pUserData);
-		}
-		for(CPlayer *pPlayer : pSelf->m_apPlayers)
-		{
-			if(!pPlayer)
-				continue;
-			if(pPlayer->GetTeam() == TEAM_SPECTATORS)
-				continue;
-
-			pPlayer->m_Hidden.m_InGame = true;
-			pPlayer->m_Hidden.m_IsSeeker = false;
-			pPlayer->m_Hidden.m_HasBeenKilled = false;
-
-			// 游戏开始后打开玩家信息锁
-			pPlayer->m_Hidden.m_IsLockedTeeInfos = true;
-		}
-
-		// DDRaceController信息变更
-		pController->HiddenStepUpdate(STEP_S1);
-
-		// 皮肤洗牌
-		pSelf->m_Hidden.aSkins = CPlayer::ShuffleSkin(pSelf->m_Hidden.aSkins);
+		pSelf->HiddenModeStart();
 	}
 	else
 	{
@@ -3503,8 +3503,12 @@ void CGameContext::ConHiddenToggle(IConsole::IResult *pResult, void *pUserData)
 	pSelf->SendBroadcast(aBuf, -1, true);
 }
 
+/*
+	关闭Hidden Mode
+ */
 void CGameContext::HiddenModeStop()
 {
+	CGameControllerDDRace *pController = (CGameControllerDDRace *)this->m_pController;
 	for(CPlayer *pPlayer : this->m_apPlayers)
 	{
 		if(!pPlayer)
@@ -3522,8 +3526,84 @@ void CGameContext::HiddenModeStop()
 		// 游戏结束后关闭玩家信息锁
 		pPlayer->m_Hidden.m_IsLockedTeeInfos = false;
 	}
-	CGameControllerDDRace *pController = (CGameControllerDDRace *)this->m_pController;
 	pController->m_HiddenState = false;
+}
+
+/*
+	开启Hidden Mode
+ */
+void CGameContext::HiddenModeStart()
+{
+	CGameControllerDDRace *pController = (CGameControllerDDRace *)this->m_pController;
+	if(pController->m_KillHammer == false)
+	{ // 如果Hidden Mode启动时Kill Hammer为关闭则打开Kill Hammer
+		CConsole::CResult *pResult = new CConsole::CResult();
+		pResult->AddArgument("1");
+		void *pUserData = (void *)this;
+		ConHammerToggle(pResult, pUserData);
+	}
+	for(CPlayer *pPlayer : m_apPlayers)
+	{
+		if(!pPlayer)
+			continue;
+		if(pPlayer->GetTeam() == TEAM_SPECTATORS)
+			continue;
+
+		pPlayer->m_Hidden.m_InGame = true;
+		pPlayer->m_Hidden.m_IsSeeker = false;
+		pPlayer->m_Hidden.m_HasBeenKilled = false;
+
+		// 游戏开始后打开玩家信息锁
+		pPlayer->m_Hidden.m_IsLockedTeeInfos = true;
+	}
+
+	// DDRaceController信息变更
+	pController->HiddenStepUpdate(STEP_S1);
+
+	// 皮肤洗牌
+	m_Hidden.aSkins = CPlayer::ShuffleSkin(m_Hidden.aSkins);
+
+	pController->m_HiddenState = true;
+}
+
+/*
+	传送玩家到CP点
+ */
+void CGameContext::ConHiddenTeleportPlayerToCheckPoint(IConsole::IResult *pResult, void *pUserData)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	CGameControllerDDRace *pController = (CGameControllerDDRace *)(pSelf->m_pController);
+
+	int clientID;
+	int checkPoint = 0;
+	vec2 viewPos;
+
+	if(pResult->NumArguments() == 1)
+	{
+		clientID = pResult->m_ClientID;
+		checkPoint = pResult->GetInteger(0);
+	}
+	else if(pResult->NumArguments() == 2)
+	{
+		clientID = pResult->GetInteger(0);
+		checkPoint = pResult->GetInteger(1);
+	}
+	else
+	{
+		clientID = pResult->m_ClientID;
+		viewPos = pSelf->m_apPlayers[clientID]->m_ViewPos;
+	}
+
+	if(pResult->NumArguments())
+		pController->TeleportPlayerToCheckPoint(pSelf->m_apPlayers[clientID], checkPoint);
+	else
+	{
+		CCharacter *pChr = pSelf->GetPlayerChar(clientID);
+		if(pChr)
+		{
+			pController->Teleport(pChr, pSelf->m_apPlayers[clientID]->m_ViewPos);
+		}
+	}
 }
 
 void CGameContext::OnConsoleInit()
@@ -3534,9 +3614,11 @@ void CGameContext::OnConsoleInit()
 	m_pEngine = Kernel()->RequestInterface<IEngine>();
 	m_pStorage = Kernel()->RequestInterface<IStorage>();
 
-	Console()->Register("hammer_toggle", "i[value]", CFGFLAG_SERVER, ConHammerToggle, this, "Toggle hammer mode between normal and kill");
-	Console()->Register("machine_spawn", "", CFGFLAG_SERVER, ConMachineSpawn, this, "Spawn machine on the specified");
+	Console()->Register("hidden_hammer_toggle", "i[value]", CFGFLAG_SERVER, ConHammerToggle, this, "Toggle hammer mode between normal and kill");
+	Console()->Register("hidden_machine_spawn", "i[checkpoint]", CFGFLAG_SERVER, ConMachineSpawn, this, "Spawn machine on the specified checkpoint");
 	Console()->Register("hidden_toggle", "i[value]", CFGFLAG_SERVER, ConHiddenToggle, this, "Toggle hidden mode");
+	Console()->Register("hidden_tp", "?i[clientID/checkpoint] ?i[checkpoint]", CFGFLAG_SERVER, ConHiddenTeleportPlayerToCheckPoint, this, "Teleport player or self to check point or view postion");
+
 	Console()->Register("tune", "s[tuning] ?i[value]", CFGFLAG_SERVER | CFGFLAG_GAME, ConTuneParam, this, "Tune variable to value or show current value");
 	Console()->Register("toggle_tune", "s[tuning] i[value 1] i[value 2]", CFGFLAG_SERVER | CFGFLAG_GAME, ConToggleTuneParam, this, "Toggle tune variable");
 	Console()->Register("tune_reset", "?s[tuning]", CFGFLAG_SERVER, ConTuneReset, this, "Reset all or one tuning variable to default");
@@ -3831,6 +3913,9 @@ void CGameContext::OnInit(const void *pPersistentData)
 			delete[] cstr; // 删除字符数组
 			printf("皮肤解析完毕\n");
 		}
+
+		// 进入step s0
+		pController->HiddenStepUpdate(STEP_S0);
 	}
 #ifdef CONF_DEBUG
 	if(g_Config.m_DbgDummies)

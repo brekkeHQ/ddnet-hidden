@@ -16,8 +16,10 @@
 #include "random"
 #include "vector"
 
-#define GAME_TYPE_NAME "HiddenWorld"
-#define TEST_TYPE_NAME "TestHidden"
+#define GAME_TYPE_NAME "DDraceNetwork"
+#define TEST_TYPE_NAME "TestDDraceNetwork"
+#define HIDDEN_TYPE_NAME "HiddenWorld"
+#define HIDDEN_TEST_TYPE_NAME "TestHiddenWorld"
 
 CGameControllerDDRace::CGameControllerDDRace(class CGameContext *pGameServer) :
 	IGameController(pGameServer), m_Teams(pGameServer), m_pLoadBestTimeResult(nullptr)
@@ -25,6 +27,8 @@ CGameControllerDDRace::CGameControllerDDRace(class CGameContext *pGameServer) :
 	m_pGameType = g_Config.m_SvTestingCommands ? TEST_TYPE_NAME : GAME_TYPE_NAME;
 
 	InitTeleporter();
+	if(HiddemModeCanTurnOn())
+		m_pGameType = g_Config.m_SvTestingCommands ? HIDDEN_TEST_TYPE_NAME : HIDDEN_TYPE_NAME;
 }
 
 CGameControllerDDRace::~CGameControllerDDRace() = default;
@@ -256,16 +260,58 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 	}
 	// 本阶段剩余Tick
 	int remainTick = endTick - nowTick;
+	bool isShowRemainTime =
+		(remainTick % (30 * tickSpeed) == 0) ||
+		(remainTick < tickSpeed * 30 && remainTick % (15 * tickSpeed) == 0) ||
+		(remainTick < tickSpeed * 4 && remainTick % (1 * tickSpeed) == 0);
 
-	if(remainTick == tickSpeed * 3 || remainTick == tickSpeed * 2 || remainTick == tickSpeed * 1)
-	{
-		str_format(aBuf, sizeof(aBuf), "还剩: %.2f 秒", remainTime);
-		GameServer()->SendChatTarget(-1, aBuf);
-	}
+	if(remainTick)
+		// 全局倒计时消息
+		if(isShowRemainTime)
+		{
+			str_format(aBuf, sizeof(aBuf), "还剩: %.2f 秒", remainTime);
+			GameServer()->SendChatTarget(-1, aBuf);
+		}
 
 	switch(nowStep)
 	{
-	case STEP_S0: break;
+	case STEP_S0:
+	{
+		if(isShowRemainTime)
+		{ // 剩余时间提示
+			double tipRemainTime = (double)(endTick - nowTick) / tickSpeed;
+			str_format(aBuf, sizeof(aBuf), "游戏将在%.2f秒后开始", tipRemainTime);
+			GameServer()->SendBroadcast(aBuf, -1);
+		}
+
+		if(nowTick == endTick)
+		{
+			// 判断人数
+			int playerCount = 0;
+			for(auto &pPlayer : GameServer()->m_apPlayers)
+			{
+				if(this->HiddenIsMachine(pPlayer))
+					continue; // 机器人不计算在内
+				if(pPlayer->IsAfk())
+					continue; // 挂机玩家不计算在内
+				playerCount++;
+			}
+
+			if(playerCount > 2)
+				GameServer()->HiddenModeStart();
+			else if(playerCount == 1)
+			{
+				str_format(aBuf, sizeof(aBuf), "当前人数:%d,至少需要2人才能开始游戏!", playerCount);
+				GameServer()->SendBroadcast(aBuf, -1);
+				HiddenStepUpdate(STEP_S0);
+			}
+			else
+			{
+				m_Hidden.stepEndTick = nowTick + tickSpeed * Config()->m_HiddenStepDurationS0;
+			}
+		}
+		break;
+	};
 	case STEP_S5:
 	{
 		if(nowTick == endTick)
@@ -396,6 +442,10 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 			{
 				m_Hidden.seekerNum = Config()->m_HiddenStepVoteS2BValue;
 			}
+
+			str_format(aBuf, sizeof(aBuf), "投票结果: %d", m_Hidden.seekerNum);
+			GameServer()->SendChatTarget(-1, aBuf);
+
 			if(m_Hidden.seekerNum >= m_Hidden.iS1PlayerNum)
 			{ // 玩家数量少于选择的猎人数量
 				HiddenStepUpdate(STEP_S0);
@@ -404,8 +454,6 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 			else
 			{ // 猎人数量正确
 				HiddenStepUpdate(STEP_S3);
-				str_format(aBuf, sizeof(aBuf), "投票结果: %d", m_Hidden.seekerNum);
-				GameServer()->SendChatTarget(-1, aBuf);
 			}
 		}
 		break;
@@ -608,11 +656,11 @@ bool CGameControllerDDRace::HiddenIsPlayerGameOver(CPlayer *pPlayer)
 	if(!pPlayer->GetCharacter())
 		return true; // 没有生成角色
 
+	if(HiddenIsMachine(pPlayer))
+		return true; // 是假人机器设备
 	if(pPlayer->GetTeam() == TEAM_SPECTATORS)
 		return true; // 在旁观模式
 
-	if(pPlayer->m_Hidden.m_IsDummyMachine)
-		return true; // 是机器(假人、设备)
 	if(pPlayer->m_Hidden.m_HasBeenKilled)
 		return true; // 已被杀死
 	if(pPlayer->m_Hidden.m_InGame == false)
@@ -622,6 +670,26 @@ bool CGameControllerDDRace::HiddenIsPlayerGameOver(CPlayer *pPlayer)
 
 	return false;
 }
+/*
+	是假人机器设备
+ */
+bool CGameControllerDDRace::HiddenIsMachine(CPlayer *pPlayer)
+{
+	if(!pPlayer)
+		return true; // 没有玩家
+	if(!pPlayer->GetCharacter())
+		return true; // 没有生成角色
+
+	if(pPlayer->m_Hidden.m_IsDummyMachine)
+		return true; // 是机器(假人、设备)
+	if(pPlayer->m_Hidden.m_IsPlaceholder)
+		return true; // 是占位机器人
+
+	return false;
+}
+/*
+	阶段更新
+ */
 void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 {
 	int tickSpeed = Server()->TickSpeed();
@@ -637,9 +705,7 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 		{
 			for(auto &pPlayer : GameServer()->m_apPlayers)
 			{
-				if(!pPlayer)
-					continue;
-				if(pPlayer->m_Hidden.m_IsDummyMachine)
+				if(HiddenIsMachine(pPlayer))
 					continue;
 
 				pPlayer->SetTeam(TEAM_FLOCK, false);
@@ -650,10 +716,8 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 		{ // 大于等于S4 --> 假人(设备、机器)归位
 			for(auto &pPlayer : GameServer()->m_apPlayers)
 			{
-				if(!pPlayer)
-					continue;
-				if(!pPlayer->m_Hidden.m_IsDummyMachine)
-					continue; // 不是假人(设备、机器)
+				if(!HiddenIsMachine(pPlayer))
+					continue; // 是玩家
 
 				pController->TeleportPlayerToCheckPoint(pPlayer, 241);
 			}
@@ -663,21 +727,21 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 		{ // 冠军房间传送
 			for(auto &pPlayer : GameServer()->m_apPlayers)
 			{
-				if(!pPlayer)
-					continue;
-				if(pPlayer->m_Hidden.m_IsDummyMachine)
-					continue;
+				if(HiddenIsMachine(pPlayer))
+					continue; // 假人不传送
 				if(pPlayer->m_Hidden.m_InGame == false)
-					continue;
+					continue; // 未加入游戏玩家不传送
 
 				if(pPlayer->m_Hidden.m_IsWin)
 					TeleportPlayerToCheckPoint(pPlayer, 251);
-				else
+				else if(pPlayer->m_Hidden.m_IsLose)
 					TeleportPlayerToCheckPoint(pPlayer, 252);
 			}
 		}
 
 		HiddenStateReset();
+		m_Hidden.stepDurationTime = Config()->m_HiddenStepDurationS0;
+		m_Hidden.stepEndTick = tickNow + tickSpeed * m_Hidden.stepDurationTime;
 
 		// 关闭Hidden Mode
 		GameServer()->HiddenModeStop();
@@ -713,8 +777,7 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 		{
 			if(HiddenIsPlayerGameOver(pPlayer))
 				continue;
-			vec2 tele211Pos = pController->m_TeleOuts[211 - 1][0];
-			pController->Teleport(pPlayer->GetCharacter(), tele211Pos);
+			pController->TeleportPlayerToCheckPoint(pPlayer, 211);
 		}
 		m_Hidden.nowStep = STEP_S2;
 		m_Hidden.stepDurationTime = GameServer()->Config()->m_HiddenStepDurationS2;
@@ -731,8 +794,7 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 		{
 			if(HiddenIsPlayerGameOver(pPlayer))
 				continue;
-			vec2 tele221Pos = pController->m_TeleOuts[221 - 1][0];
-			pController->Teleport(pPlayer->GetCharacter(), tele221Pos);
+			pController->TeleportPlayerToCheckPoint(pPlayer, 221);
 		}
 		m_Hidden.nowStep = STEP_S3;
 		m_Hidden.stepDurationTime = GameServer()->Config()->m_HiddenStepDurationS3;
@@ -814,8 +876,6 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 		{ // 猎人胜利标记
 			for(auto &pPlayer : GameServer()->m_apPlayers)
 			{
-				if(!pPlayer)
-					continue;
 				if(HiddenIsPlayerGameOver(pPlayer))
 					continue; // 不在游戏中
 
@@ -828,8 +888,6 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 		{ // 求生者胜利标记
 			for(auto &pPlayer : GameServer()->m_apPlayers)
 			{
-				if(!pPlayer)
-					continue;
 				if(HiddenIsPlayerGameOver(pPlayer))
 					continue; // 不在游戏中
 
@@ -842,9 +900,7 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 		// 只保留最后一次行动的玩家，其他玩家都旁观他
 		for(auto &pPlayer : GameServer()->m_apPlayers)
 		{
-			if(!pPlayer)
-				continue;
-			if(pPlayer->m_Hidden.m_IsDummyMachine)
+			if(HiddenIsMachine(pPlayer))
 				continue; // 排除机器人
 			if(pPlayer->GetCID() == m_Hidden.lastActiveClientID)
 				continue; // 排除最后一次行动玩家

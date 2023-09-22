@@ -175,9 +175,11 @@ public:
 		std::vector<std::string> aSkins;
 	} m_Hidden;
 	static void ConHiddenToggle(IConsole::IResult *pResult, void *pUserData);
+	static void ConHiddenTeleportPlayerToCheckPoint(IConsole::IResult *pResult, void *pUserData);
 	static void ConMachineSpawn(IConsole::IResult *pResult, void *pUserData);
 	static void ConHammerToggle(IConsole::IResult *pResult, void *pUserData);
 	void HiddenModeStop();
+	void HiddenModeStart();
 
 	CEventHandler m_Events;
 	CPlayer *m_apPlayers[MAX_CLIENTS];

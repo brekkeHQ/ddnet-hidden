@@ -440,6 +440,7 @@ void CPlayer::Snap(int SnappingClient)
 
 		// hidden mode
 
+		// 不显示玩家信息
 		bool isNotShowPlayerInfo =
 			hiddenState && isPassedS1 && pPlayerSnapTo &&
 			!pPlayerSnapTo->IsPaused() && !this->IsPaused() &&
@@ -447,11 +448,14 @@ void CPlayer::Snap(int SnappingClient)
 			isNotBeenKilled && !pPlayerSnapTo->m_Hidden.m_HasBeenKilled &&
 			!this->m_Hidden.m_IsLose && !pPlayerSnapTo->m_Hidden.m_IsLose &&
 			this->GetCID() != pPlayerSnapTo->GetCID() && !this->m_Hidden.m_IsDummyMachine;
-
+		// 不显示假人信息
 		bool isNotShowMachineInfo =
 			hiddenState == false && this->m_Hidden.m_IsDummyMachine;
+		// 不显示占位假人信息
+		bool isNotShowPlaceholderInfo =
+			m_Hidden.m_IsPlaceholder;
 
-		if(isNotShowPlayerInfo || isNotShowMachineInfo)
+		if(isNotShowPlayerInfo || isNotShowMachineInfo || isNotShowPlaceholderInfo)
 		{ // 不显示玩家信息
 			pPlayerInfo->m_ClientID = -1;
 		}

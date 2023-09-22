@@ -95,8 +95,6 @@ public:
 		bool m_InGame = false;
 		// 是猎人
 		bool m_IsSeeker = false;
-		// 是假人
-		bool m_IsDummyMachine = false;
 		// 锁定皮肤
 		bool m_IsLockedTeeInfos = false;
 		// 被猎人杀害
@@ -107,14 +105,19 @@ public:
 		bool m_IsLose = false;
 
 		// 设备、假人、机器属性
+
+		// 刷新tick
 		int endTick = -1;
+		// 是假人
+		bool m_IsDummyMachine = false;
+		// 是占位假人，用以提高排名
+		bool m_IsPlaceholder = false;
 	} m_Hidden;
 	// 状态重置
 	void HiddenStateReset()
 	{
 		m_Hidden.m_InGame = false;
 		m_Hidden.m_IsSeeker = false;
-		m_Hidden.m_IsDummyMachine = false;
 		m_Hidden.m_IsLockedTeeInfos = false;
 		m_Hidden.m_HasBeenKilled = false;
 		m_Hidden.m_IsWin = false;

@@ -79,6 +79,7 @@ class CConsole : public IConsole
 		MAX_PARTS = (CONSOLE_MAX_STR_LENGTH + 1) / 2
 	};
 
+public:
 	class CResult : public IResult
 	{
 	public:
@@ -147,6 +148,7 @@ class CConsole : public IConsole
 		int GetVictim() const override;
 	};
 
+protected:
 	int ParseStart(CResult *pResult, const char *pString, int Length);
 	int ParseArgs(CResult *pResult, const char *pFormat);
 
@@ -168,7 +170,7 @@ class CConsole : public IConsole
 			CQueueEntry *m_pNext;
 			CCommand *m_pCommand;
 			CResult m_Result;
-		} * m_pFirst, *m_pLast;
+		} *m_pFirst, *m_pLast;
 
 		void AddEntry()
 		{

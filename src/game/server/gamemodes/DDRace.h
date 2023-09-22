@@ -78,6 +78,7 @@ public:
 	void HiddenStepUpdate(int toStep); // 阶段更新
 	void HiddenTick(int nowTick, int endTick, int tickSpeed, int nowStep); // Tick处理
 	bool HiddenIsPlayerGameOver(CPlayer *pPlayer); // 判断玩家是否被淘汰
+	bool HiddenIsMachine(CPlayer *pPlayer); // 判断玩家是否是假人机器设备
 
 	bool m_HiddenState = false; // Hidden Mode状态
 	bool m_KillHammer = false; // 杀人锤子状态
