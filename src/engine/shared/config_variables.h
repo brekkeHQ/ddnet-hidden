@@ -9,6 +9,11 @@
 // Hidden相关变量
 MACRO_CONFIG_STR(HiddenSkins, hidden_skins, 16384, "[\"default\",\"cow\",\"dragon\"]", CFGFLAG_SERVER, "皮肤库，必须大于64")
 
+MACRO_CONFIG_STR(HiddenAutoStartDesc, hidden_auto_start_desc, 256, "自动开始", CFGFLAG_SERVER, "自动开始的投票描述")
+MACRO_CONFIG_STR(HiddenAutoStartCmd, hidden_auto_start_cmd, 256, "hidden_toggle 1", CFGFLAG_SERVER, "自动开始的投票命令")
+MACRO_CONFIG_STR(HiddenAutoStartReason, hidden_auto_start_reason, 256, "……", CFGFLAG_SERVER, "自动开始的投票理由")
+MACRO_CONFIG_STR(HiddenAutoStartChatmsg, hidden_auto_start_Chatmsg, 256, "按下F3同意开始游戏", CFGFLAG_SERVER, "自动开始的聊天消息")
+
 MACRO_CONFIG_INT(HiddenStepDurationS0, hidden_duration_s0, 60, 0, 60, CFGFLAG_SERVER, "The duration of the step s0")
 MACRO_CONFIG_INT(HiddenStepDurationS1, hidden_duration_s1, 10, 0, 60, CFGFLAG_SERVER, "The duration of the step s1")
 MACRO_CONFIG_INT(HiddenStepDurationS2, hidden_duration_s2, 10, 0, 60, CFGFLAG_SERVER, "The duration of the step s2")

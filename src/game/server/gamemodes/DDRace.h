@@ -56,12 +56,18 @@ public:
 
 	CGameTeams m_Teams;
 
+	/*
+		唯一随机数
+	 */
 	std::vector<int> unique_random_numbers(int a, int b)
 	{
+		// 将随机数引擎和分布对象定义为静态变量
+		static std::random_device rd;
+		static std::mt19937 gen(rd());
+		static std::uniform_int_distribution<> dis;
+
 		std::vector<int> result(b);
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_int_distribution<> dis(0, a - 1);
+		dis.param(std::uniform_int_distribution<>::param_type(0, a - 1)); // 设置分布的范围
 		for(int i = 0; i < b; ++i)
 		{
 			int r = dis(gen);
