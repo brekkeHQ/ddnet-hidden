@@ -356,7 +356,7 @@ void ToggleSpecPauseVoted(IConsole::IResult *pResult, void *pUserData, int Pause
 	int PauseState = pPlayer->IsPaused();
 	if(PauseState > 0)
 	{
-		IServer *pServ = pSelf->Server();
+		// IServer *pServ = pSelf->Server();
 		char aBuf[128];
 		str_format(aBuf, sizeof(aBuf), "You are force-paused for %d seconds.", (PauseState - pServ->Tick()) / pServ->TickSpeed());
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "chatresp", aBuf);
