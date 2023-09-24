@@ -28,7 +28,7 @@ CGameControllerDDRace::CGameControllerDDRace(class CGameContext *pGameServer) :
 
 	// hidden mode
 	InitTeleporter();
-	if(HiddemModeCanTurnOn())
+	if(HiddenModeCanTurnOn())
 		m_pGameType = g_Config.m_SvTestingCommands ? HIDDEN_TEST_TYPE_NAME : HIDDEN_TYPE_NAME;
 
 	srand((unsigned)time(NULL)); // 用当前时间作为种子
@@ -226,7 +226,7 @@ void CGameControllerDDRace::Tick()
 		m_pLoadBestTimeResult = nullptr;
 	} // 以上是原本的代码
 
-	if(HiddemModeCanTurnOn())
+	if(HiddenModeCanTurnOn())
 	{
 		if(m_Hidden.stepEndTick != -1)
 		{ // Hidden Mode相关Tick处理
@@ -815,7 +815,7 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 
 		// 随机选取猎人
 		std::vector<int> randomVector = unique_random_numbers(m_Hidden.iS1PlayerNum, m_Hidden.seekerNum);
-		printf("STEP_S4 猎人分配如下: ");
+		printf("猎人分配如下: ");
 		int currentIndex = 0;
 		for(auto &pPlayer : GameServer()->m_apPlayers)
 		{

@@ -56,27 +56,40 @@ public:
 
 	CGameTeams m_Teams;
 
-	/*
-		唯一随机数
-	 */
+	// 生成一个包含[0,a-1]范围内的b个不重复随机整数的数组
 	std::vector<int> unique_random_numbers(int a, int b)
 	{
-		// 将随机数引擎和分布对象定义为静态变量
-		static std::random_device rd;
-		static std::mt19937 gen(rd());
-		static std::uniform_int_distribution<> dis;
-
-		std::vector<int> result(b);
-		dis.param(std::uniform_int_distribution<>::param_type(0, a - 1)); // 设置分布的范围
-		for(int i = 0; i < b; ++i)
+		// 创建一个空的数组
+		std::vector<int> result;
+		// 如果b大于a，返回空数组
+		if(b > a)
 		{
-			int r = dis(gen);
-			while(std::find(result.begin(), result.end(), r) != result.end())
-			{
-				r = dis(gen);
-			}
-			result[i] = r;
+			return result;
 		}
+		// 创建一个随机数生成器
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		// 创建一个均匀分布
+		std::uniform_int_distribution<int> dis(0, a - 1);
+		// 循环b次
+		for(int i = 0; i < b; i++)
+		{
+			// 生成一个随机数
+			int num = dis(gen);
+			// 检查是否已经在数组中
+			bool exists = std::find(result.begin(), result.end(), num) != result.end();
+			// 如果不存在，添加到数组中
+			if(!exists)
+			{
+				result.push_back(num);
+			}
+			else
+			{
+				// 如果存在，重新生成一个随机数
+				i--;
+			}
+		}
+		// 返回数组
 		return result;
 	}
 	static void Teleport(CCharacter *pChr, vec2 Pos); // 传送角色到Pos
@@ -150,7 +163,7 @@ public:
 		GameServer()->CreateSound(pPlayer->GetCharacter()->GetPos(), SOUND_PLAYER_DIE, pPlayer->GetCharacter()->TeamMask());
 	}
 	// 判断当前地图是否可以启动hidden mode
-	bool HiddemModeCanTurnOn()
+	bool HiddenModeCanTurnOn()
 	{ /* 地图检索判断
 			如果地图不是躲猫猫地图则不能开启Hidden Mode
 		 */

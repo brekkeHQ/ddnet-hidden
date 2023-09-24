@@ -1697,6 +1697,38 @@ void CGameContext::OnClientConnected(int ClientID, void *pData)
 	SendSettings(ClientID);
 
 	Server()->ExpireServerInfo();
+
+	{ // hidden mode
+		CGameControllerDDRace *pController = (CGameControllerDDRace *)m_pController;
+		CServer *pServer = (CServer *)m_pServer;
+		if(pController->HiddenModeCanTurnOn())
+		{ // 如果地图可以启用hidden mode则禁止相同IP连接
+			char pClientIP[NETADDR_MAXSTRSIZE] = {0}, pIP[NETADDR_MAXSTRSIZE] = "unknown type 0";
+			net_addr_str(pServer->m_NetServer.ClientAddr(ClientID), pClientIP, NETADDR_MAXSTRSIZE, false);
+			if(str_comp(pClientIP, pIP) != 0) // 假人不作处理
+				for(int i = 0; i < MAX_CLIENTS; i++)
+				{
+					if(!m_apPlayers[i])
+						continue; // 空玩家
+
+					pServer->GetClientAddr(i, pIP, NETADDR_MAXSTRSIZE);
+
+					if(str_comp(pClientIP, pIP) == 0)
+					{ // 相同IP
+						// 是否允许连接
+						bool isAllowConnect =
+							pServer->ClientAuthed(i) > AUTHED_NO; // 管理员
+
+						if(!isAllowConnect) // 不允许连接
+						{
+							WhisperID(0, ClientID, Config()->m_HiddenCantUseDummyMSG);
+							pServer->m_NetServer.Drop(i, Config()->m_HiddenCantUseDummyMSG);
+						}
+						break;
+					}
+				}
+		}
+	}
 }
 
 void CGameContext::OnClientDrop(int ClientID, const char *pReason)
@@ -3466,7 +3498,7 @@ void CGameContext::ConHiddenToggle(IConsole::IResult *pResult, void *pUserData)
 	CGameContext *pSelf = (CGameContext *)pUserData;
 	CGameControllerDDRace *pController = (CGameControllerDDRace *)(pSelf->m_pController);
 
-	if(!pController->HiddemModeCanTurnOn())
+	if(!pController->HiddenModeCanTurnOn())
 	{ // 地图不是躲猫猫地图
 		pSelf->SendBroadcast("此地图无法开启Hidden Mode", -1);
 		return;
@@ -3889,7 +3921,7 @@ void CGameContext::OnInit(const void *pPersistentData)
 	printf("假人生成完毕\n");
 
 	// 地图是否支持Hidden Mode
-	if(pController->HiddemModeCanTurnOn())
+	if(pController->HiddenModeCanTurnOn())
 	{
 		// 启用Kill Hammer
 		pController->m_KillHammer = true;
@@ -4273,7 +4305,11 @@ bool CGameContext::IsClientReady(int ClientID) const
 
 bool CGameContext::IsClientPlayer(int ClientID) const
 {
-	return m_apPlayers[ClientID] && m_apPlayers[ClientID]->GetTeam() != TEAM_SPECTATORS;
+	// hidden mode
+	CPlayer *pPlayer = m_apPlayers[ClientID];
+	CGameControllerDDRace *pController = (CGameControllerDDRace *)m_pController;
+	// 排除假人
+	return pPlayer && pPlayer->GetTeam() != TEAM_SPECTATORS && !pController->HiddenIsMachine(pPlayer);
 }
 
 CUuid CGameContext::GameUuid() const { return m_GameUuid; }

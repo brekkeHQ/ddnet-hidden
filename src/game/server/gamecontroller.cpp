@@ -582,7 +582,7 @@ void IGameController::Snap(int SnappingClient)
 
 	// hidden mode
 	CGameControllerDDRace *pController = (CGameControllerDDRace *)GameServer()->m_pController;
-	if(pController->HiddemModeCanTurnOn())
+	if(pController->HiddenModeCanTurnOn())
 	{ // 可以开启hidden mode
 		pGameInfoEx->m_Flags =
 			GAMEINFOFLAG_UNLIMITED_AMMO |

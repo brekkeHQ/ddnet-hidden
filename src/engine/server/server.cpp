@@ -34,6 +34,7 @@
 #include <engine/shared/snapshot.h>
 
 #include <game/server/gamecontext.h>
+#include <game/server/gamemodes/DDRace.h>
 #include <game/server/player.h>
 
 #include <game/version.h>
@@ -2314,6 +2315,7 @@ void CServer::UpdateRegisterServerInfo()
 	{
 		if(m_aClients[i].m_State != CClient::STATE_EMPTY)
 		{
+			// hidden mode
 			if(GameServer()->IsClientPlayer(i))
 				PlayerCount++;
 
@@ -2362,6 +2364,12 @@ void CServer::UpdateRegisterServerInfo()
 	{
 		if(m_aClients[i].m_State != CClient::STATE_EMPTY)
 		{
+			// hidden mode
+			CGameContext *pGameContext = (CGameContext *)GameServer();
+			CGameControllerDDRace *pController = (CGameControllerDDRace *)pGameContext->m_pController;
+			if(pController->HiddenIsMachine(pGameContext->m_apPlayers[i]))
+				continue; // 排除假人
+
 			char aCName[32];
 			char aCClan[32];
 

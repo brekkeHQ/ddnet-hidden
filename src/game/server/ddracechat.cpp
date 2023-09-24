@@ -300,9 +300,9 @@ void ToggleSpecPause(IConsole::IResult *pResult, void *pUserData, int PauseType)
 	if(!pPlayer)
 		return;
 
-	if(!pController->m_Hidden.canZoom)
+	if(!pController->m_Hidden.canZoom && pServ->GetAuthedState(pResult->m_ClientID) == AUTHED_NO)
 	{
-		pSelf->SendChatTarget(pPlayer->GetCID(), "当前不可旁观");
+		pSelf->SendChatTarget(pPlayer->GetCID(), pSelf->Config()->m_HiddenCantUsePauseMSG);
 		return;
 	}
 
@@ -342,13 +342,14 @@ void ToggleSpecPauseVoted(IConsole::IResult *pResult, void *pUserData, int Pause
 
 	CGameContext *pSelf = (CGameContext *)pUserData;
 	CGameControllerDDRace *pController = (CGameControllerDDRace *)pSelf->m_pController;
+	IServer *pServ = (IServer *)pSelf->Server();
 	CPlayer *pPlayer = pSelf->m_apPlayers[pResult->m_ClientID];
 	if(!pPlayer)
 		return;
 
-	if(!pController->m_Hidden.canZoom)
+	if(!pController->m_Hidden.canZoom && pServ->GetAuthedState(pResult->m_ClientID) == AUTHED_NO)
 	{
-		pSelf->SendChatTarget(pPlayer->GetCID(), "当前不可旁观");
+		pSelf->SendChatTarget(pPlayer->GetCID(), pSelf->Config()->m_HiddenCantUsePauseMSG);
 		return;
 	}
 
