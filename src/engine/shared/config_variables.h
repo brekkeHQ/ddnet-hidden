@@ -9,10 +9,19 @@
 // Hidden相关变量
 MACRO_CONFIG_STR(HiddenSkins, hidden_skins, 16384, "[\"default\",\"cow\",\"dragon\"]", CFGFLAG_SERVER, "皮肤库，必须大于64")
 
+MACRO_CONFIG_STR(HiddenTimeLeftStartPrefix, hidden_time_left_start_msg_prefix, 256, "游戏将在", CFGFLAG_SERVER, "自动开始的剩余时间消息字首")
+MACRO_CONFIG_STR(HiddenTimeLeftStartSuffix, hidden_time_left_start_msg_suffix, 256, "秒后开始", CFGFLAG_SERVER, "自动开始的剩余时间消息字尾")
+
 MACRO_CONFIG_STR(HiddenAutoStartDesc, hidden_auto_start_desc, 256, "自动开始", CFGFLAG_SERVER, "自动开始的投票描述")
 MACRO_CONFIG_STR(HiddenAutoStartCmd, hidden_auto_start_cmd, 256, "hidden_toggle 1", CFGFLAG_SERVER, "自动开始的投票命令")
 MACRO_CONFIG_STR(HiddenAutoStartReason, hidden_auto_start_reason, 256, "……", CFGFLAG_SERVER, "自动开始的投票理由")
 MACRO_CONFIG_STR(HiddenAutoStartChatmsg, hidden_auto_start_Chatmsg, 256, "按下F3同意开始游戏", CFGFLAG_SERVER, "自动开始的聊天消息")
+
+MACRO_CONFIG_STR(HiddenTimeLeftMSGPrefix, hidden_time_left_msg_prefix, 256, "还剩:", CFGFLAG_SERVER, "剩余时间字首")
+MACRO_CONFIG_STR(HiddenTimeLeftMSGSuffix, hidden_time_left_msg_suffix, 256, "秒", CFGFLAG_SERVER, "剩余时间字尾")
+
+MACRO_CONFIG_STR(HiddenNotEnoughPlayersMSGPrefix, hidden_not_enough_players_msg_prefix, 256, "当前人数:", CFGFLAG_SERVER, "人数不足消息字首")
+MACRO_CONFIG_STR(HiddenNotEnoughPlayersMSGSuffix, hidden_not_enough_players_msg_suffix, 256, ",至少需要2人才能开始游戏!", CFGFLAG_SERVER, "人数不足消息字尾")
 
 MACRO_CONFIG_INT(HiddenStepDurationS0, hidden_duration_s0, 60, 0, 60, CFGFLAG_SERVER, "The duration of the step s0")
 MACRO_CONFIG_INT(HiddenStepDurationS1, hidden_duration_s1, 10, 0, 60, CFGFLAG_SERVER, "The duration of the step s1")
@@ -23,8 +32,13 @@ MACRO_CONFIG_INT(HiddenStepDurationS4, hidden_duration_s4, 120, 0, 600, CFGFLAG_
 MACRO_CONFIG_STR(HiddenMachineName, hidden_machine_name, 256, "DEVICE", CFGFLAG_SERVER, "The name of the dummy machine")
 MACRO_CONFIG_STR(HiddenMachineSkinName, hidden_machine_skin_name, 256, "Robot", CFGFLAG_SERVER, "The name of the dummy machine skin")
 
+MACRO_CONFIG_STR(HiddenStepVoteResultMSG, hidden_step_vote_result_msg, 256, "投票结果: ", CFGFLAG_SERVER, "投票结果消息")
+MACRO_CONFIG_STR(HiddenStepVoteResultMSGTOOManySeekers, hidden_step_vote_result_msg_too_many_seekers, 256, "猎人数量过高!", CFGFLAG_SERVER, "太多猎人消息")
+
 MACRO_CONFIG_STR(HiddenStepVoteS1A, hidden_step_vote_s1_a, 256, "☺☺☺", CFGFLAG_SERVER, "S1的选项A")
 MACRO_CONFIG_STR(HiddenStepVoteS1B, hidden_step_vote_s1_b, 256, "☹☹☹", CFGFLAG_SERVER, "S1的选项B")
+MACRO_CONFIG_STR(HiddenStepVoteS1AValue, hidden_step_vote_s1_a_value, 256, "开始", CFGFLAG_SERVER, "S1的选项A的值")
+MACRO_CONFIG_STR(HiddenStepVoteS1BValue, hidden_step_vote_s1_b_value, 256, "退出", CFGFLAG_SERVER, "S1的选项B的值")
 
 MACRO_CONFIG_STR(HiddenStepVoteS2A, hidden_step_vote_s2_a, 256, "A", CFGFLAG_SERVER, "S2的选项A")
 MACRO_CONFIG_STR(HiddenStepVoteS2B, hidden_step_vote_s2_b, 256, "B", CFGFLAG_SERVER, "S2的选项B")
@@ -42,11 +56,18 @@ MACRO_CONFIG_INT(HiddenStepVoteS3BValue, hidden_step_vote_s3_b_value, 12, 1, 256
 MACRO_CONFIG_INT(HiddenStepVoteS3CValue, hidden_step_vote_s3_c_value, 24, 1, 256, CFGFLAG_SERVER, "S3的选项C的值")
 MACRO_CONFIG_INT(HiddenStepVoteS3DValue, hidden_step_vote_s3_d_value, 36, 1, 256, CFGFLAG_SERVER, "S3的选项D的值")
 
-MACRO_CONFIG_STR(HiddenStepTipsS4A1, hidden_step_tips_s4_a1, 256, "你是————→猎手", CFGFLAG_SERVER, "被选择为猎人的个人广播")
+MACRO_CONFIG_STR(HiddenStepTipsS4A1, hidden_step_tips_s4_a1, 256, "身份：猎手", CFGFLAG_SERVER, "被选择为猎人的个人广播")
 MACRO_CONFIG_STR(HiddenStepTipsS4A2, hidden_step_tips_s4_a2, 256, "猎手：使用锤子击杀求生者", CFGFLAG_SERVER, "被选择为猎人的聊天提示")
 
-MACRO_CONFIG_STR(HiddenStepTipsS4B1, hidden_step_tips_s4_b1, 256, "你是————→求生者", CFGFLAG_SERVER, "被选择为求生者的个人广播")
+MACRO_CONFIG_STR(HiddenStepTipsS4B1, hidden_step_tips_s4_b1, 256, "身份：求生者", CFGFLAG_SERVER, "被选择为求生者的个人广播")
 MACRO_CONFIG_STR(HiddenStepTipsS4B2, hidden_step_tips_s4_b2, 256, "逃生者：使用散弹枪击激活设备", CFGFLAG_SERVER, "被选择为求生者的聊天提示")
+
+MACRO_CONFIG_STR(HiddenStepPlayerGameOverMSG, hidden_step_player_gameover_msg, 256, "出局了!", CFGFLAG_SERVER, "玩家淘汰广播信息")
+MACRO_CONFIG_STR(HiddenStepPlayerGameOverChatMSG, hidden_step_player_gameover_chat_msg, 256, "游戏结束后复活", CFGFLAG_SERVER, "玩家淘汰聊天信息")
+MACRO_CONFIG_STR(HiddenStepPlayerWaitingMSG, hidden_step_player_waiting_msg, 256, "等待加入", CFGFLAG_SERVER, "玩家等待加入信息")
+MACRO_CONFIG_STR(HiddenStepPlayerNumErrorMSG, hidden_step_player_num_error_msg, 256, "人数异常，游戏结束", CFGFLAG_SERVER, "人数异常信息")
+MACRO_CONFIG_STR(HiddenStepLeftTimeToActiveDeviceMSGPrefix, hidden_step_left_time_to_active_device_msg_prefix, 256, "必须有设备在", CFGFLAG_SERVER, "激活设备剩余时间字首")
+MACRO_CONFIG_STR(HiddenStepLeftTimeToActiveDeviceMSGSuffix, hidden_step_left_time_to_active_device_msg_suffix, 256, "秒内激活", CFGFLAG_SERVER, "激活设备剩余时间字尾")
 
 MACRO_CONFIG_STR(HiddenSpectatorSeekerName, hidden_spectator_seeker_name, 256, "猎手", CFGFLAG_SERVER, "旁观玩家显示猎手的名字")
 

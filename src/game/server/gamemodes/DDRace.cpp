@@ -272,7 +272,7 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 		// 全局倒计时消息
 		if(isShowRemainTime)
 		{
-			str_format(aBuf, sizeof(aBuf), "还剩: %.2f 秒", remainTime);
+			str_format(aBuf, sizeof(aBuf), "%s %.2f %s", Config()->m_HiddenTimeLeftMSGPrefix, remainTime, Config()->m_HiddenTimeLeftMSGSuffix);
 			GameServer()->SendChatTarget(-1, aBuf);
 		}
 
@@ -283,7 +283,7 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 		if(isShowRemainTime)
 		{ // 剩余时间提示
 			double tipRemainTime = (double)(endTick - nowTick) / tickSpeed;
-			str_format(aBuf, sizeof(aBuf), "游戏将在%.2f秒后开始", tipRemainTime);
+			str_format(aBuf, sizeof(aBuf), "%s %.2f %s", Config()->m_HiddenTimeLeftStartPrefix, tipRemainTime, Config()->m_HiddenTimeLeftStartSuffix);
 			GameServer()->SendBroadcast(aBuf, -1);
 		}
 
@@ -304,7 +304,7 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 				GameServer()->CallVote(0, Config()->m_HiddenAutoStartDesc, Config()->m_HiddenAutoStartCmd, Config()->m_HiddenAutoStartReason, Config()->m_HiddenAutoStartChatmsg);
 			else
 			{
-				str_format(aBuf, sizeof(aBuf), "当前人数:%d,至少需要2人才能开始游戏!", playerCount);
+				str_format(aBuf, sizeof(aBuf), "%s %d %s", Config()->m_HiddenNotEnoughPlayersMSGPrefix, playerCount, Config()->m_HiddenNotEnoughPlayersMSGSuffix);
 				GameServer()->SendBroadcast(aBuf, -1);
 			}
 			m_Hidden.stepEndTick = nowTick + tickSpeed * Config()->m_HiddenStepDurationS0;
@@ -360,12 +360,12 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 			if(vote201Num > vote202Num)
 			{ // 同意
 				HiddenStepUpdate(STEP_S2);
-				str_format(aBuf, sizeof(aBuf), "投票结果: 开始");
+				str_format(aBuf, sizeof(aBuf), "%s%s", Config()->m_HiddenStepVoteResultMSG, Config()->m_HiddenStepVoteS1AValue);
 			}
 			else
 			{ // 拒绝
 				HiddenStepUpdate(STEP_S0);
-				str_format(aBuf, sizeof(aBuf), "投票结果: 退出");
+				str_format(aBuf, sizeof(aBuf), "%s%s", Config()->m_HiddenStepVoteResultMSG, Config()->m_HiddenStepVoteS1BValue);
 			}
 			GameServer()->SendChatTarget(-1, aBuf);
 		}
@@ -442,13 +442,13 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 				m_Hidden.seekerNum = Config()->m_HiddenStepVoteS2BValue;
 			}
 
-			str_format(aBuf, sizeof(aBuf), "投票结果: %d", m_Hidden.seekerNum);
+			str_format(aBuf, sizeof(aBuf), "%s%d", Config()->m_HiddenStepVoteResultMSG, m_Hidden.seekerNum);
 			GameServer()->SendChatTarget(-1, aBuf);
 
 			if(m_Hidden.seekerNum >= m_Hidden.iS1PlayerNum)
 			{ // 玩家数量少于选择的猎人数量
 				HiddenStepUpdate(STEP_S0);
-				GameServer()->SendBroadcast("猎人数量过高", -1);
+				GameServer()->SendBroadcast(Config()->m_HiddenStepVoteResultMSGTOOManySeekers, -1);
 			}
 			else
 			{ // 猎人数量正确
@@ -528,7 +528,7 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 				m_Hidden.machineNum = Config()->m_HiddenStepVoteS3BValue;
 			}
 			HiddenStepUpdate(STEP_S4);
-			str_format(aBuf, sizeof(aBuf), "投票结果: %d", m_Hidden.machineNum);
+			str_format(aBuf, sizeof(aBuf), "%s%d", Config()->m_HiddenStepVoteResultMSG, m_Hidden.machineNum);
 			GameServer()->SendChatTarget(-1, aBuf);
 		}
 		break;
@@ -550,10 +550,10 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 			if(isInGame && isBeenKilled && !isInSpectator && !isLose)
 			{ // 玩家被猎人锤中
 				// 全局广播	受害者出局
-				str_format(aBuf, sizeof(aBuf), "%s 出局了!", Server()->ClientName(pPlayer->GetCID()));
+				str_format(aBuf, sizeof(aBuf), "%s %s", Server()->ClientName(pPlayer->GetCID()), Config()->m_HiddenStepPlayerGameOverMSG);
 				GameServer()->SendBroadcast(aBuf, -1);
 				// 聊天消息
-				str_format(aBuf, sizeof(aBuf), "%s:游戏结束后复活", Server()->ClientName(pPlayer->GetCID()));
+				str_format(aBuf, sizeof(aBuf), "%s:%s", Server()->ClientName(pPlayer->GetCID()), Config()->m_HiddenStepPlayerGameOverChatMSG);
 				GameServer()->SendChatTarget(-1, aBuf);
 				// 受害者移动到旁观列表
 				pPlayer->SetTeam(TEAM_SPECTATORS, false);
@@ -563,10 +563,10 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 			else if(!isInGame && !isInSpectator)
 			{
 				// 个人广播	下一轮加入
-				str_format(aBuf, sizeof(aBuf), "%s:等待加入", Server()->ClientName(pPlayer->GetCID()));
+				str_format(aBuf, sizeof(aBuf), "%s %s", Server()->ClientName(pPlayer->GetCID()), Config()->m_HiddenStepPlayerWaitingMSG);
 				GameServer()->SendBroadcast(aBuf, pPlayer->GetCID());
 				// 聊天消息
-				str_format(aBuf, sizeof(aBuf), "%s:等待加入", Server()->ClientName(pPlayer->GetCID()));
+				str_format(aBuf, sizeof(aBuf), "%s:%s", Server()->ClientName(pPlayer->GetCID()), Config()->m_HiddenStepPlayerWaitingMSG);
 				GameServer()->SendChatTarget(pPlayer->GetCID(), aBuf);
 				// 移动到旁观列表
 				pPlayer->SetTeam(TEAM_SPECTATORS, false);
@@ -589,7 +589,7 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 
 		if(seekerNum == 0 && hiderNum == 0)
 		{ // 异常
-			GameServer()->SendBroadcast("人数异常，游戏结束", -1);
+			GameServer()->SendBroadcast(Config()->m_HiddenStepPlayerNumErrorMSG, -1);
 			HiddenStepUpdate(STEP_S0);
 			break;
 		}
@@ -621,7 +621,7 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 			nowTick == endTick - tickSpeed * 1)
 		{ // 机器剩余激活时间提示
 			double tipRemainTime = (double)(endTick - nowTick) / tickSpeed;
-			str_format(aBuf, sizeof(aBuf), "必须有设备在%.2f秒内激活", tipRemainTime);
+			str_format(aBuf, sizeof(aBuf), "%s %.2f %s", Config()->m_HiddenStepLeftTimeToActiveDeviceMSGPrefix, tipRemainTime, Config()->m_HiddenStepLeftTimeToActiveDeviceMSGSuffix);
 			GameServer()->SendBroadcast(aBuf, -1);
 		}
 
