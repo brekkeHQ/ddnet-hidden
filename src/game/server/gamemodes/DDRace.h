@@ -145,7 +145,7 @@ public:
 
 		// 机器进度，百分比
 		double process = (double)m_Hidden.activedMachine / m_Hidden.machineNum * 100;
-		str_format(aBuf, sizeof(aBuf), "设备激活进度：%.2f%%", process);
+		str_format(aBuf, sizeof(aBuf), "%s %.2f%%", Config()->m_HiddenStepDeviceActivatedProgressMSG, process);
 		GameServer()->SendBroadcast(aBuf, -1);
 		TeleportPlayerToCheckPoint(pMachine, 242);
 
