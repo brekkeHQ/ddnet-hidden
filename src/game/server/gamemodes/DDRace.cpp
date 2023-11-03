@@ -550,33 +550,44 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 
 			if(isInGame && isBeenKilled && !isInSpectator && !isLose)
 			{ // 玩家被猎人锤中
-				// 全局广播	受害者出局
-				str_format(aBuf, sizeof(aBuf), "%s %s", Server()->ClientName(pPlayer->GetCID()), Config()->m_HiddenStepPlayerGameOverMSG);
-				GameServer()->SendBroadcast(aBuf, -1);
-				// 聊天消息
-				str_format(aBuf, sizeof(aBuf), "%s:%s", Server()->ClientName(pPlayer->GetCID()), Config()->m_HiddenStepPlayerGameOverChatMSG);
-				GameServer()->SendChatTarget(-1, aBuf);
 				// 受害者移动到旁观列表
 				pPlayer->SetTeam(TEAM_SPECTATORS, false);
 				// 该玩家标记为失败
 				pPlayer->m_Hidden.m_IsLose = true;
+
+				// 存活玩家数量(猎人+求生者)
+				int alivePlayerNum = 0;
+				for(auto &pPs : GameServer()->m_apPlayers)
+				{
+					if(HiddenIsPlayerGameOver(pPs))
+						continue;
+					alivePlayerNum++;
+				}
+
+				// 全局广播	受害者出局
+				str_format(aBuf, sizeof(aBuf), "%s %s %d", Server()->ClientName(pPlayer->GetCID()), Config()->m_HiddenStepPlayerGameOverMSG, alivePlayerNum); // <playername>出局了!剩余人数:<num>
+				GameServer()->SendBroadcast(aBuf, -1);
+				// 聊天消息
+				str_format(aBuf, sizeof(aBuf), "%s:%s", Server()->ClientName(pPlayer->GetCID()), Config()->m_HiddenStepPlayerGameOverChatMSG);
+				GameServer()->SendChatTarget(-1, aBuf);
 			}
 			else if(!isInGame && !isInSpectator)
 			{
+				// 移动到旁观列表
+				pPlayer->SetTeam(TEAM_SPECTATORS, false);
+
 				// 个人广播	下一轮加入
 				str_format(aBuf, sizeof(aBuf), "%s %s", Server()->ClientName(pPlayer->GetCID()), Config()->m_HiddenStepPlayerWaitingMSG);
 				GameServer()->SendBroadcast(aBuf, pPlayer->GetCID());
 				// 聊天消息
 				str_format(aBuf, sizeof(aBuf), "%s:%s", Server()->ClientName(pPlayer->GetCID()), Config()->m_HiddenStepPlayerWaitingMSG);
 				GameServer()->SendChatTarget(pPlayer->GetCID(), aBuf);
-				// 移动到旁观列表
-				pPlayer->SetTeam(TEAM_SPECTATORS, false);
 			}
 		}
 
+		// 人数计算
 		int seekerNum = 0; // 猎人数量
 		int hiderNum = 0; // 求生者数量
-
 		for(auto &pPlayer : GameServer()->m_apPlayers)
 		{
 			if(HiddenIsPlayerGameOver(pPlayer))
