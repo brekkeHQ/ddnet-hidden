@@ -528,6 +528,7 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 				m_Hidden.machineNum = Config()->m_HiddenStepVoteS3BValue;
 			}
 			HiddenStepUpdate(STEP_S4);
+			// 投票结果: <机器数量>
 			str_format(aBuf, sizeof(aBuf), "%s%d", Config()->m_HiddenStepVoteResultMSG, m_Hidden.machineNum);
 			GameServer()->SendChatTarget(-1, aBuf);
 		}
@@ -848,6 +849,15 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 			currentIndex++;
 		}
 		printf("\n");
+		// 输出投票结果
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "%s%s %d %s %d",
+			Config()->m_HiddenStepVoteResultConclusion,
+			Config()->m_HiddenStepVoteResultConclusionHiderPrefix,
+			this->m_Hidden.iS1PlayerNum - this->m_Hidden.seekerNum,
+			Config()->m_HiddenStepVoteResultConclusionSeekerPrefix,
+			this->m_Hidden.seekerNum);
+		GameServer()->SendChatTarget(-1, aBuf);
 
 		// 机器(假人、设备)开始运作
 		for(auto &pPlayer : GameServer()->m_apPlayers)

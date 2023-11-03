@@ -56,10 +56,14 @@ MACRO_CONFIG_INT(HiddenStepVoteS3BValue, hidden_step_vote_s3_b_value, 12, 1, 256
 MACRO_CONFIG_INT(HiddenStepVoteS3CValue, hidden_step_vote_s3_c_value, 24, 1, 256, CFGFLAG_SERVER, "S3的选项C的值")
 MACRO_CONFIG_INT(HiddenStepVoteS3DValue, hidden_step_vote_s3_d_value, 36, 1, 256, CFGFLAG_SERVER, "S3的选项D的值")
 
+MACRO_CONFIG_STR(HiddenStepVoteResultConclusion, hidden_step_vote_result_conclusion, 256, "投票结束，结果如下:", CFGFLAG_SERVER, "投票总结消息")
+MACRO_CONFIG_STR(HiddenStepVoteResultConclusionSeekerPrefix, hidden_step_vote_result_conclusion_seeker_prefix, 256, "猎手", CFGFLAG_SERVER, "投票总结中的猎手数量字首")
+MACRO_CONFIG_STR(HiddenStepVoteResultConclusionHiderPrefix, hidden_step_vote_result_conclusion_hider_prefix, 256, "逃生者", CFGFLAG_SERVER, "投票总结中的逃生者数量字首")
+
 MACRO_CONFIG_STR(HiddenStepTipsS4A1, hidden_step_tips_s4_a1, 256, "身份：猎手", CFGFLAG_SERVER, "被选择为猎人的个人广播")
 MACRO_CONFIG_STR(HiddenStepTipsS4A2, hidden_step_tips_s4_a2, 256, "猎手：使用锤子击杀求生者", CFGFLAG_SERVER, "被选择为猎人的聊天提示")
 
-MACRO_CONFIG_STR(HiddenStepTipsS4B1, hidden_step_tips_s4_b1, 256, "身份：求生者", CFGFLAG_SERVER, "被选择为求生者的个人广播")
+MACRO_CONFIG_STR(HiddenStepTipsS4B1, hidden_step_tips_s4_b1, 256, "身份：逃生者", CFGFLAG_SERVER, "被选择为求生者的个人广播")
 MACRO_CONFIG_STR(HiddenStepTipsS4B2, hidden_step_tips_s4_b2, 256, "逃生者：使用散弹枪击激活设备", CFGFLAG_SERVER, "被选择为求生者的聊天提示")
 
 MACRO_CONFIG_STR(HiddenStepPlayerGameOverMSG, hidden_step_player_gameover_msg, 256, "出局了!", CFGFLAG_SERVER, "玩家淘汰广播信息")
