@@ -3,7 +3,6 @@
 
 #include <base/math.h>
 #include <base/system.h>
-#include <ctime>
 
 #include <engine/engine.h>
 #include <engine/graphics.h>
@@ -234,7 +233,7 @@ const CSkin *CSkins::LoadSkin(const char *pName, CImageInfo &Info)
 	int OrgWeight = 0;
 	int NewWeight = 192;
 
-	// find most common frequence
+	// find most common frequency
 	for(int y = 0; y < BodyHeight; y++)
 		for(int x = 0; x < BodyWidth; x++)
 		{
@@ -299,12 +298,8 @@ void CSkins::OnInit()
 
 	if(g_Config.m_Events)
 	{
-		time_t RawTime;
-		struct tm *pTimeInfo;
-		std::time(&RawTime);
-		pTimeInfo = localtime(&RawTime);
-		if(pTimeInfo->tm_mon == 11 && pTimeInfo->tm_mday >= 24 && pTimeInfo->tm_mday <= 26)
-		{ // Christmas
+		if(time_season() == SEASON_XMAS)
+		{
 			str_copy(m_aEventSkinPrefix, "santa");
 		}
 	}

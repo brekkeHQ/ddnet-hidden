@@ -23,7 +23,7 @@ int g_NewDataID = -1;
 int g_NewDataSize = 0;
 void *g_pNewData = nullptr;
 
-int LoadPNG(CImageInfo *pImg, const char *pFilename)
+bool LoadPNG(CImageInfo *pImg, const char *pFilename)
 {
 	IOHANDLE File = io_open(pFilename, IOFLAG_READ);
 	if(File)
@@ -48,28 +48,33 @@ int LoadPNG(CImageInfo *pImg, const char *pFilename)
 			{
 				pImg->m_pData = pImgBuffer;
 
-				if(ImageFormat == IMAGE_FORMAT_RGB) // ignore_convention
+				if(ImageFormat == IMAGE_FORMAT_RGB)
 					pImg->m_Format = CImageInfo::FORMAT_RGB;
-				else if(ImageFormat == IMAGE_FORMAT_RGBA) // ignore_convention
+				else if(ImageFormat == IMAGE_FORMAT_RGBA)
 					pImg->m_Format = CImageInfo::FORMAT_RGBA;
 				else
 				{
 					free(pImgBuffer);
-					return 0;
+					return false;
 				}
 			}
 		}
 		else
-			return 0;
+			return false;
 	}
 	else
-		return 0;
-	return 1;
+		return false;
+	return true;
 }
 
-void *ReplaceImageItem(CMapItemImage *pImgItem, const char *pImgName, const char *pImgFile, CMapItemImage *pNewImgItem)
+void *ReplaceImageItem(int Index, CMapItemImage *pImgItem, const char *pImgName, const char *pImgFile, CMapItemImage *pNewImgItem)
 {
-	char *pName = (char *)g_DataReader.GetData(pImgItem->m_ImageName);
+	const char *pName = g_DataReader.GetDataString(pImgItem->m_ImageName);
+	if(pName == nullptr || pName[0] == '\0')
+	{
+		dbg_msg("map_replace_image", "failed to load name of image %d", Index);
+		return pImgItem;
+	}
 
 	if(str_comp(pImgName, pName) != 0)
 		return pImgItem;
@@ -95,7 +100,7 @@ void *ReplaceImageItem(CMapItemImage *pImgItem, const char *pImgName, const char
 	IStorage::StripPathAndExtension(pImgFile, g_aNewName, sizeof(g_aNewName));
 	g_NewDataID = pImgItem->m_ImageData;
 	g_pNewData = ImgInfo.m_pData;
-	g_NewDataSize = ImgInfo.m_Width * ImgInfo.m_Height * 4;
+	g_NewDataSize = (size_t)ImgInfo.m_Width * ImgInfo.m_Height * ImgInfo.PixelSize();
 
 	return (void *)pNewImgItem;
 }
@@ -154,7 +159,7 @@ int main(int argc, const char **argv)
 		CMapItemImage NewImageItem;
 		if(Type == MAPITEMTYPE_IMAGE)
 		{
-			pItem = ReplaceImageItem((CMapItemImage *)pItem, pImageName, pImageFile, &NewImageItem);
+			pItem = ReplaceImageItem(Index, (CMapItemImage *)pItem, pImageName, pImageFile, &NewImageItem);
 			if(!pItem)
 				return -1;
 			Size = sizeof(CMapItemImage);

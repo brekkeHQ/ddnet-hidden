@@ -543,7 +543,7 @@ void CConsole::ExecuteLineStroked(int Stroke, const char *pStr, int ClientID, bo
 			// ends at the first whitespace, which breaks for unknown commands (filenames) containing spaces.
 			if(!m_pfnUnknownCommandCallback(pStr, m_pUnknownCommandUserdata))
 			{
-				char aBuf[256];
+				char aBuf[512 + 32];
 				str_format(aBuf, sizeof(aBuf), "No such command: %s.", Result.m_pCommand);
 				Print(OUTPUT_LEVEL_STANDARD, "chatresp", aBuf);
 			}
@@ -881,7 +881,7 @@ void CConsole::TraverseChain(FCommandCallback *ppfnCallback, void **ppUserData)
 void CConsole::ConToggle(IConsole::IResult *pResult, void *pUser)
 {
 	CConsole *pConsole = static_cast<CConsole *>(pUser);
-	char aBuf[128] = {0};
+	char aBuf[512 + 32] = {0};
 	CCommand *pCommand = pConsole->FindCommand(pResult->GetString(0), pConsole->m_FlagMask);
 	if(pCommand)
 	{
@@ -933,7 +933,7 @@ void CConsole::ConToggle(IConsole::IResult *pResult, void *pUser)
 void CConsole::ConToggleStroke(IConsole::IResult *pResult, void *pUser)
 {
 	CConsole *pConsole = static_cast<CConsole *>(pUser);
-	char aBuf[128] = {0};
+	char aBuf[512 + 32] = {0};
 	CCommand *pCommand = pConsole->FindCommand(pResult->GetString(1), pConsole->m_FlagMask);
 	if(pCommand)
 	{
@@ -1041,7 +1041,9 @@ void CConsole::Init()
 	{ \
 		static char s_aOldValue[Len] = Def; \
 		static CStrVariableData Data = {this, g_Config.m_##Name, Len, s_aOldValue}; \
-		Register(#ScriptName, "?r", Flags, StrVariableCommand, &Data, Desc " (default: " #Def ", max length: " #Len ")"); \
+		static char s_aHelp[256]; \
+		str_format(s_aHelp, sizeof(s_aHelp), "%s (default: \"%s\", max length: %d)", Desc, Def, Len - 1); \
+		Register(#ScriptName, "?r", Flags, StrVariableCommand, &Data, s_aHelp); \
 	}
 
 #include "config_variables.h"
@@ -1287,7 +1289,18 @@ void CConsole::ResetGameSettings()
 		} \
 	}
 
-#define MACRO_CONFIG_COL(Name, ScriptName, Def, Save, Desc) MACRO_CONFIG_INT(Name, ScriptName, Def, 0, 0, Save, Desc)
+#define MACRO_CONFIG_COL(Name, ScriptName, Def, Flags, Desc) \
+	{ \
+		if(((Flags)&CFGFLAG_GAME) == CFGFLAG_GAME) \
+		{ \
+			CCommand *pCommand = FindCommand(#ScriptName, CFGFLAG_GAME); \
+			void *pUserData = pCommand->m_pUserData; \
+			FCommandCallback pfnCallback = pCommand->m_pfnCallback; \
+			TraverseChain(&pfnCallback, &pUserData); \
+			CColVariableData *pData = (CColVariableData *)pUserData; \
+			*pData->m_pVariable = pData->m_OldValue; \
+		} \
+	}
 
 #define MACRO_CONFIG_STR(Name, ScriptName, Len, Def, Flags, Desc) \
 	{ \
@@ -1298,7 +1311,7 @@ void CConsole::ResetGameSettings()
 			FCommandCallback pfnCallback = pCommand->m_pfnCallback; \
 			TraverseChain(&pfnCallback, &pUserData); \
 			CStrVariableData *pData = (CStrVariableData *)pUserData; \
-			str_copy(pData->m_pOldValue, pData->m_pStr, pData->m_MaxSize); \
+			str_copy(pData->m_pStr, pData->m_pOldValue, pData->m_MaxSize); \
 		} \
 	}
 

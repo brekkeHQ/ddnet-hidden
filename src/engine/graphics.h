@@ -32,7 +32,7 @@ struct SBufferContainerInfo
 		bool m_Normalized;
 		void *m_pOffset;
 
-		//0: float, 1:integer
+		// 0: float, 1:integer
 		unsigned int m_FuncType;
 	};
 	std::vector<SAttribute> m_vAttributes;
@@ -57,38 +57,63 @@ struct SGraphicTile
 
 struct SGraphicTileTexureCoords
 {
-	vec3 m_TexCoordTopLeft;
-	vec3 m_TexCoordTopRight;
-	vec3 m_TexCoordBottomRight;
-	vec3 m_TexCoordBottomLeft;
+	ubvec4 m_TexCoordTopLeft;
+	ubvec4 m_TexCoordTopRight;
+	ubvec4 m_TexCoordBottomRight;
+	ubvec4 m_TexCoordBottomLeft;
 };
 
 class CImageInfo
 {
 public:
-	enum
+	enum EImageFormat
 	{
-		FORMAT_AUTO = -1,
+		FORMAT_ERROR = -1,
 		FORMAT_RGB = 0,
 		FORMAT_RGBA = 1,
 		FORMAT_SINGLE_COMPONENT = 2,
 	};
 
-	/* Variable: width
-		Contains the width of the image */
+	/**
+	 * Contains the width of the image
+	 */
 	int m_Width = 0;
 
-	/* Variable: height
-		Contains the height of the image */
+	/**
+	 * Contains the height of the image
+	 */
 	int m_Height = 0;
 
-	/* Variable: format
-		Contains the format of the image. See <Image Formats> for more information. */
-	int m_Format = FORMAT_RGB;
+	/**
+	 * Contains the format of the image.
+	 *
+	 * @see EImageFormat
+	 */
+	EImageFormat m_Format = FORMAT_ERROR;
 
-	/* Variable: data
-		Pointer to the image data. */
+	/**
+	 * Pointer to the image data.
+	 */
 	void *m_pData = nullptr;
+
+	static size_t PixelSize(EImageFormat Format)
+	{
+		dbg_assert(Format != FORMAT_ERROR, "Format invalid");
+		static const size_t s_aSizes[] = {3, 4, 1};
+		return s_aSizes[(int)Format];
+	}
+
+	size_t PixelSize() const
+	{
+		return PixelSize(m_Format);
+	}
+
+	static EImageFormat ImageFormatFromInt(int Format)
+	{
+		if(Format < (int)FORMAT_RGB || Format > (int)FORMAT_SINGLE_COMPONENT)
+			return FORMAT_ERROR;
+		return (EImageFormat)Format;
+	}
 };
 
 /*
@@ -128,7 +153,7 @@ struct GL_STexCoord3D
 };
 
 typedef ColorRGBA GL_SColorf;
-//use normalized color values
+// use normalized color values
 typedef vector4_base<unsigned char> GL_SColor;
 
 struct GL_SVertex
@@ -203,11 +228,7 @@ typedef STWGraphicGPU TTWGraphicsGPUList;
 typedef std::function<void()> WINDOW_RESIZE_FUNC;
 typedef std::function<void()> WINDOW_PROPS_CHANGED_FUNC;
 
-namespace client_data7 {
-struct CDataSprite; // NOLINT(bugprone-forward-declaration-namespace)
-}
-
-typedef std::function<bool(uint32_t &Width, uint32_t &Height, uint32_t &Format, std::vector<uint8_t> &vDstData)> TGLBackendReadPresentedImageData;
+typedef std::function<bool(uint32_t &Width, uint32_t &Height, CImageInfo::EImageFormat &Format, std::vector<uint8_t> &vDstData)> TGLBackendReadPresentedImageData;
 
 class IGraphics : public IInterface
 {
@@ -225,9 +246,7 @@ public:
 		TEXLOAD_NO_COMPRESSION = 1 << 2,
 		TEXLOAD_TO_3D_TEXTURE = (1 << 3),
 		TEXLOAD_TO_2D_ARRAY_TEXTURE = (1 << 4),
-		TEXLOAD_TO_3D_TEXTURE_SINGLE_LAYER = (1 << 5),
-		TEXLOAD_TO_2D_ARRAY_TEXTURE_SINGLE_LAYER = (1 << 6),
-		TEXLOAD_NO_2D_TEXTURE = (1 << 7),
+		TEXLOAD_NO_2D_TEXTURE = (1 << 5),
 	};
 
 	class CTextureHandle
@@ -242,6 +261,7 @@ public:
 		}
 
 		bool IsValid() const { return Id() >= 0; }
+		bool IsNullTexture() const { return Id() == 0; }
 		int Id() const { return m_Id; }
 		void Invalidate() { m_Id = -1; }
 	};
@@ -265,13 +285,13 @@ public:
 	virtual void UpdateViewport(int X, int Y, int W, int H, bool ByResize) = 0;
 
 	/**
-	* Listens to a resize event of the canvas, which is usually caused by a window resize.
-	* Will only be triggered if the actual size changed.
-	*/
+	 * Listens to a resize event of the canvas, which is usually caused by a window resize.
+	 * Will only be triggered if the actual size changed.
+	 */
 	virtual void AddWindowResizeListener(WINDOW_RESIZE_FUNC pFunc) = 0;
 	/**
-	* Listens to various window property changes, such as minimize, maximize, move, fullscreen mode
-	*/
+	 * Listens to various window property changes, such as minimize, maximize, move, fullscreen mode
+	 */
 	virtual void AddWindowPropChangeListener(WINDOW_PROPS_CHANGED_FUNC pFunc) = 0;
 
 	virtual void WindowDestroyNtf(uint32_t WindowID) = 0;
@@ -300,23 +320,23 @@ public:
 
 	virtual const TTWGraphicsGPUList &GetGPUs() const = 0;
 
-	virtual int LoadPNG(CImageInfo *pImg, const char *pFilename, int StorageType) = 0;
+	virtual bool LoadPNG(CImageInfo *pImg, const char *pFilename, int StorageType) = 0;
 	virtual void FreePNG(CImageInfo *pImg) = 0;
 
 	virtual bool CheckImageDivisibility(const char *pFileName, CImageInfo &Img, int DivX, int DivY, bool AllowResize) = 0;
 	virtual bool IsImageFormatRGBA(const char *pFileName, CImageInfo &Img) = 0;
 
 	// destination and source buffer require to have the same width and height
-	virtual void CopyTextureBufferSub(uint8_t *pDestBuffer, uint8_t *pSourceBuffer, size_t FullWidth, size_t FullHeight, size_t ColorChannelCount, size_t SubOffsetX, size_t SubOffsetY, size_t SubCopyWidth, size_t SubCopyHeight) = 0;
+	virtual void CopyTextureBufferSub(uint8_t *pDestBuffer, uint8_t *pSourceBuffer, size_t FullWidth, size_t FullHeight, size_t PixelSize, size_t SubOffsetX, size_t SubOffsetY, size_t SubCopyWidth, size_t SubCopyHeight) = 0;
 
 	// destination width must be equal to the subwidth of the source
-	virtual void CopyTextureFromTextureBufferSub(uint8_t *pDestBuffer, size_t DestWidth, size_t DestHeight, uint8_t *pSourceBuffer, size_t SrcWidth, size_t SrcHeight, size_t ColorChannelCount, size_t SrcSubOffsetX, size_t SrcSubOffsetY, size_t SrcSubCopyWidth, size_t SrcSubCopyHeight) = 0;
+	virtual void CopyTextureFromTextureBufferSub(uint8_t *pDestBuffer, size_t DestWidth, size_t DestHeight, uint8_t *pSourceBuffer, size_t SrcWidth, size_t SrcHeight, size_t PixelSize, size_t SrcSubOffsetX, size_t SrcSubOffsetY, size_t SrcSubCopyWidth, size_t SrcSubCopyHeight) = 0;
 
 	virtual int UnloadTexture(CTextureHandle *pIndex) = 0;
-	virtual CTextureHandle LoadTextureRaw(size_t Width, size_t Height, int Format, const void *pData, int StoreFormat, int Flags, const char *pTexName = nullptr) = 0;
-	virtual int LoadTextureRawSub(CTextureHandle TextureID, int x, int y, size_t Width, size_t Height, int Format, const void *pData) = 0;
-	virtual CTextureHandle LoadTexture(const char *pFilename, int StorageType, int StoreFormat, int Flags) = 0;
-	virtual CTextureHandle InvalidTexture() const = 0;
+	virtual CTextureHandle LoadTextureRaw(size_t Width, size_t Height, CImageInfo::EImageFormat Format, const void *pData, int Flags, const char *pTexName = nullptr) = 0;
+	virtual int LoadTextureRawSub(CTextureHandle TextureID, int x, int y, size_t Width, size_t Height, CImageInfo::EImageFormat Format, const void *pData) = 0;
+	virtual CTextureHandle LoadTexture(const char *pFilename, int StorageType, int Flags = 0) = 0;
+	virtual CTextureHandle NullTexture() const = 0;
 	virtual void TextureSet(CTextureHandle Texture) = 0;
 	void TextureClear() { TextureSet(CTextureHandle()); }
 
@@ -326,18 +346,16 @@ public:
 	virtual bool UpdateTextTexture(CTextureHandle TextureID, int x, int y, size_t Width, size_t Height, const void *pData) = 0;
 
 	virtual CTextureHandle LoadSpriteTexture(CImageInfo &FromImageInfo, struct CDataSprite *pSprite) = 0;
-	virtual CTextureHandle LoadSpriteTexture(CImageInfo &FromImageInfo, struct client_data7::CDataSprite *pSprite) = 0;
 
 	virtual bool IsImageSubFullyTransparent(CImageInfo &FromImageInfo, int x, int y, int w, int h) = 0;
-	virtual bool IsSpriteTextureFullyTransparent(CImageInfo &FromImageInfo, struct client_data7::CDataSprite *pSprite) = 0;
+	virtual bool IsSpriteTextureFullyTransparent(CImageInfo &FromImageInfo, struct CDataSprite *pSprite) = 0;
 
 	virtual void FlushVertices(bool KeepVertices = false) = 0;
 	virtual void FlushVerticesTex3D() = 0;
 
 	// specific render functions
 	virtual void RenderTileLayer(int BufferContainerIndex, const ColorRGBA &Color, char **pOffsets, unsigned int *pIndicedVertexDrawNum, size_t NumIndicesOffset) = 0;
-	virtual void RenderBorderTiles(int BufferContainerIndex, const ColorRGBA &Color, char *pIndexBufferOffset, const vec2 &Offset, const vec2 &Dir, int JumpIndex, unsigned int DrawNum) = 0;
-	virtual void RenderBorderTileLines(int BufferContainerIndex, const ColorRGBA &Color, char *pIndexBufferOffset, const vec2 &Offset, const vec2 &Dir, unsigned int IndexDrawNum, unsigned int RedrawNum) = 0;
+	virtual void RenderBorderTiles(int BufferContainerIndex, const ColorRGBA &Color, char *pIndexBufferOffset, const vec2 &Offset, const vec2 &Scale, uint32_t DrawNum) = 0;
 	virtual void RenderQuadLayer(int BufferContainerIndex, SQuadRenderInfo *pQuadInfo, size_t QuadNum, int QuadOffset) = 0;
 	virtual void RenderText(int BufferContainerIndex, int TextQuadNum, int TextureSize, int TextureTextIndex, int TextureTextOutlineIndex, const ColorRGBA &TextColor, const ColorRGBA &TextOutlineColor) = 0;
 
@@ -366,7 +384,8 @@ public:
 	virtual bool IsQuadBufferingEnabled() = 0;
 	virtual bool IsTextBufferingEnabled() = 0;
 	virtual bool IsQuadContainerBufferingEnabled() = 0;
-	virtual bool HasTextureArrays() = 0;
+	virtual bool Uses2DTextureArrays() = 0;
+	virtual bool HasTextureArraysSupport() = 0;
 
 	virtual const char *GetVendorString() = 0;
 	virtual const char *GetVersionString() = 0;

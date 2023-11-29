@@ -99,9 +99,6 @@ Delete
 Delete demo
 == Esborrar repetició
 
-Demo details
-== Detalls de la repetició
-
 Demofile: %s
 == Fitxer de la repetició: %s
 
@@ -140,9 +137,6 @@ Favorites
 Feet
 == Peus
 
-Filter
-== Filtre
-
 Fire
 == Disparar
 
@@ -154,9 +148,6 @@ Force vote
 
 Free-View
 == Vista lliure
-
-Friends
-== Amics
 
 Fullscreen
 == Pantalla completa
@@ -263,9 +254,6 @@ No servers match your filter criteria
 Ok
 == Ok
 
-Open
-== Obrir
-
 Parent Folder
 == Carpeta principal
 
@@ -280,10 +268,6 @@ Ping
 
 Pistol
 == Pistola
-
-[Demo browser]
-Play
-== Reproduir
 
 Play background music
 == Reproduir música de fons
@@ -318,9 +302,6 @@ Red team
 Red team wins!
 == El equip vermell guanya!
 
-Refresh
-== Actualitzar
-
 Remote console
 == Consola remota
 
@@ -329,9 +310,6 @@ Remove
 
 Remove friend
 == Eliminar amic
-
-Rename
-== Reanomenar
 
 Rename demo
 == Canviar de nom la repetició
@@ -353,12 +331,6 @@ Screenshot
 
 Server address:
 == IP del servidor:
-
-Server details
-== Detalls del servidor
-
-Server filter
-== Filtre del servidor
 
 Server info
 == Servidor
@@ -525,23 +497,8 @@ FSAA samples
 Sound volume
 == Volum del so
 
-Created:
-== Creat:
-
 Max Screenshots
 == Número màxim de captures
-
-Length:
-== Longitud:
-
-Netversion:
-== Netversion:
-
-Map:
-== Mapa:
-
-Info
-== Informació
 
 Hue
 == Tonalitat
@@ -552,17 +509,11 @@ Record demo
 Your skin
 == La teva skin
 
-Size:
-== Mida:
-
 Reset to defaults
 == Restaurar als valors predeterminats
 
 Quit anyway?
 == Sortir igualment?
-
-Version:
-== Versió:
 
 Round
 == Ronda
@@ -573,9 +524,6 @@ Lht.
 UI Color
 == Color del menú
 
-Crc:
-== Crc:
-
 Alpha
 == Alfa
 
@@ -584,9 +532,6 @@ LAN
 
 Name plates size
 == Mida de la lletra dels noms
-
-Type:
-== Tipus:
 
 Ratio
 == Proporció
@@ -648,8 +593,8 @@ Enable game sounds
 DDNet Client needs to be restarted to complete update!
 == El client DDNet necessita reiniciar-se per completar l'actualització!
 
-Please use a different name
-== Si us plau, fes servir un nom diferent
+Please use a different filename
+== 
 
 Show others
 == Mostrar altres
@@ -912,9 +857,6 @@ Downloading %s:
 Update failed! Check log...
 == L'actualització ha fallat! Mira el registre...
 
-Markers:
-== Marques:
-
 Markers
 == Marques
 
@@ -923,9 +865,6 @@ Length
 
 Fetch Info
 == Obtenir informació
-
-Render
-== Renderitzar
 
 Connect Dummy
 == Connectar el dummy
@@ -1140,14 +1079,8 @@ Show local player's key presses
 Background
 == Fons
 
-Entities Background color
-== Color de fons de les entitats
-
 Use current map as background
 == Utilitzar el mapa actual com a fons
-
-Regular Background Color
-== Color de fons regular
 
 Entities
 == Entitats
@@ -1294,6 +1227,9 @@ Could not initialize the given graphics backend, this is probably because you di
 Could not save downloaded map. Try manually deleting this file: %s
 == 
 
+Error playing demo
+== 
+
 Preparing demo playback
 == 
 
@@ -1339,7 +1275,16 @@ Multi-View
 Team %d
 == 
 
+Some map images could not be loaded. Check the local console for details.
+== 
+
 Uploading map data to GPU
+== 
+
+Some map sounds could not be loaded. Check the local console for details.
+== 
+
+Loading menu themes
 == 
 
 Trying to determine UDP connectivity...
@@ -1363,6 +1308,9 @@ Requesting to join the game
 Rename folder
 == 
 
+Render complete
+== 
+
 A demo with this name already exists
 == 
 
@@ -1376,6 +1324,12 @@ File '%s' already exists, do you want to overwrite it?
 == 
 
 (paused)
+== 
+
+Videos directory
+== 
+
+Video was saved to '%s'
 == 
 
 Loading menu images
@@ -1427,10 +1381,33 @@ Pause the current demo
 Stop the current demo
 == 
 
+Go back the specified duration
+== 
+
+[Demo player duration]
+%d min.
+== 
+
+[Demo player duration]
+%d sec.
+== 
+
+Change the skip duration
+== 
+
+Go forward the specified duration
+== 
+
 Go back one tick
 == 
 
 Go forward one tick
+== 
+
+Go back one marker
+== 
+
+Go forward one marker
 == 
 
 Slow down the demo
@@ -1448,12 +1425,6 @@ Mark the end of a cut (right click to reset)
 Export cut as a separate demo
 == 
 
-Go back one marker
-== 
-
-Go forward one marker
-== 
-
 Close the demo player
 == 
 
@@ -1469,13 +1440,29 @@ Cut interval
 Cut length
 == 
 
+Render cut to video
+== 
+
 Loading demo files
 == 
 
 All combined
 == 
 
+No demo selected
+== 
+
 Folder Link
+== 
+
+Created
+== 
+
+Netversion
+== 
+
+[Demo details]
+map not included
 == 
 
 Open the directory that contains the demo files
@@ -1499,6 +1486,15 @@ Unable to delete the folder '%s'. Make sure it's empty first.
 Loading ghost files
 == 
 
+Ghosts directory
+== 
+
+Activate all
+== 
+
+Deactivate all
+== 
+
 Menu opened. Press Esc key again to close menu.
 == 
 
@@ -1514,10 +1510,10 @@ Open the directory that contains the configuration and user files
 Open the directory to add custom themes
 == 
 
-Loading skin files
+Toggle to edit your dummy settings
 == 
 
-Toggle to edit your dummy settings
+Loading skin files
 == 
 
 Download community skins
@@ -1699,10 +1695,16 @@ Freeze Laser Inner Color
 Set all to Rifle
 == 
 
+Enable ghost
+== 
+
 When you cross the start line, show a ghost tee replicating the movements of your best time
 == 
 
 Opacity
+== 
+
+Only save improvements
 == 
 
 Adjust the opacity of entities belonging to other teams, such as tees and nameplates
@@ -1712,6 +1714,12 @@ Quads are used for background decoration
 == 
 
 Tries to predict other entities to give a feel of low latency
+== 
+
+Regular background color
+== 
+
+Entities background color
 == 
 
 Unregister protocol and file extensions

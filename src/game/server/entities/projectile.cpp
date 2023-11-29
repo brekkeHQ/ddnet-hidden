@@ -64,13 +64,13 @@ vec2 CProjectile::GetPos(float Time)
 	case WEAPON_GRENADE:
 		if(!m_TuneZone)
 		{
-			Curvature = GameServer()->Tuning()->m_GrenadeCurvature;
-			Speed = GameServer()->Tuning()->m_GrenadeSpeed;
+			Curvature = Tuning()->m_GrenadeCurvature;
+			Speed = Tuning()->m_GrenadeSpeed;
 		}
 		else
 		{
-			Curvature = GameServer()->TuningList()[m_TuneZone].m_GrenadeCurvature;
-			Speed = GameServer()->TuningList()[m_TuneZone].m_GrenadeSpeed;
+			Curvature = TuningList()[m_TuneZone].m_GrenadeCurvature;
+			Speed = TuningList()[m_TuneZone].m_GrenadeSpeed;
 		}
 
 		break;
@@ -78,13 +78,13 @@ vec2 CProjectile::GetPos(float Time)
 	case WEAPON_SHOTGUN:
 		if(!m_TuneZone)
 		{
-			Curvature = GameServer()->Tuning()->m_ShotgunCurvature;
-			Speed = GameServer()->Tuning()->m_ShotgunSpeed;
+			Curvature = Tuning()->m_ShotgunCurvature;
+			Speed = Tuning()->m_ShotgunSpeed;
 		}
 		else
 		{
-			Curvature = GameServer()->TuningList()[m_TuneZone].m_ShotgunCurvature;
-			Speed = GameServer()->TuningList()[m_TuneZone].m_ShotgunSpeed;
+			Curvature = TuningList()[m_TuneZone].m_ShotgunCurvature;
+			Speed = TuningList()[m_TuneZone].m_ShotgunSpeed;
 		}
 
 		break;
@@ -92,13 +92,13 @@ vec2 CProjectile::GetPos(float Time)
 	case WEAPON_GUN:
 		if(!m_TuneZone)
 		{
-			Curvature = GameServer()->Tuning()->m_GunCurvature;
-			Speed = GameServer()->Tuning()->m_GunSpeed;
+			Curvature = Tuning()->m_GunCurvature;
+			Speed = Tuning()->m_GunSpeed;
 		}
 		else
 		{
-			Curvature = GameServer()->TuningList()[m_TuneZone].m_GunCurvature;
-			Speed = GameServer()->TuningList()[m_TuneZone].m_GunSpeed;
+			Curvature = TuningList()[m_TuneZone].m_GunCurvature;
+			Speed = TuningList()[m_TuneZone].m_GunSpeed;
 		}
 		break;
 	}
@@ -276,11 +276,10 @@ void CProjectile::Tick()
 		z = GameServer()->Collision()->IsTeleport(x);
 	else
 		z = GameServer()->Collision()->IsTeleportWeapon(x);
-	CGameControllerDDRace *pControllerDDRace = (CGameControllerDDRace *)GameServer()->m_pController;
-	if(z && !pControllerDDRace->m_TeleOuts[z - 1].empty())
+	if(z && !GameServer()->m_pController->m_TeleOuts[z - 1].empty())
 	{
-		int TeleOut = GameServer()->m_World.m_Core.RandomOr0(pControllerDDRace->m_TeleOuts[z - 1].size());
-		m_Pos = pControllerDDRace->m_TeleOuts[z - 1][TeleOut];
+		int TeleOut = GameServer()->m_World.m_Core.RandomOr0(GameServer()->m_pController->m_TeleOuts[z - 1].size());
+		m_Pos = GameServer()->m_pController->m_TeleOuts[z - 1][TeleOut];
 		m_StartTick = Server()->Tick();
 	}
 }

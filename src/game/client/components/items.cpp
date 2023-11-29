@@ -60,16 +60,16 @@ void CItems::RenderProjectile(const CProjectileData *pCurrent, int ItemID)
 
 	float Ct;
 	if(m_pClient->Predict() && m_pClient->AntiPingGrenade() && LocalPlayerInGame && !IsOtherTeam)
-		Ct = ((float)(Client()->PredGameTick(g_Config.m_ClDummy) - 1 - pCurrent->m_StartTick) + Client()->PredIntraGameTick(g_Config.m_ClDummy)) / (float)SERVER_TICK_SPEED;
+		Ct = ((float)(Client()->PredGameTick(g_Config.m_ClDummy) - 1 - pCurrent->m_StartTick) + Client()->PredIntraGameTick(g_Config.m_ClDummy)) / (float)Client()->GameTickSpeed();
 	else
-		Ct = (Client()->PrevGameTick(g_Config.m_ClDummy) - pCurrent->m_StartTick) / (float)SERVER_TICK_SPEED + s_LastGameTickTime;
+		Ct = (Client()->PrevGameTick(g_Config.m_ClDummy) - pCurrent->m_StartTick) / (float)Client()->GameTickSpeed() + s_LastGameTickTime;
 	if(Ct < 0)
 	{
 		if(Ct > -s_LastGameTickTime / 2)
 		{
 			// Fixup the timing which might be screwed during demo playback because
 			// s_LastGameTickTime depends on the system timer, while the other part
-			// (Client()->PrevGameTick(g_Config.m_ClDummy) - pCurrent->m_StartTick) / (float)SERVER_TICK_SPEED
+			// (Client()->PrevGameTick(g_Config.m_ClDummy) - pCurrent->m_StartTick) / (float)Client()->GameTickSpeed()
 			// is virtually constant (for projectiles fired on the current game tick):
 			// (x - (x+2)) / 50 = -0.04
 			//
@@ -309,7 +309,7 @@ void CItems::RenderLaser(const CLaserData *pCurrent, bool IsPredicted)
 			Ticks = (float)(Client()->PredGameTick(g_Config.m_ClDummy) - pCurrent->m_StartTick) + Client()->PredIntraGameTick(g_Config.m_ClDummy);
 		else
 			Ticks = (float)(Client()->GameTick(g_Config.m_ClDummy) - pCurrent->m_StartTick) + Client()->IntraGameTick(g_Config.m_ClDummy);
-		float Ms = (Ticks / 50.0f) * 1000.0f;
+		float Ms = (Ticks / Client()->GameTickSpeed()) * 1000.0f;
 		float a = Ms / m_pClient->GetTuning(TuneZone)->m_LaserBounceDelay;
 		a = clamp(a, 0.0f, 1.0f);
 		float Ia = 1 - a;
@@ -472,38 +472,46 @@ void CItems::OnRender()
 			CLaserData Data = ExtractLaserInfo(Item.m_Type, pData, &GameClient()->m_GameWorld, pEntEx);
 			bool Inactive = !IsSuper && Data.m_SwitchNumber > 0 && Data.m_SwitchNumber < (int)aSwitchers.size() && !aSwitchers[Data.m_SwitchNumber].m_aStatus[SwitcherTeam];
 
+			bool IsEntBlink = false;
+			int EntStartTick = -1;
 			if(Data.m_Type == LASERTYPE_FREEZE)
 			{
-				if(Inactive && BlinkingLight)
-					continue;
-				Data.m_StartTick = DraggerStartTick;
+				IsEntBlink = BlinkingLight;
+				EntStartTick = DraggerStartTick;
 			}
 			else if(Data.m_Type == LASERTYPE_GUN)
 			{
-				if(Inactive && BlinkingGun)
-					continue;
-				Data.m_StartTick = GunStartTick;
+				IsEntBlink = BlinkingGun;
+				EntStartTick = GunStartTick;
 			}
 			else if(Data.m_Type == LASERTYPE_DRAGGER)
 			{
-				if(Inactive && BlinkingDragger)
-					continue;
-				Data.m_StartTick = DraggerStartTick;
+				IsEntBlink = BlinkingDragger;
+				EntStartTick = DraggerStartTick;
 			}
 			else if(Data.m_Type == LASERTYPE_DOOR)
 			{
-				if(Inactive || IsSuper)
+				if(Data.m_Predict && (Inactive || IsSuper))
 				{
 					Data.m_From.x = Data.m_To.x;
 					Data.m_From.y = Data.m_To.y;
 				}
-				Data.m_StartTick = Client()->GameTick(g_Config.m_ClDummy);
+				EntStartTick = Client()->GameTick(g_Config.m_ClDummy);
 			}
-			else if(Data.m_Type >= NUM_LASERTYPES)
+			else
 			{
-				if(Inactive && BlinkingDragger)
-					continue;
-				Data.m_StartTick = Client()->GameTick(g_Config.m_ClDummy);
+				IsEntBlink = BlinkingDragger;
+				EntStartTick = Client()->GameTick(g_Config.m_ClDummy);
+			}
+
+			if(Data.m_Predict && Inactive && IsEntBlink)
+			{
+				continue;
+			}
+
+			if(Data.m_StartTick <= 0 && EntStartTick != -1)
+			{
+				Data.m_StartTick = EntStartTick;
 			}
 
 			RenderLaser(&Data);
@@ -618,11 +626,11 @@ void CItems::ReconstructSmokeTrail(const CProjectileData *pCurrent, int DestroyT
 		Speed = pTuning->m_GunSpeed;
 	}
 
-	float Pt = ((float)(Client()->PredGameTick(g_Config.m_ClDummy) - pCurrent->m_StartTick) + Client()->PredIntraGameTick(g_Config.m_ClDummy)) / (float)SERVER_TICK_SPEED;
+	float Pt = ((float)(Client()->PredGameTick(g_Config.m_ClDummy) - pCurrent->m_StartTick) + Client()->PredIntraGameTick(g_Config.m_ClDummy)) / (float)Client()->GameTickSpeed();
 	if(Pt < 0)
 		return; // projectile haven't been shot yet
 
-	float Gt = (Client()->PrevGameTick(g_Config.m_ClDummy) - pCurrent->m_StartTick) / (float)SERVER_TICK_SPEED + Client()->GameTickTime(g_Config.m_ClDummy);
+	float Gt = (Client()->PrevGameTick(g_Config.m_ClDummy) - pCurrent->m_StartTick) / (float)Client()->GameTickSpeed() + Client()->GameTickTime(g_Config.m_ClDummy);
 
 	float Alpha = 1.f;
 	if(pCurrent->m_ExtraInfo && pCurrent->m_Owner >= 0 && m_pClient->IsOtherTeam(pCurrent->m_Owner))
@@ -632,7 +640,7 @@ void CItems::ReconstructSmokeTrail(const CProjectileData *pCurrent, int DestroyT
 
 	float T = Pt;
 	if(DestroyTick >= 0)
-		T = minimum(Pt, ((float)(DestroyTick - 1 - pCurrent->m_StartTick) + Client()->PredIntraGameTick(g_Config.m_ClDummy)) / (float)SERVER_TICK_SPEED);
+		T = minimum(Pt, ((float)(DestroyTick - 1 - pCurrent->m_StartTick) + Client()->PredIntraGameTick(g_Config.m_ClDummy)) / (float)Client()->GameTickSpeed());
 
 	float MinTrailSpan = 0.4f * ((pCurrent->m_Type == WEAPON_GRENADE) ? 0.5f : 0.25f);
 	float Step = maximum(Client()->FrameTimeAvg(), (pCurrent->m_Type == WEAPON_GRENADE) ? 0.02f : 0.01f);

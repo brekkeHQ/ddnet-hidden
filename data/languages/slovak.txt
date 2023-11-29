@@ -103,9 +103,6 @@ Delete
 Delete demo
 == Vymazať záznam
 
-Demo details
-== Detaily nahrávky
-
 Demofile: %s
 == Nahrávka: %s
 
@@ -145,9 +142,6 @@ Favorites
 Feet
 == Nohy
 
-Filter
-== Filter
-
 Fire
 == Streľba
 
@@ -159,9 +153,6 @@ Force vote
 
 Free-View
 == Voľná Kamera
-
-Friends
-== Priatelia
 
 Fullscreen
 == Celá obrazovka
@@ -265,9 +256,6 @@ No servers match your filter criteria
 Ok
 == OK
 
-Open
-== Otvoriť
-
 Parent Folder
 == Nadradený Priečinok
 
@@ -282,10 +270,6 @@ Ping
 
 Pistol
 == Pištoľ
-
-[Demo browser]
-Play
-== Prehrať
 
 Play background music
 == Prehrať hudbu na pozadí
@@ -320,9 +304,6 @@ Red team
 Red team wins!
 == Červený tým vyhráva!
 
-Refresh
-== Obnoviť
-
 Remote console
 == Vzdialená konzola
 
@@ -331,9 +312,6 @@ Remove
 
 Remove friend
 == Vymazať priateľa
-
-Rename
-== Premenovať
 
 Rename demo
 == Premenovať nahrávku
@@ -355,12 +333,6 @@ Screenshot
 
 Server address:
 == Adresa servera:
-
-Server details
-== Detaily servera
-
-Server filter
-== Filter serverov
 
 Server info
 == Informácie
@@ -514,26 +486,11 @@ FSAA samples
 Sound volume
 == Hlasitosť
 
-Created:
-== Vytvorené:
-
 Max Screenshots
 == Maximum obrázkov
 
-Length:
-== Dĺžka:
-
 Laser
 == Laser
-
-Netversion:
-== Netversion:
-
-Map:
-== Mapa:
-
-Info
-== Info
 
 Hue
 == Hue
@@ -544,17 +501,11 @@ Record demo
 Your skin
 == Váš skin
 
-Size:
-== Veľkosť:
-
 Reset to defaults
 == Vrátiť na pôvodné
 
 Quit anyway?
 == Aj tak ukončiť?
-
-Version:
-== Verzia:
 
 Round
 == Kolo
@@ -565,9 +516,6 @@ Lht.
 UI Color
 == Farba prostredia
 
-Crc:
-== Crc:
-
 Alpha
 == Alpha
 
@@ -576,9 +524,6 @@ LAN
 
 Name plates size
 == Veľkosť menoviek
-
-Type:
-== Typ:
 
 [Graphics error]
 Failed during initialization. Try to change gfx_backend to OpenGL or Vulkan in settings_ddnet.cfg in the config directory and try again.
@@ -617,6 +562,9 @@ Could not initialize the given graphics backend, this is probably because you di
 == 
 
 Could not save downloaded map. Try manually deleting this file: %s
+== 
+
+Error playing demo
 == 
 
 Successfully saved the replay!
@@ -697,7 +645,16 @@ Personal best:
 Team %d
 == 
 
+Some map images could not be loaded. Check the local console for details.
+== 
+
 Uploading map data to GPU
+== 
+
+Some map sounds could not be loaded. Check the local console for details.
+== 
+
+Loading menu themes
 == 
 
 Reset
@@ -734,6 +691,9 @@ Rename folder
 == 
 
 Render demo
+== 
+
+Render complete
 == 
 
 Welcome to DDNet
@@ -782,6 +742,12 @@ Speed
 == 
 
 Video name:
+== 
+
+Videos directory
+== 
+
+Video was saved to '%s'
 == 
 
 Join Tutorial Server
@@ -911,10 +877,33 @@ Pause the current demo
 Stop the current demo
 == 
 
+Go back the specified duration
+== 
+
+[Demo player duration]
+%d min.
+== 
+
+[Demo player duration]
+%d sec.
+== 
+
+Change the skip duration
+== 
+
+Go forward the specified duration
+== 
+
 Go back one tick
 == 
 
 Go forward one tick
+== 
+
+Go back one marker
+== 
+
+Go forward one marker
 == 
 
 Slow down the demo
@@ -930,12 +919,6 @@ Mark the end of a cut (right click to reset)
 == 
 
 Export cut as a separate demo
-== 
-
-Go back one marker
-== 
-
-Go forward one marker
 == 
 
 Close the demo player
@@ -956,7 +939,10 @@ Cut length
 Remove chat
 == 
 
-Please use a different name
+Render cut to video
+== 
+
+Please use a different filename
 == 
 
 File already exists, do you want to overwrite it?
@@ -968,28 +954,41 @@ Loading demo files
 All combined
 == 
 
-Folder Link
-== 
-
-Markers:
-== 
-
-%.2f MiB
-== 
-
-%.2f KiB
-== 
-
 Demo
-== 
-
-Markers
 == 
 
 Length
 == 
 
 Date
+== 
+
+No demo selected
+== 
+
+Folder Link
+== 
+
+Created
+== 
+
+Markers
+== 
+
+Netversion
+== 
+
+Size
+== 
+
+[Demo details]
+map not included
+== 
+
+%.2f MiB
+== 
+
+%.2f KiB
 == 
 
 Fetch Info
@@ -1008,9 +1007,6 @@ Are you sure that you want to delete the demo '%s'?
 == 
 
 Delete folder
-== 
-
-Render
 == 
 
 Unable to delete the demo '%s'
@@ -1046,7 +1042,13 @@ Loading ghost files
 Time
 == 
 
-Reload
+Ghosts directory
+== 
+
+Activate all
+== 
+
+Deactivate all
 == 
 
 Deactivate
@@ -1106,10 +1108,10 @@ Max CSVs
 Dummy settings
 == 
 
-Loading skin files
+Toggle to edit your dummy settings
 == 
 
-Toggle to edit your dummy settings
+Loading skin files
 == 
 
 Download skins
@@ -1163,19 +1165,22 @@ Show all
 Toggle dyncam
 == 
 
-Toggle dummy
+Toggle ghost
 == 
 
-Toggle ghost
+Converse
+== 
+
+Chat command
+== 
+
+Toggle dummy
 == 
 
 Dummy copy
 == 
 
 Hammerfly dummy
-== 
-
-Converse
 == 
 
 Statboard
@@ -1188,9 +1193,6 @@ Show entities
 == 
 
 Show HUD
-== 
-
-Chat command
 == 
 
 Enable controller
@@ -1516,13 +1518,22 @@ Enable replays
 Default length
 == 
 
+Enable ghost
+== 
+
 When you cross the start line, show a ghost tee replicating the movements of your best time
 == 
 
 Show ghost
 == 
 
+Opacity
+== 
+
 Save ghost
+== 
+
+Only save improvements
 == 
 
 Gameplay
@@ -1532,12 +1543,6 @@ Overlay entities
 == 
 
 Show text entities
-== 
-
-Size
-== 
-
-Opacity
 == 
 
 Adjust the opacity of entities belonging to other teams, such as tees and nameplates
@@ -1570,16 +1575,19 @@ AntiPing: predict grenade paths
 Background
 == 
 
-Entities Background color
+Regular background color
+== 
+
+Entities background color
+== 
+
+Reload
 == 
 
 Use current map as background
 == 
 
 Show tiles layers from BG map
-== 
-
-Regular Background Color
 == 
 
 New random timeout code

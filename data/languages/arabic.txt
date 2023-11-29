@@ -98,9 +98,6 @@ Delete
 Delete demo
 == ﻮﻳﺪﻴﻔﻟﺍ ﻑﺬﺣ
 
-Demo details
-== :ﻮﻳﺪﻴﻔﻟﺍ ﻞﻴﺻﺎﻔﺗ
-
 Demofile: %s
 == %s :ﻮﻳﺪﻴﻔﻟﺍ ﻒﻠﻣ
 
@@ -140,9 +137,6 @@ Favorites
 Feet
 == ﺔﻣﺰﺟ
 
-Filter
-== ﺔﻴﻔﺼﺗ
-
 Fire
 == ﺭﺎﻧ
 
@@ -154,9 +148,6 @@ Force vote
 
 Free-View
 == ﺮﺤﻟﺍ ﺮﻈﻨﻤﻟﺍ
-
-Friends
-== ﺀﺎﻗﺪﺻﻻﺍ
 
 Fullscreen
 == ﻞﻣﺎﻜﻟﺍ ﺔﺷﺎﺸﻟﺍ ﻊﺿﻭ
@@ -263,9 +254,6 @@ No servers match your filter criteria
 Ok
 == ﻙﻭﺍ
 
-Open
-== ﺢﺘﻓ
-
 Parent Folder
 == ﻞﺻﻷﺍ ﺪﻠﺠﻤﻟﺍ
 
@@ -280,10 +268,6 @@ Ping
 
 Pistol
 == ﺱﺪﺴﻣ
-
-[Demo browser]
-Play
-== ﻞﻴﻐﺸﺗ
 
 Play background music
 == ﺔﻴﻔﻠﺨﻟﺍ ﺕﻮﺻ ﻞﻴﻌﻔﺗ
@@ -318,9 +302,6 @@ Red team
 Red team wins!
 == !ﺮﺼﺘﻧﺍ ﺮﻤﺣﻻﺍ ﻖﻳﺮﻔﻟﺍ
 
-Refresh
-== ﺚﻳﺪﺤﺗ
-
 Remote console
 == ﻦﻣﺩﻻﺍ ﻞﺴﻧﻮﻛ
 
@@ -329,9 +310,6 @@ Remove
 
 Remove friend
 == ﻖﻳﺪﺻ ﻑﺬﺣ
-
-Rename
-== ﺔﻴﻤﺴﺗ ﺓﺩﺎﻋﺍ
 
 Rename demo
 == ﻮﻳﺪﻴﻓﻟﺍ ﺔﻴﻤﺴﺗ ﺓﺩﺎﻋﺍ
@@ -353,12 +331,6 @@ Screenshot
 
 Server address:
 == ﺮﻓﺮﻴﺴﻟﺍ ﻥﺍﻮﻨﻋ:
-
-Server details
-== ﺮﻓﺮﻴﺴﻟﺍ ﻞﻴﺻﺎﻔﺗ
-
-Server filter
-== ﺮﻓﺮﻴﺴﻟﺍ ﺔﻴﻔﺼﺗ
 
 Server info
 == ﺮﻓﺮﻴﺴﻟﺍ ﺕﺎﻣﻮﻠﻌﻣ
@@ -513,23 +485,8 @@ FSAA samples
 Sound volume
 == ﺕﻮﺼﻟﺍ ﻢﺠﺣ
 
-Created:
-== ﺊﺸﻧﺍ:
-
 Max Screenshots
 == ﺭﻮﺼﻠﻟ ﻰﺼﻗﻻﺍ ﺪﺤﻟﺍ
-
-Length:
-== :ﻝﻮﻄﻟﺍ
-
-Netversion:
-== :ﻲﻓﺎﺼﻟﺍ ﺭﺍﺪﺻﻹﺍ
-
-Map:
-== ﺏﺎﻤﻟﺍ:
-
-Info
-== ﺕﺎﻣﻮﻠﻌﻣ
 
 Hue
 == ﻥﻮﻟ
@@ -540,17 +497,11 @@ Record demo
 Your skin
 == ﻚﻨﻜﺳ
 
-Size:
-== ﻢﺠﺤﻟﺍ
-
 Reset to defaults
 == ﺀﻲﺷ ﻞﻛ ﺓﺩﺎﻋﺍ
 
 Quit anyway?
 == ﻝﺎﺣ ﻞﻛ ﻰﻠﻋ ﺝﻭﺮﺨﻟﺍ
-
-Version:
-== :ﺭﺍﺪﺻﻻﺍ
 
 Round
 == ﺔﻟﻮﺟ
@@ -561,9 +512,6 @@ Lht.
 UI Color
 == ﻥﺍﻮﻟﻻﺍ ﺔﻤﺋﺎﻗ
 
-Crc:
-== Crc:
-
 Alpha
 == ﺔﻴﻓﺎﻔﺷ
 
@@ -572,9 +520,6 @@ LAN
 
 Name plates size
 == ﻲﻣﺎﺳﻻﺍ ﻢﺠﺣ
-
-Type:
-== ﺔﺑﺎﺘﻛ:
 
 Ratio
 == ﺔﺒﺴﻧ
@@ -744,8 +689,8 @@ Grabs
 Automatically take game over screenshot
 == ﺔﺷﺎﺸﻟﺍ ﺔﻄﻘﻟ ﻰﻠﻋ ﺍًﻴﺋﺎﻘﻠﺗ ﺔﺒﻌﻠﻟﺍ ﺬﺧﺃ
 
-Please use a different name
-== ﺮﺧﺃ ﻢﺳﺍ ﺭﺎﻴﺘﺧﺎﺑ ﻢﻗ ﺀﺎﺟﺭ
+Please use a different filename
+== 
 
 Gameplay
 == ﺐﻌﻠﻟﺍ
@@ -927,9 +872,6 @@ Enable replays
 Toggle dummy
 == ﺔﻴﻣﺪﻠﻟ ﻞﻳﺪﺒﺗ
 
-Markers:
-== ﺕﺎﻣﻼﻌﻟﺍ:
-
 Converse
 == ﺔﺛﺩﺎﺤﻣ
 
@@ -989,9 +931,6 @@ Kill
 
 Please enter your nickname below.
 == ﻚﺑ ﺹﺎﺨﻟﺍ ﻢﺳﺍ ﻝﺎﺧﺩﺇ ﺀﺎﺟﺮﻟﺍ
-
-Render
-== ﻞﻌﺟ
 
 It's recommended that you check the settings to adjust them to your liking before joining a server.
 == .ﺮﻓﺮﻴﺴﻟﺍ ﻰﻟﺇ ﻡﺎﻤﻀﻧﻻﺍ ﻞﺒﻗ ﻚﺘﺒﻏﺭ ﺐﺴﺣ ﺎﻬﻄﺒﻀﻟ ﺕﺍﺩﺍﺪﻋﻹﺍ ﻦﻣ ﻖﻘﺤﺘﻟﺎﺑ ﻰﺻﻮﻳ
@@ -1180,6 +1119,9 @@ Could not initialize the given graphics backend, this is probably because you di
 Could not save downloaded map. Try manually deleting this file: %s
 == 
 
+Error playing demo
+== 
+
 The width of texture %s is not divisible by %d, or the height is not divisible by %d, which might cause visual bugs.
 == 
 
@@ -1231,7 +1173,16 @@ Multi-View
 Team %d
 == 
 
+Some map images could not be loaded. Check the local console for details.
+== 
+
 Uploading map data to GPU
+== 
+
+Some map sounds could not be loaded. Check the local console for details.
+== 
+
+Loading menu themes
 == 
 
 Trying to determine UDP connectivity...
@@ -1255,6 +1206,9 @@ Requesting to join the game
 Rename folder
 == 
 
+Render complete
+== 
+
 A demo with this name already exists
 == 
 
@@ -1268,6 +1222,12 @@ File '%s' already exists, do you want to overwrite it?
 == 
 
 (paused)
+== 
+
+Videos directory
+== 
+
+Video was saved to '%s'
 == 
 
 Join Tutorial Server
@@ -1355,10 +1315,33 @@ Pause the current demo
 Stop the current demo
 == 
 
+Go back the specified duration
+== 
+
+[Demo player duration]
+%d min.
+== 
+
+[Demo player duration]
+%d sec.
+== 
+
+Change the skip duration
+== 
+
+Go forward the specified duration
+== 
+
 Go back one tick
 == 
 
 Go forward one tick
+== 
+
+Go back one marker
+== 
+
+Go forward one marker
 == 
 
 Slow down the demo
@@ -1376,12 +1359,6 @@ Mark the end of a cut (right click to reset)
 Export cut as a separate demo
 == 
 
-Go back one marker
-== 
-
-Go forward one marker
-== 
-
 Close the demo player
 == 
 
@@ -1397,13 +1374,29 @@ Cut interval
 Cut length
 == 
 
+Render cut to video
+== 
+
 Loading demo files
 == 
 
 All combined
 == 
 
+No demo selected
+== 
+
 Folder Link
+== 
+
+Created
+== 
+
+Netversion
+== 
+
+[Demo details]
+map not included
 == 
 
 Open the directory that contains the demo files
@@ -1427,6 +1420,15 @@ Unable to delete the folder '%s'. Make sure it's empty first.
 Loading ghost files
 == 
 
+Ghosts directory
+== 
+
+Activate all
+== 
+
+Deactivate all
+== 
+
 Menu opened. Press Esc key again to close menu.
 == 
 
@@ -1448,10 +1450,10 @@ Open the directory that contains the configuration and user files
 Open the directory to add custom themes
 == 
 
-Loading skin files
+Toggle to edit your dummy settings
 == 
 
-Toggle to edit your dummy settings
+Loading skin files
 == 
 
 Download community skins
@@ -1672,10 +1674,16 @@ Freeze Laser Inner Color
 Set all to Rifle
 == 
 
+Enable ghost
+== 
+
 When you cross the start line, show a ghost tee replicating the movements of your best time
 == 
 
 Opacity
+== 
+
+Only save improvements
 == 
 
 Adjust the opacity of entities belonging to other teams, such as tees and nameplates
@@ -1690,10 +1698,10 @@ Tries to predict other entities to give a feel of low latency
 Background
 == 
 
-Entities Background color
+Regular background color
 == 
 
-Regular Background Color
+Entities background color
 == 
 
 Run on join

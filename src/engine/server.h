@@ -29,7 +29,6 @@ class IServer : public IInterface
 	MACRO_INTERFACE("server", 0)
 protected:
 	int m_CurrentGameTick;
-	int m_TickSpeed;
 
 public:
 	/*
@@ -46,7 +45,7 @@ public:
 	};
 
 	int Tick() const { return m_CurrentGameTick; }
-	int TickSpeed() const { return m_TickSpeed; }
+	int TickSpeed() const { return SERVER_TICK_SPEED; }
 
 	virtual int Port() const = 0;
 	virtual int MaxClients() const = 0;
@@ -206,8 +205,9 @@ public:
 	virtual void GetMapInfo(char *pMapName, int MapNameSize, int *pMapSize, SHA256_DIGEST *pSha256, int *pMapCrc) = 0;
 
 	virtual bool WouldClientNameChange(int ClientID, const char *pNameRequest) = 0;
-	virtual void SetClientName(int ClientID, char const *pName) = 0;
-	virtual void SetClientClan(int ClientID, char const *pClan) = 0;
+	virtual bool WouldClientClanChange(int ClientID, const char *pClanRequest) = 0;
+	virtual void SetClientName(int ClientID, const char *pName) = 0;
+	virtual void SetClientClan(int ClientID, const char *pClan) = 0;
 	virtual void SetClientCountry(int ClientID, int Country) = 0;
 	virtual void SetClientScore(int ClientID, std::optional<int> Score) = 0;
 	virtual void SetClientFlags(int ClientID, int Flags) = 0;
@@ -254,7 +254,7 @@ public:
 	virtual bool DnsblWhite(int ClientID) = 0;
 	virtual bool DnsblPending(int ClientID) = 0;
 	virtual bool DnsblBlack(int ClientID) = 0;
-	virtual const char *GetAnnouncementLine(char const *pFileName) = 0;
+	virtual const char *GetAnnouncementLine(const char *pFileName) = 0;
 	virtual bool ClientPrevIngame(int ClientID) = 0;
 	virtual const char *GetNetErrorString(int ClientID) = 0;
 	virtual void ResetNetErrorString(int ClientID) = 0;

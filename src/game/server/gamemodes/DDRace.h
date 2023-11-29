@@ -5,10 +5,6 @@
 #include <game/server/entities/character.h>
 #include <game/server/gamecontroller.h>
 #include <game/server/player.h>
-#include <game/server/teams.h>
-
-#include <map>
-#include <vector>
 
 // Hidden Mode各阶段状态枚举
 enum
@@ -35,26 +31,16 @@ public:
 
 	CScore *Score();
 
-	void OnCharacterSpawn(class CCharacter *pChr) override;
 	void HandleCharacterTiles(class CCharacter *pChr, int MapIndex) override;
 
 	void OnPlayerConnect(class CPlayer *pPlayer) override;
 	void OnPlayerDisconnect(class CPlayer *pPlayer, const char *pReason) override;
 
 	void OnReset() override;
-	void StartRound() override;
-	void EndRound() override;
+
 	void Tick() override;
 
 	void DoTeamChange(class CPlayer *pPlayer, int Team, bool DoChatMsg = true) override;
-
-	CClientMask GetMaskForPlayerWorldEvent(int Asker, int ExceptID = -1) override;
-
-	void InitTeleporter();
-
-	int GetPlayerTeam(int ClientID) const;
-
-	CGameTeams m_Teams;
 
 	// 生成一个包含[0,a-1]范围内的b个不重复随机整数的数组
 	std::vector<int> unique_random_numbers(int a, int b)
@@ -188,11 +174,6 @@ public:
 
 		return true;
 	}
-
-	std::map<int, std::vector<vec2>> m_TeleOuts;
-	std::map<int, std::vector<vec2>> m_TeleCheckOuts;
-
-	std::shared_ptr<CScoreLoadBestTimeResult> m_pLoadBestTimeResult;
 };
 
 #endif // GAME_SERVER_GAMEMODES_DDRACE_H

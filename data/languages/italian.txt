@@ -110,9 +110,6 @@ Delete
 Delete demo
 == Elimina demo
 
-Demo details
-== Dettagli demo
-
 Demofile: %s
 == Demo: %s
 
@@ -152,9 +149,6 @@ Favorites
 Feet
 == Piedi
 
-Filter
-== Filtro
-
 Fire
 == Fuoco
 
@@ -166,9 +160,6 @@ Force vote
 
 Free-View
 == Visione libera
-
-Friends
-== Amici
 
 Fullscreen
 == Schermo intero
@@ -272,9 +263,6 @@ No servers match your filter criteria
 Ok
 == Ok
 
-Open
-== Apri
-
 Parent Folder
 == Cartella superiore
 
@@ -289,10 +277,6 @@ Ping
 
 Pistol
 == Pistola
-
-[Demo browser]
-Play
-== Riproduci
 
 Play background music
 == Riproduci musica di sottofondo
@@ -327,9 +311,6 @@ Red team
 Red team wins!
 == La squadra rossa ha vinto!
 
-Refresh
-== Aggiorna
-
 Remote console
 == Console remota
 
@@ -338,9 +319,6 @@ Remove
 
 Remove friend
 == Rimuovi amico
-
-Rename
-== Rinomina
 
 Rename demo
 == Rinomina demo
@@ -362,12 +340,6 @@ Screenshot
 
 Server address:
 == Indirizzo server:
-
-Server details
-== Dettagli server
-
-Server filter
-== Filtro server
 
 Server info
 == Info server
@@ -521,23 +493,8 @@ FSAA samples
 Sound volume
 == Volume suono
 
-Created:
-== Creata:
-
 Max Screenshots
 == Numero massimo di catture
-
-Length:
-== Durata:
-
-Netversion:
-== Versione net
-
-Map:
-== Mappa:
-
-Info
-== Info
 
 Hue
 == Tinta
@@ -548,19 +505,11 @@ Record demo
 Your skin
 == La tua skin
 
-Size:
-== Dimensione:
-
-##### translated strings #####
-
 Reset to defaults
 == Reimposta predefinito
 
 Quit anyway?
 == Vuoi chiudere comunque?
-
-Version:
-== Versione:
 
 Round
 == Turno
@@ -571,9 +520,6 @@ Lht.
 UI Color
 == Colore interfaccia
 
-Crc:
-== Crc:
-
 Alpha
 == Alpha
 
@@ -582,9 +528,6 @@ LAN
 
 Name plates size
 == Dimensione nomi
-
-Type:
-== Tipo:
 
 DDNet %s is out!
 == DDNet %s è uscito!
@@ -757,8 +700,8 @@ Countries
 Types
 == Tipi
 
-Please use a different name
-== Per favore usa un nome differente
+Please use a different filename
+== 
 
 Remove chat
 == Rimuovi chat
@@ -771,9 +714,6 @@ Date
 
 Demos directory
 == Cartella delle demo
-
-Render
-== Renderizza
 
 Connecting dummy
 == Connettendo dummy
@@ -1167,51 +1107,6 @@ Grabs
 9+ new mentions
 == +9 nuove menzioni
 
-[Graphics error]
-Failed during initialization. Try to change gfx_backend to OpenGL or Vulkan in settings_ddnet.cfg in the config directory and try again.
-== 
-
-[Graphics error]
-Out of VRAM. Try removing custom assets (skins, entities, etc.), especially those with high resolution.
-== 
-
-[Graphics error]
-An error during command recording occurred. Try to update your GPU drivers.
-== 
-
-[Graphics error]
-A render command failed. Try to update your GPU drivers.
-== 
-
-[Graphics error]
-Submitting the render commands failed. Try to update your GPU drivers.
-== 
-
-[Graphics error]
-Failed to swap framebuffers. Try to update your GPU drivers.
-== 
-
-[Graphics error]
-Unknown error. Try to change gfx_backend to OpenGL or Vulkan in settings_ddnet.cfg in the config directory and try again.
-== 
-
-[Graphics error]
-Could not initialize the given graphics backend, reverting to the default backend now.
-== 
-
-[Graphics error]
-Could not initialize the given graphics backend, this is probably because you didn't install the driver of the integrated graphics card.
-== 
-
-Could not save downloaded map. Try manually deleting this file: %s
-== 
-
-The width of texture %s is not divisible by %d, or the height is not divisible by %d, which might cause visual bugs.
-== 
-
-The format of texture %s is not RGBA which will cause visual bugs.
-== 
-
 Preparing demo playback
 == Preparando la riproduzione della demo
 
@@ -1220,9 +1115,6 @@ Connected
 
 Loading map file from storage
 == Caricando il file mappa dalla memoria
-
-Why are you slowmo replaying to read this?
-== 
 
 Initializing components
 == Inizializzando i componenti
@@ -1302,54 +1194,17 @@ Join Tutorial Server
 Skip Tutorial
 == Salta Tutorial
 
-Loading menu images
-== 
-
-AFR
-== 
-
-ASI
-== 
-
-AUS
-== 
-
-EUR
-== 
-
-NA
-== 
-
-SA
-== 
-
-CHN
-== 
-
 Getting server list from master server
 == Ottenere l'elenco dei server dal server principale
 
 Are you sure that you want to disconnect and switch to a different server?
 == Sei sicuro di voler disconnetterti e passare a un altro server?
 
-Copy info
-== 
-
-Leak IP
-== 
-
 No server selected
 == Nessun server selezionato
 
-Online players (%d)
-== 
-
 Online clanmates (%d)
 == Compagni di clan online
-
-[friends (server browser)]
-Offline (%d)
-== 
 
 Click to select server. Double click to join your friend.
 == Fare click per selezionare il server. Fai doppio click per unirti al tuo amico.
@@ -1372,122 +1227,8 @@ Are you sure that you want to remove the clan '%s' from your friends list?
 Add Clan
 == Aggiungi Clan
 
-Play the current demo
-== 
-
-Pause the current demo
-== 
-
-Stop the current demo
-== 
-
-Go back one tick
-== 
-
-Go forward one tick
-== 
-
-Slow down the demo
-== 
-
-Speed up the demo
-== 
-
-Mark the beginning of a cut (right click to reset)
-== 
-
-Mark the end of a cut (right click to reset)
-== 
-
-Export cut as a separate demo
-== 
-
-Go back one marker
-== 
-
-Go forward one marker
-== 
-
-Close the demo player
-== 
-
-Toggle keyboard shortcuts
-== 
-
-Export demo cut
-== 
-
-Cut interval
-== 
-
-Cut length
-== 
-
-Loading demo files
-== 
-
-All combined
-== 
-
-Folder Link
-== 
-
-Markers:
-== 
-
-%.2f MiB
-== 
-
-%.2f KiB
-== 
-
-Open the directory that contains the demo files
-== 
-
-Are you sure that you want to delete the folder '%s'?
-== 
-
-Are you sure that you want to delete the demo '%s'?
-== 
-
 Delete folder
 == Cancella cartella
-
-Unable to delete the demo '%s'
-== 
-
-Unable to delete the folder '%s'. Make sure it's empty first.
-== 
-
-Loading ghost files
-== 
-
-Menu opened. Press Esc key again to close menu.
-== 
-
-Save power by lowering refresh rate (higher input latency)
-== 
-
-Settings file
-== 
-
-Open the settings file
-== 
-
-Config directory
-== 
-
-Open the directory that contains the configuration and user files
-== 
-
-Open the directory to add custom themes
-== 
-
-Loading skin files
-== 
-
-Toggle to edit your dummy settings
-== 
 
 Download community skins
 == Scarica skin comunitá 
@@ -1501,17 +1242,8 @@ Create a random skin
 Open the directory to add custom skins
 == Apri la cartella per aggiungere una skin custom
 
-Converse
-== 
-
-Chat command
-== 
-
 Enable controller
 == Abilitá controller
-
-Controller
-== 
 
 Ingame controller mode
 == Modalitá controller in gioco
@@ -1519,19 +1251,6 @@ Ingame controller mode
 [Ingame controller mode]
 Relative
 == Relativo
-
-[Ingame controller mode]
-Absolute
-== 
-
-Ingame controller sens.
-== 
-
-UI controller sens.
-== 
-
-Controller jitter tolerance
-== 
 
 No controller found. Plug in a controller.
 == Nessun controller trovato. Collega un controller.
@@ -1541,12 +1260,6 @@ Axis
 
 Status
 == Stato
-
-Aim bind
-== 
-
-Mouse
-== 
 
 Ingame mouse sens.
 == Sens. mouse in gioco
@@ -1563,9 +1276,6 @@ Are you sure that you want to reset the controls to their defaults?
 Cancel
 == Cancella
 
-Dummy
-== 
-
 Windowed
 == Finestra
 
@@ -1578,41 +1288,14 @@ Windowed fullscreen
 Desktop fullscreen
 == Desktop schermo intero
 
-Allows maps to render with more detail
-== 
-
-Renderer
-== 
-
-default
-== 
-
-custom
-== 
-
 Graphics card
 == Scheda grafica
-
-auto
-== 
-
-Appearance
-== 
-
-Name Plate
-== 
 
 Hook Collisions
 == Collisione Hook
 
-Kill Messages
-== 
-
 Show health, shields and ammo
 == Mostra vita, scudi e munizioni
-
-DDRace HUD
-== 
 
 Show client IDs in scoreboard
 == Mostra gli ID clienti nella scoreboard
@@ -1671,6 +1354,371 @@ Nothing hookable
 Something hookable
 == Qualcosa hookabile
 
+Weapons
+== Armi
+
+When you cross the start line, show a ghost tee replicating the movements of your best time
+== Quando attraversi la linea di partenza, mostra una maglietta fantasma che riproduce i movimenti del tuo miglior tempo
+
+Opacity
+== Opacitá 
+
+Adjust the opacity of entities belonging to other teams, such as tees and nameplates
+== Regola l'opacità delle entità appartenenti ad altri team, come magliette e targhette
+
+Quads are used for background decoration
+== I quads sono usati per decorare lo sfondo
+
+Tries to predict other entities to give a feel of low latency
+== Provare a predirre altre entitá causa una sensazione di lag
+
+Background
+== Sfondo
+
+Run on join
+== Esegui quando entri
+
+Chat command (e.g. showall 1)
+== Comando chat (es. showall 1)
+
+Unregister protocol and file extensions
+== Protocollo ed estensioni file non registrati
+
+Loading assets
+== Caricando assets
+
+Open the directory to add custom assets
+== Apri la cartella per aggiungere assets custom
+
+Can't find a Tutorial server
+== Impossibile trovare un Server Tutorial
+
+Loading race demo files
+== Caricando i file della demo della gara
+
+Loading sound files
+== Caricando file musica
+
+Moved ingame
+== Spostato in gioco
+
+[Graphics error]
+Failed during initialization. Try to change gfx_backend to OpenGL or Vulkan in settings_ddnet.cfg in the config directory and try again.
+== 
+
+[Graphics error]
+Out of VRAM. Try removing custom assets (skins, entities, etc.), especially those with high resolution.
+== 
+
+[Graphics error]
+An error during command recording occurred. Try to update your GPU drivers.
+== 
+
+[Graphics error]
+A render command failed. Try to update your GPU drivers.
+== 
+
+[Graphics error]
+Submitting the render commands failed. Try to update your GPU drivers.
+== 
+
+[Graphics error]
+Failed to swap framebuffers. Try to update your GPU drivers.
+== 
+
+[Graphics error]
+Unknown error. Try to change gfx_backend to OpenGL or Vulkan in settings_ddnet.cfg in the config directory and try again.
+== 
+
+[Graphics error]
+Could not initialize the given graphics backend, reverting to the default backend now.
+== 
+
+[Graphics error]
+Could not initialize the given graphics backend, this is probably because you didn't install the driver of the integrated graphics card.
+== 
+
+Could not save downloaded map. Try manually deleting this file: %s
+== 
+
+Error playing demo
+== 
+
+The width of texture %s is not divisible by %d, or the height is not divisible by %d, which might cause visual bugs.
+== 
+
+The format of texture %s is not RGBA which will cause visual bugs.
+== 
+
+Why are you slowmo replaying to read this?
+== 
+
+Some map images could not be loaded. Check the local console for details.
+== 
+
+Some map sounds could not be loaded. Check the local console for details.
+== 
+
+Loading menu themes
+== 
+
+Render complete
+== 
+
+Videos directory
+== 
+
+Video was saved to '%s'
+== 
+
+Loading menu images
+== 
+
+AFR
+== 
+
+ASI
+== 
+
+AUS
+== 
+
+EUR
+== 
+
+NA
+== 
+
+SA
+== 
+
+CHN
+== 
+
+Copy info
+== 
+
+Leak IP
+== 
+
+Online players (%d)
+== 
+
+[friends (server browser)]
+Offline (%d)
+== 
+
+Play the current demo
+== 
+
+Pause the current demo
+== 
+
+Stop the current demo
+== 
+
+Go back the specified duration
+== 
+
+[Demo player duration]
+%d min.
+== 
+
+[Demo player duration]
+%d sec.
+== 
+
+Change the skip duration
+== 
+
+Go forward the specified duration
+== 
+
+Go back one tick
+== 
+
+Go forward one tick
+== 
+
+Go back one marker
+== 
+
+Go forward one marker
+== 
+
+Slow down the demo
+== 
+
+Speed up the demo
+== 
+
+Mark the beginning of a cut (right click to reset)
+== 
+
+Mark the end of a cut (right click to reset)
+== 
+
+Export cut as a separate demo
+== 
+
+Close the demo player
+== 
+
+Toggle keyboard shortcuts
+== 
+
+Export demo cut
+== 
+
+Cut interval
+== 
+
+Cut length
+== 
+
+Render cut to video
+== 
+
+Loading demo files
+== 
+
+All combined
+== 
+
+No demo selected
+== 
+
+Folder Link
+== 
+
+Created
+== 
+
+Netversion
+== 
+
+[Demo details]
+map not included
+== 
+
+%.2f MiB
+== 
+
+%.2f KiB
+== 
+
+Open the directory that contains the demo files
+== 
+
+Are you sure that you want to delete the folder '%s'?
+== 
+
+Are you sure that you want to delete the demo '%s'?
+== 
+
+Unable to delete the demo '%s'
+== 
+
+Unable to delete the folder '%s'. Make sure it's empty first.
+== 
+
+Loading ghost files
+== 
+
+Ghosts directory
+== 
+
+Activate all
+== 
+
+Deactivate all
+== 
+
+Menu opened. Press Esc key again to close menu.
+== 
+
+Save power by lowering refresh rate (higher input latency)
+== 
+
+Settings file
+== 
+
+Open the settings file
+== 
+
+Config directory
+== 
+
+Open the directory that contains the configuration and user files
+== 
+
+Open the directory to add custom themes
+== 
+
+Toggle to edit your dummy settings
+== 
+
+Loading skin files
+== 
+
+Converse
+== 
+
+Chat command
+== 
+
+Controller
+== 
+
+[Ingame controller mode]
+Absolute
+== 
+
+Ingame controller sens.
+== 
+
+UI controller sens.
+== 
+
+Controller jitter tolerance
+== 
+
+Aim bind
+== 
+
+Mouse
+== 
+
+Dummy
+== 
+
+Allows maps to render with more detail
+== 
+
+Renderer
+== 
+
+default
+== 
+
+custom
+== 
+
+auto
+== 
+
+Appearance
+== 
+
+Name Plate
+== 
+
+Kill Messages
+== 
+
+DDRace HUD
+== 
+
 A Tee
 == 
 
@@ -1679,9 +1727,6 @@ Normal Color
 
 Highlight Color
 == 
-
-Weapons
-== Armi
 
 Rifle Laser Outline Color
 == 
@@ -1710,50 +1755,23 @@ Freeze Laser Inner Color
 Set all to Rifle
 == 
 
-When you cross the start line, show a ghost tee replicating the movements of your best time
-== Quando attraversi la linea di partenza, mostra una maglietta fantasma che riproduce i movimenti del tuo miglior tempo
+Enable ghost
+== 
+
+Only save improvements
+== 
 
 Overlay entities
 == 
 
-Opacity
-== Opacitá 
+Regular background color
+== 
 
-Adjust the opacity of entities belonging to other teams, such as tees and nameplates
-== Regola l'opacità delle entità appartenenti ad altri team, come magliette e targhette
-
-Quads are used for background decoration
-== I quads sono usati per decorare lo sfondo
-
-Tries to predict other entities to give a feel of low latency
-== Provare a predirre altre entitá causa una sensazione di lag
-
-Background
-== Sfondo
-
-Entities Background color
-== Colore sfondo entities
-
-Regular Background Color
-== Colore sfondo normale
-
-Run on join
-== Esegui quando entri
-
-Chat command (e.g. showall 1)
-== Comando chat (es. showall 1)
-
-Unregister protocol and file extensions
-== Protocollo ed estensioni file non registrati
+Entities background color
+== 
 
 Extras
 == 
-
-Loading assets
-== Caricando assets
-
-Open the directory to add custom assets
-== Apri la cartella per aggiungere assets custom
 
 Discord
 == 
@@ -1764,20 +1782,8 @@ https://ddnet.org/discord
 Tutorial
 == 
 
-Can't find a Tutorial server
-== Impossibile trovare un Server Tutorial
-
-Loading race demo files
-== Caricando i file della demo della gara
-
 Super
 == 
 
-Loading sound files
-== Caricando file musica
-
 FPM
 == 
-
-Moved ingame
-== Spostato in gioco

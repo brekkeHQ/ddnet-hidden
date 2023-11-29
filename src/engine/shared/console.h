@@ -174,7 +174,7 @@ protected:
 
 		void AddEntry()
 		{
-			CQueueEntry *pEntry = static_cast<CQueueEntry *>(m_Queue.Allocate(sizeof(CQueueEntry)));
+			CQueueEntry *pEntry = m_Queue.Allocate<CQueueEntry>();
 			pEntry->m_pNext = 0;
 			if(!m_pFirst)
 				m_pFirst = pEntry;
@@ -192,6 +192,8 @@ protected:
 
 	void AddCommandSorted(CCommand *pCommand);
 	CCommand *FindCommand(const char *pName, int FlagMask);
+
+	bool m_Cheated;
 
 public:
 	IConfigManager *ConfigManager() { return m_pConfigManager; }
@@ -229,6 +231,10 @@ public:
 	// DDRace
 
 	static void ConUserCommandStatus(IConsole::IResult *pResult, void *pUser);
+
+	bool Cheated() const override { return m_Cheated; }
+
+	int FlagMask() const override { return m_FlagMask; }
 	void SetFlagMask(int FlagMask) override { m_FlagMask = FlagMask; }
 };
 

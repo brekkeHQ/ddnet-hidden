@@ -7,7 +7,9 @@
 
 #include <engine/shared/protocol.h>
 
-#include "alloc.h"
+#include <game/alloc.h>
+#include <game/server/save.h>
+
 #include "teeinfo.h"
 
 #include <memory>
@@ -66,6 +68,7 @@ public:
 
 	void KillCharacter(int Weapon = WEAPON_GAME, bool SendKillMsg = true);
 	CCharacter *GetCharacter();
+	const CCharacter *GetCharacter() const;
 
 	void SpectatePlayerName(const char *pName);
 	// 打乱皮肤数组
@@ -161,7 +164,6 @@ public:
 	bool m_ForceBalanced;
 	int m_LastActionTick;
 	int m_TeamChangeTick;
-	bool m_SentSemicolonTip;
 
 	// network latency calculations
 	struct
@@ -242,6 +244,7 @@ public:
 	void UpdatePlaytime();
 	void AfkTimer();
 	void SetAfk(bool Afk);
+	void SetInitialAfk(bool Afk);
 	bool IsAfk() const { return m_Afk; }
 
 	int64_t m_LastPlaytime;
@@ -269,6 +272,8 @@ public:
 	bool m_VotedForPractice;
 	int m_SwapTargetsClientID; // Client ID of the swap target for the given player
 	bool m_BirthdayAnnounced;
+
+	CSaveTee m_LastTeleTee;
 };
 
 #endif

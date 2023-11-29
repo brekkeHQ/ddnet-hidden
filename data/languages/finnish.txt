@@ -105,9 +105,6 @@ Delete
 Delete demo
 == Poista demo
 
-Demo details
-== Demon tiedot
-
 Demofile: %s
 == Demotiedosto: %s
 
@@ -147,9 +144,6 @@ Favorites
 Feet
 == Jalat
 
-Filter
-== Suotimet
-
 Fire
 == Ammu
 
@@ -161,9 +155,6 @@ Force vote
 
 Free-View
 == Vapaa näkymä
-
-Friends
-== Ystävät
 
 Fullscreen
 == Koko näyttö
@@ -267,9 +258,6 @@ No servers match your filter criteria
 Ok
 == Ok
 
-Open
-== Avaa
-
 Parent Folder
 == Yläkansio
 
@@ -284,10 +272,6 @@ Ping
 
 Pistol
 == Pistooli
-
-[Demo browser]
-Play
-== Toista
 
 Play background music
 == Soita taustamusiikki
@@ -322,9 +306,6 @@ Red team
 Red team wins!
 == Punainen joukkue voitti!
 
-Refresh
-== Päivitä
-
 Remote console
 == Etäkonsoli
 
@@ -333,9 +314,6 @@ Remove
 
 Remove friend
 == Poista ystävä
-
-Rename
-== Nimeä
 
 Rename demo
 == Uudelleennimeä demo
@@ -357,12 +335,6 @@ Screenshot
 
 Server address:
 == Palvelimen osoite:
-
-Server details
-== Palvelimen yksityiskohdat
-
-Server filter
-== Palvelinsuotimet
 
 Server info
 == Palvelintiedot
@@ -514,26 +486,11 @@ FSAA samples
 Sound volume
 == Äänenvoimakkuus
 
-Created:
-== Luotu:
-
 Max Screenshots
 == Kuvankaappausmaksimi
 
-Length:
-== Pituus:
-
 Laser
 == Laser
-
-Netversion:
-== Yhteysversio:
-
-Map:
-== Kenttä:
-
-Info
-== Info
 
 Hue
 == Värisävy
@@ -544,17 +501,11 @@ Record demo
 Your skin
 == Sinun ulkonäkösi
 
-Size:
-== Koko:
-
 Reset to defaults
 == Palaa oletusasetuksiin
 
 Quit anyway?
 == Lopeta siitä huolimatta?
-
-Version:
-== Versio:
 
 Round
 == Kierros
@@ -565,9 +516,6 @@ Lht.
 UI Color
 == Käyttöliittymäväri
 
-Crc:
-== Crc:
-
 Alpha
 == Alfa
 
@@ -576,9 +524,6 @@ LAN
 
 Name plates size
 == Nimikylttien koko
-
-Type:
-== Tyyppi:
 
 Successfully saved the replay!
 == Uudelleentoisto tallentui onnistuneesti!
@@ -739,14 +684,11 @@ Types
 Leak IP
 == Vuoda IP
 
-Please use a different name
-== Ole hyvä ja käytä toista nimeä
+Please use a different filename
+== 
 
 Remove chat
 == Poista chatti
-
-Markers:
-== Merkit:
 
 %.2f MiB
 == %.2f MiB
@@ -771,9 +713,6 @@ Fetch Info
 
 Demos directory
 == Demohakemisto
-
-Render
-== Renderöi
 
 Connecting dummy
 == Yhdistetään dummyä
@@ -1175,6 +1114,9 @@ Could not initialize the given graphics backend, this is probably because you di
 Could not save downloaded map. Try manually deleting this file: %s
 == 
 
+Error playing demo
+== 
+
 The format of texture %s is not RGBA which will cause visual bugs.
 == 
 
@@ -1223,7 +1165,16 @@ Multi-View
 Team %d
 == 
 
+Some map images could not be loaded. Check the local console for details.
+== 
+
 Uploading map data to GPU
+== 
+
+Some map sounds could not be loaded. Check the local console for details.
+== 
+
+Loading menu themes
 == 
 
 Trying to determine UDP connectivity...
@@ -1247,6 +1198,9 @@ Requesting to join the game
 Rename folder
 == 
 
+Render complete
+== 
+
 A demo with this name already exists
 == 
 
@@ -1260,6 +1214,12 @@ File '%s' already exists, do you want to overwrite it?
 == 
 
 (paused)
+== 
+
+Videos directory
+== 
+
+Video was saved to '%s'
 == 
 
 Join Tutorial Server
@@ -1320,10 +1280,33 @@ Pause the current demo
 Stop the current demo
 == 
 
+Go back the specified duration
+== 
+
+[Demo player duration]
+%d min.
+== 
+
+[Demo player duration]
+%d sec.
+== 
+
+Change the skip duration
+== 
+
+Go forward the specified duration
+== 
+
 Go back one tick
 == 
 
 Go forward one tick
+== 
+
+Go back one marker
+== 
+
+Go forward one marker
 == 
 
 Slow down the demo
@@ -1341,12 +1324,6 @@ Mark the end of a cut (right click to reset)
 Export cut as a separate demo
 == 
 
-Go back one marker
-== 
-
-Go forward one marker
-== 
-
 Close the demo player
 == 
 
@@ -1362,13 +1339,29 @@ Cut interval
 Cut length
 == 
 
+Render cut to video
+== 
+
 Loading demo files
 == 
 
 All combined
 == 
 
+No demo selected
+== 
+
 Folder Link
+== 
+
+Created
+== 
+
+Netversion
+== 
+
+[Demo details]
+map not included
 == 
 
 Open the directory that contains the demo files
@@ -1390,6 +1383,15 @@ Unable to delete the folder '%s'. Make sure it's empty first.
 == 
 
 Loading ghost files
+== 
+
+Ghosts directory
+== 
+
+Activate all
+== 
+
+Deactivate all
 == 
 
 Menu opened. Press Esc key again to close menu.
@@ -1422,10 +1424,10 @@ Automatically create statboard csv
 Max CSVs
 == 
 
-Loading skin files
+Toggle to edit your dummy settings
 == 
 
-Toggle to edit your dummy settings
+Loading skin files
 == 
 
 Download community skins
@@ -1443,13 +1445,13 @@ Create a random skin
 Open the directory to add custom skins
 == 
 
+Converse
+== 
+
 Dummy copy
 == 
 
 Hammerfly dummy
-== 
-
-Converse
 == 
 
 Statboard
@@ -1655,16 +1657,22 @@ Freeze Laser Inner Color
 Set all to Rifle
 == 
 
+Enable ghost
+== 
+
 When you cross the start line, show a ghost tee replicating the movements of your best time
+== 
+
+Opacity
+== 
+
+Only save improvements
 == 
 
 Overlay entities
 == 
 
 Show text entities
-== 
-
-Opacity
 == 
 
 Adjust the opacity of entities belonging to other teams, such as tees and nameplates
@@ -1679,13 +1687,13 @@ Quads are used for background decoration
 Tries to predict other entities to give a feel of low latency
 == 
 
-Entities Background color
+Regular background color
+== 
+
+Entities background color
 == 
 
 Show tiles layers from BG map
-== 
-
-Regular Background Color
 == 
 
 New random timeout code

@@ -48,20 +48,6 @@ bool CTuningParams::Get(const char *pName, float *pValue) const
 	return false;
 }
 
-int CTuningParams::PossibleTunings(const char *pStr, IConsole::FPossibleCallback pfnCallback, void *pUser)
-{
-	int Index = 0;
-	for(int i = 0; i < Num(); i++)
-	{
-		if(str_find_nocase(Name(i), pStr))
-		{
-			pfnCallback(Index, Name(i), pUser);
-			Index++;
-		}
-	}
-	return Index;
-}
-
 float CTuningParams::GetWeaponFireDelay(int Weapon) const
 {
 	switch(Weapon)
@@ -94,7 +80,13 @@ void CCharacterCore::Init(CWorldCore *pWorld, CCollision *pCollision, CTeamsCore
 
 	// fail safe, if core's tuning didn't get updated at all, just fallback to world tuning.
 	m_Tuning = m_pWorld->m_aTuning[g_Config.m_ClDummy];
-	Reset();
+}
+
+void CCharacterCore::SetCoreWorld(CWorldCore *pWorld, CCollision *pCollision, CTeamsCore *pTeams)
+{
+	m_pWorld = pWorld;
+	m_pCollision = pCollision;
+	m_pTeams = pTeams;
 }
 
 void CCharacterCore::Reset()
@@ -104,6 +96,7 @@ void CCharacterCore::Reset()
 	m_NewHook = false;
 	m_HookPos = vec2(0, 0);
 	m_HookDir = vec2(0, 0);
+	m_HookTeleBase = vec2(0, 0);
 	m_HookTick = 0;
 	m_HookState = HOOK_IDLE;
 	SetHookedPlayer(-1);

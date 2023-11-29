@@ -17,6 +17,8 @@
 #	ban   	2023-01-5 10:22:50
 #	unban   	2023-03-10 21:50:50
 #	eblan   	2023-08-07 14:27:00
+#	kaban   	2023-9-21 19:00:00
+#	ByFox   	2023-11-14 11:24:00
 ##### /authors #####
 
 ##### translated strings #####
@@ -117,9 +119,6 @@ Delete
 Delete demo
 == Удалить демо
 
-Demo details
-== Сведения демо
-
 Demofile: %s
 == Демо: %s
 
@@ -159,9 +158,6 @@ Favorites
 Feet
 == Ноги
 
-Filter
-== Фильтр
-
 Fire
 == Стрелять
 
@@ -173,9 +169,6 @@ Force vote
 
 Free-View
 == Свободный обзор
-
-Friends
-== Друзья
 
 Fullscreen
 == Полноэкранный（настр.)
@@ -279,9 +272,6 @@ No servers match your filter criteria
 Ok
 == ОК
 
-Open
-== Открыть
-
 Parent Folder
 == Родительский каталог
 
@@ -296,10 +286,6 @@ Ping
 
 Pistol
 == Пистолет
-
-[Demo browser]
-Play
-== Просмотр
 
 Play background music
 == Включить фоновую музыку
@@ -334,9 +320,6 @@ Red team
 Red team wins!
 == Красные победили!
 
-Refresh
-== Обновить
-
 Remote console
 == Консоль сервера
 
@@ -345,9 +328,6 @@ Remove
 
 Remove friend
 == Удалить друга
-
-Rename
-== Переименов.
 
 Rename demo
 == Переименовать демо
@@ -369,12 +349,6 @@ Screenshot
 
 Server address:
 == Адрес сервера:
-
-Server details
-== Сведения сервера
-
-Server filter
-== Фильтр серверов
 
 Server info
 == Информация
@@ -589,26 +563,11 @@ FSAA samples
 Sound volume
 == Громкость звука
 
-Created:
-== Создан:
-
 Max Screenshots
 == Максимальное кол-во снимков
 
-Length:
-== Длина:
-
 Laser
 == Лазер
-
-Netversion:
-== Версия:
-
-Map:
-== Карта:
-
-Info
-== Инфо
 
 Hue
 == Оттен.
@@ -619,17 +578,11 @@ Record demo
 Your skin
 == Ваш скин
 
-Size:
-== Размер:
-
 Reset to defaults
 == Сбросить настройки
 
 Quit anyway?
 == Все равно выйти?
-
-Version:
-== Версия:
 
 Round
 == Раунд
@@ -640,9 +593,6 @@ Lht.
 UI Color
 == Цвет интерфейса
 
-Crc:
-== Crc:
-
 Alpha
 == Прозр.
 
@@ -651,9 +601,6 @@ LAN
 
 Name plates size
 == Размер имён
-
-Type:
-== Тип:
 
 Show ghost
 == Показывать тень
@@ -667,8 +614,8 @@ Show other players' hook collision lines
 DDNet Client needs to be restarted to complete update!
 == Перезапустите DDNet Client для завершения обновления!
 
-Please use a different name
-== Пожалуйста, используйте другое имя
+Please use a different filename
+== Пожалуйста, используйте другое имя файла
 
 Show others
 == Показывать остальных
@@ -802,9 +749,6 @@ Update failed! Check log...
 Restart
 == Рестарт
 
-Markers:
-== Маркеры:
-
 %.2f MiB
 == %.2f МиБ
 
@@ -819,9 +763,6 @@ Date
 
 Fetch Info
 == Показать
-
-Render
-== Рендер
 
 Connect Dummy
 == Подключить дамми
@@ -1171,12 +1112,6 @@ Preview
 
 Background
 == Фон
-
-Entities Background color
-== Цвет фона при наложении
-
-Regular Background Color
-== Стандартный цвет фона
 
 Chat command
 == Чат-команда
@@ -1756,3 +1691,78 @@ Unable to delete the folder '%s'. Make sure it's empty first.
 
 Moved ingame
 == Перемещены в игре
+
+Go back the specified duration
+== Отмотать назад на заданное время 
+
+[Demo player duration]
+%d min.
+== %d мин.
+
+[Demo player duration]
+%d sec.
+== %d сек.
+
+Change the skip duration
+== Изменение времени перехода
+
+Go forward the specified duration
+== Отмотать вперед заданное время
+
+Render cut to video
+== Рендеринг отрезка в видео
+
+Error playing demo
+== Ошибка воспроизведения демо
+
+Some map images could not be loaded. Check the local console for details.
+== Некоторые изображения на карте не удалось загрузить. Проверьте детали в локальной консоли.
+
+Some map sounds could not be loaded. Check the local console for details.
+== Некоторые звуки на карте не удалось загрузить. Проверьте детали в локальной консоли.
+
+Loading menu themes
+== Загрузка тем меню
+
+Render complete
+== Рендеринг завершен
+
+Videos directory
+== Папка с видео
+
+Video was saved to '%s'
+== Видео было сохранено в '%s'
+
+No demo selected
+== Демо не выбрано
+
+Created
+== Создано
+
+Netversion
+== Версия сети
+
+[Demo details]
+map not included
+== карта отсутствует
+
+Ghosts directory
+== Папка теней
+
+Activate all
+== Активировать все
+
+Deactivate all
+== Отключить все
+
+Enable ghost
+== Включить привидение
+
+Only save improvements
+== Сохранять только улучшения
+
+Regular background color
+== Обычный цвет фона
+
+Entities background color
+== Цвет фона сущностей

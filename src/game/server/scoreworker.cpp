@@ -425,7 +425,7 @@ bool CScoreWorker::SaveScore(IDbConnection *pSqlServer, const ISqlData *pGameDat
 	if(w == Write::NORMAL_FAILED)
 	{
 		int NumUpdated;
-		// move to non-tmp table succeded. delete from backup again
+		// move to non-tmp table succeeded. delete from backup again
 		str_format(aBuf, sizeof(aBuf),
 			"INSERT INTO %s_race SELECT * FROM %s_race_backup WHERE GameId=? AND Name=? AND Timestamp=%s",
 			pSqlServer->GetPrefix(), pSqlServer->GetPrefix(), pSqlServer->InsertTimestampAsUtc());
@@ -442,7 +442,7 @@ bool CScoreWorker::SaveScore(IDbConnection *pSqlServer, const ISqlData *pGameDat
 			return true;
 		}
 
-		// move to non-tmp table succeded. delete from backup again
+		// move to non-tmp table succeeded. delete from backup again
 		str_format(aBuf, sizeof(aBuf),
 			"DELETE FROM %s_race_backup WHERE GameId=? AND Name=? AND Timestamp=%s",
 			pSqlServer->GetPrefix(), pSqlServer->InsertTimestampAsUtc());
@@ -809,9 +809,17 @@ bool CScoreWorker::ShowRank(IDbConnection *pSqlServer, const ISqlData *pGameData
 					pData->m_aName, aBuf, BetterThanPercent, pData->m_aRequestingPlayer);
 			}
 
-			str_format(pResult->m_Data.m_aaMessages[1], sizeof(pResult->m_Data.m_aaMessages[1]),
-				"Global rank %d - %s %s",
-				Rank, pData->m_aServer, aRegionalRank);
+			if(g_Config.m_SvRegionalRankings)
+			{
+				str_format(pResult->m_Data.m_aaMessages[1], sizeof(pResult->m_Data.m_aaMessages[1]),
+					"Global rank %d - %s %s",
+					Rank, pData->m_aServer, aRegionalRank);
+			}
+			else
+			{
+				str_format(pResult->m_Data.m_aaMessages[1], sizeof(pResult->m_Data.m_aaMessages[1]),
+					"Global rank %d", Rank);
+			}
 		}
 	}
 	else
@@ -959,6 +967,12 @@ bool CScoreWorker::ShowTop(IDbConnection *pSqlServer, const ISqlData *pGameData,
 			"%d. %s Time: %s", Rank, aName, aTime);
 
 		Line++;
+	}
+
+	if(!g_Config.m_SvRegionalRankings)
+	{
+		str_copy(pResult->m_Data.m_aaMessages[Line], "----------------------------------------", sizeof(pResult->m_Data.m_aaMessages[Line]));
+		return !End;
 	}
 
 	char aServerLike[16];
@@ -1501,7 +1515,7 @@ bool CScoreWorker::SaveTeam(IDbConnection *pSqlServer, const ISqlData *pGameData
 
 	if(w == Write::NORMAL_SUCCEEDED)
 	{
-		// write succeded on mysql server. delete from sqlite again
+		// write succeeded on mysql server. delete from sqlite again
 		char aBuf[128] = {0};
 		str_format(aBuf, sizeof(aBuf),
 			"DELETE FROM %s_saves_backup WHERE Code = ?",
@@ -1518,7 +1532,7 @@ bool CScoreWorker::SaveTeam(IDbConnection *pSqlServer, const ISqlData *pGameData
 	{
 		char aBuf[256] = {0};
 		bool End;
-		// move to non-tmp table succeded. delete from backup again
+		// move to non-tmp table succeeded. delete from backup again
 		str_format(aBuf, sizeof(aBuf),
 			"INSERT INTO %s_saves SELECT * FROM %s_saves_backup WHERE Code = ?",
 			pSqlServer->GetPrefix(), pSqlServer->GetPrefix());
@@ -1532,7 +1546,7 @@ bool CScoreWorker::SaveTeam(IDbConnection *pSqlServer, const ISqlData *pGameData
 			return true;
 		}
 
-		// move to non-tmp table succeded. delete from backup again
+		// move to non-tmp table succeeded. delete from backup again
 		str_format(aBuf, sizeof(aBuf),
 			"DELETE FROM %s_saves_backup WHERE Code = ?",
 			pSqlServer->GetPrefix());

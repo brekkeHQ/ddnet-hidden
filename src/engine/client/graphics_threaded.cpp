@@ -2,6 +2,7 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 
 #include <base/detect.h>
+#include <base/log.h>
 #include <base/math.h>
 
 #if defined(CONF_FAMILY_UNIX)
@@ -264,18 +265,14 @@ void CGraphics_Threaded::LinesDraw(const CLineItem *pArray, int Num)
 
 IGraphics::CTextureHandle CGraphics_Threaded::FindFreeTextureIndex()
 {
-	int Tex = m_FirstFreeTexture;
-	if(Tex == -1)
+	const size_t CurSize = m_vTextureIndices.size();
+	if(m_FirstFreeTexture == CurSize)
 	{
-		const size_t CurSize = m_vTextureIndices.size();
 		m_vTextureIndices.resize(CurSize * 2);
-		for(size_t i = 0; i < CurSize - 1; ++i)
-		{
+		for(size_t i = 0; i < CurSize; ++i)
 			m_vTextureIndices[CurSize + i] = CurSize + i + 1;
-		}
-		m_vTextureIndices.back() = -1;
-		Tex = CurSize;
 	}
+	const size_t Tex = m_FirstFreeTexture;
 	m_FirstFreeTexture = m_vTextureIndices[Tex];
 	m_vTextureIndices[Tex] = -1;
 	return CreateTextureHandle(Tex);
@@ -284,6 +281,8 @@ IGraphics::CTextureHandle CGraphics_Threaded::FindFreeTextureIndex()
 void CGraphics_Threaded::FreeTextureIndex(CTextureHandle *pIndex)
 {
 	dbg_assert(pIndex->IsValid(), "Cannot free invalid texture index");
+	dbg_assert(m_vTextureIndices[pIndex->Id()] == -1, "Cannot free already freed texture index");
+
 	m_vTextureIndices[pIndex->Id()] = m_FirstFreeTexture;
 	m_FirstFreeTexture = pIndex->Id();
 	pIndex->Invalidate();
@@ -291,7 +290,7 @@ void CGraphics_Threaded::FreeTextureIndex(CTextureHandle *pIndex)
 
 int CGraphics_Threaded::UnloadTexture(CTextureHandle *pIndex)
 {
-	if(pIndex->Id() == m_InvalidTexture.Id())
+	if(pIndex->Id() == m_NullTexture.Id())
 		return 0;
 
 	if(!pIndex->IsValid())
@@ -305,27 +304,17 @@ int CGraphics_Threaded::UnloadTexture(CTextureHandle *pIndex)
 	return 0;
 }
 
-static int ImageFormatToPixelSize(int Format)
-{
-	switch(Format)
-	{
-	case CImageInfo::FORMAT_RGB: return 3;
-	case CImageInfo::FORMAT_SINGLE_COMPONENT: return 1;
-	default: return 4;
-	}
-}
-
-static bool ConvertToRGBA(uint8_t *pDest, const uint8_t *pSrc, size_t SrcWidth, size_t SrcHeight, int SrcFormat)
+static bool ConvertToRGBA(uint8_t *pDest, const uint8_t *pSrc, size_t SrcWidth, size_t SrcHeight, CImageInfo::EImageFormat SrcFormat)
 {
 	if(SrcFormat == CImageInfo::FORMAT_RGBA)
 	{
-		mem_copy(pDest, pSrc, SrcWidth * SrcHeight * 4);
+		mem_copy(pDest, pSrc, SrcWidth * SrcHeight * CImageInfo::PixelSize(CImageInfo::FORMAT_RGBA));
 		return true;
 	}
 	else
 	{
-		size_t SrcChannelCount = ImageFormatToPixelSize(SrcFormat);
-		size_t DstChannelCount = 4;
+		const size_t SrcChannelCount = CImageInfo::PixelSize(SrcFormat);
+		const size_t DstChannelCount = CImageInfo::PixelSize(CImageInfo::FORMAT_RGBA);
 		for(size_t Y = 0; Y < SrcHeight; ++Y)
 		{
 			for(size_t X = 0; X < SrcWidth; ++X)
@@ -333,12 +322,12 @@ static bool ConvertToRGBA(uint8_t *pDest, const uint8_t *pSrc, size_t SrcWidth, 
 				size_t ImgOffsetSrc = (Y * SrcWidth * SrcChannelCount) + (X * SrcChannelCount);
 				size_t ImgOffsetDest = (Y * SrcWidth * DstChannelCount) + (X * DstChannelCount);
 				size_t CopySize = SrcChannelCount;
-				if(SrcChannelCount == 3)
+				if(SrcFormat == CImageInfo::FORMAT_RGB)
 				{
 					mem_copy(&pDest[ImgOffsetDest], &pSrc[ImgOffsetSrc], CopySize);
 					pDest[ImgOffsetDest + 3] = 255;
 				}
-				else if(SrcChannelCount == 1)
+				else if(SrcFormat == CImageInfo::FORMAT_SINGLE_COMPONENT)
 				{
 					pDest[ImgOffsetDest + 0] = 255;
 					pDest[ImgOffsetDest + 1] = 255;
@@ -351,7 +340,7 @@ static bool ConvertToRGBA(uint8_t *pDest, const uint8_t *pSrc, size_t SrcWidth, 
 	}
 }
 
-int CGraphics_Threaded::LoadTextureRawSub(CTextureHandle TextureID, int x, int y, size_t Width, size_t Height, int Format, const void *pData)
+int CGraphics_Threaded::LoadTextureRawSub(CTextureHandle TextureID, int x, int y, size_t Width, size_t Height, CImageInfo::EImageFormat Format, const void *pData)
 {
 	dbg_assert(TextureID.IsValid(), "Invalid texture handle used with LoadTextureRawSub.");
 
@@ -364,7 +353,7 @@ int CGraphics_Threaded::LoadTextureRawSub(CTextureHandle TextureID, int x, int y
 	Cmd.m_Format = CCommandBuffer::TEXFORMAT_RGBA;
 
 	// calculate memory usage
-	const size_t MemSize = Width * Height * 4;
+	const size_t MemSize = Width * Height * CImageInfo::PixelSize(CImageInfo::FORMAT_RGBA);
 
 	// copy texture data
 	void *pTmpData = malloc(MemSize);
@@ -377,24 +366,13 @@ int CGraphics_Threaded::LoadTextureRawSub(CTextureHandle TextureID, int x, int y
 
 IGraphics::CTextureHandle CGraphics_Threaded::LoadSpriteTextureImpl(CImageInfo &FromImageInfo, int x, int y, size_t w, size_t h)
 {
-	const size_t PixelSize = ImageFormatToPixelSize(FromImageInfo.m_Format);
+	const size_t PixelSize = FromImageInfo.PixelSize();
 	m_vSpriteHelper.resize(w * h * PixelSize);
 	CopyTextureFromTextureBufferSub(m_vSpriteHelper.data(), w, h, (uint8_t *)FromImageInfo.m_pData, FromImageInfo.m_Width, FromImageInfo.m_Height, PixelSize, x, y, w, h);
-	return LoadTextureRaw(w, h, FromImageInfo.m_Format, m_vSpriteHelper.data(), FromImageInfo.m_Format, 0);
+	return LoadTextureRaw(w, h, FromImageInfo.m_Format, m_vSpriteHelper.data(), 0);
 }
 
 IGraphics::CTextureHandle CGraphics_Threaded::LoadSpriteTexture(CImageInfo &FromImageInfo, CDataSprite *pSprite)
-{
-	int imggx = FromImageInfo.m_Width / pSprite->m_pSet->m_Gridx;
-	int imggy = FromImageInfo.m_Height / pSprite->m_pSet->m_Gridy;
-	int x = pSprite->m_X * imggx;
-	int y = pSprite->m_Y * imggy;
-	int w = pSprite->m_W * imggx;
-	int h = pSprite->m_H * imggy;
-	return LoadSpriteTextureImpl(FromImageInfo, x, y, w, h);
-}
-
-IGraphics::CTextureHandle CGraphics_Threaded::LoadSpriteTexture(CImageInfo &FromImageInfo, client_data7::CDataSprite *pSprite)
 {
 	int imggx = FromImageInfo.m_Width / pSprite->m_pSet->m_Gridx;
 	int imggy = FromImageInfo.m_Height / pSprite->m_pSet->m_Gridy;
@@ -410,13 +388,13 @@ bool CGraphics_Threaded::IsImageSubFullyTransparent(CImageInfo &FromImageInfo, i
 	if(FromImageInfo.m_Format == CImageInfo::FORMAT_SINGLE_COMPONENT || FromImageInfo.m_Format == CImageInfo::FORMAT_RGBA)
 	{
 		uint8_t *pImgData = (uint8_t *)FromImageInfo.m_pData;
-		int bpp = ImageFormatToPixelSize(FromImageInfo.m_Format);
+		const size_t PixelSize = FromImageInfo.PixelSize();
 		for(int iy = 0; iy < h; ++iy)
 		{
 			for(int ix = 0; ix < w; ++ix)
 			{
-				int RealOffset = (x + ix) * bpp + (y + iy) * bpp * FromImageInfo.m_Width;
-				if(pImgData[RealOffset + (bpp - 1)] > 0)
+				const size_t RealOffset = (x + ix) * PixelSize + (y + iy) * PixelSize * FromImageInfo.m_Width;
+				if(pImgData[RealOffset + (PixelSize - 1)] > 0)
 					return false;
 			}
 		}
@@ -426,7 +404,7 @@ bool CGraphics_Threaded::IsImageSubFullyTransparent(CImageInfo &FromImageInfo, i
 	return false;
 }
 
-bool CGraphics_Threaded::IsSpriteTextureFullyTransparent(CImageInfo &FromImageInfo, client_data7::CDataSprite *pSprite)
+bool CGraphics_Threaded::IsSpriteTextureFullyTransparent(CImageInfo &FromImageInfo, CDataSprite *pSprite)
 {
 	int imggx = FromImageInfo.m_Width / pSprite->m_pSet->m_Gridx;
 	int imggy = FromImageInfo.m_Height / pSprite->m_pSet->m_Gridy;
@@ -438,14 +416,8 @@ bool CGraphics_Threaded::IsSpriteTextureFullyTransparent(CImageInfo &FromImageIn
 	return IsImageSubFullyTransparent(FromImageInfo, x, y, w, h);
 }
 
-IGraphics::CTextureHandle CGraphics_Threaded::LoadTextureRaw(size_t Width, size_t Height, int Format, const void *pData, int StoreFormat, int Flags, const char *pTexName)
+IGraphics::CTextureHandle CGraphics_Threaded::LoadTextureRaw(size_t Width, size_t Height, CImageInfo::EImageFormat Format, const void *pData, int Flags, const char *pTexName)
 {
-	// don't waste memory on texture if we are stress testing
-#ifdef CONF_DEBUG
-	if(g_Config.m_DbgStress && m_InvalidTexture.IsValid())
-		return m_InvalidTexture;
-#endif
-
 	if((Flags & IGraphics::TEXLOAD_TO_2D_ARRAY_TEXTURE) != 0 || (Flags & IGraphics::TEXLOAD_TO_3D_TEXTURE) != 0)
 	{
 		if(Width == 0 || (Width % 16) != 0 || Height == 0 || (Height % 16) != 0)
@@ -472,7 +444,6 @@ IGraphics::CTextureHandle CGraphics_Threaded::LoadTextureRaw(size_t Width, size_
 	Cmd.m_Slot = TextureHandle.Id();
 	Cmd.m_Width = Width;
 	Cmd.m_Height = Height;
-	Cmd.m_PixelSize = 4;
 	Cmd.m_Format = CCommandBuffer::TEXFORMAT_RGBA;
 	Cmd.m_StoreFormat = CCommandBuffer::TEXFORMAT_RGBA;
 
@@ -484,15 +455,11 @@ IGraphics::CTextureHandle CGraphics_Threaded::LoadTextureRaw(size_t Width, size_
 		Cmd.m_Flags |= CCommandBuffer::TEXFLAG_TO_2D_ARRAY_TEXTURE;
 	if((Flags & IGraphics::TEXLOAD_TO_3D_TEXTURE) != 0)
 		Cmd.m_Flags |= CCommandBuffer::TEXFLAG_TO_3D_TEXTURE;
-	if((Flags & IGraphics::TEXLOAD_TO_2D_ARRAY_TEXTURE_SINGLE_LAYER) != 0)
-		Cmd.m_Flags |= CCommandBuffer::TEXFLAG_TO_2D_ARRAY_TEXTURE_SINGLE_LAYER;
-	if((Flags & IGraphics::TEXLOAD_TO_3D_TEXTURE_SINGLE_LAYER) != 0)
-		Cmd.m_Flags |= CCommandBuffer::TEXFLAG_TO_3D_TEXTURE_SINGLE_LAYER;
 	if((Flags & IGraphics::TEXLOAD_NO_2D_TEXTURE) != 0)
 		Cmd.m_Flags |= CCommandBuffer::TEXFLAG_NO_2D_TEXTURE;
 
 	// copy texture data
-	const size_t MemSize = Width * Height * Cmd.m_PixelSize;
+	const size_t MemSize = Width * Height * CImageInfo::PixelSize(CImageInfo::FORMAT_RGBA);
 	void *pTmpData = malloc(MemSize);
 	if(!ConvertToRGBA((uint8_t *)pTmpData, (const uint8_t *)pData, Width, Height, Format))
 	{
@@ -505,29 +472,29 @@ IGraphics::CTextureHandle CGraphics_Threaded::LoadTextureRaw(size_t Width, size_
 }
 
 // simple uncompressed RGBA loaders
-IGraphics::CTextureHandle CGraphics_Threaded::LoadTexture(const char *pFilename, int StorageType, int StoreFormat, int Flags)
+IGraphics::CTextureHandle CGraphics_Threaded::LoadTexture(const char *pFilename, int StorageType, int Flags)
 {
 	dbg_assert(pFilename[0] != '\0', "Cannot load texture from file with empty filename"); // would cause Valgrind to crash otherwise
 
 	CImageInfo Img;
 	if(LoadPNG(&Img, pFilename, StorageType))
 	{
-		if(StoreFormat == CImageInfo::FORMAT_AUTO)
-			StoreFormat = Img.m_Format;
-
-		IGraphics::CTextureHandle ID = LoadTextureRaw(Img.m_Width, Img.m_Height, Img.m_Format, Img.m_pData, StoreFormat, Flags, pFilename);
-		free(Img.m_pData);
-		if(ID.Id() != m_InvalidTexture.Id() && g_Config.m_Debug)
-			dbg_msg("graphics/texture", "loaded %s", pFilename);
-		return ID;
+		CTextureHandle ID = LoadTextureRaw(Img.m_Width, Img.m_Height, Img.m_Format, Img.m_pData, Flags, pFilename);
+		FreePNG(&Img);
+		if(ID.IsValid())
+		{
+			if(g_Config.m_Debug)
+				dbg_msg("graphics/texture", "loaded %s", pFilename);
+			return ID;
+		}
 	}
 
-	return m_InvalidTexture;
+	return m_NullTexture;
 }
 
-IGraphics::CTextureHandle CGraphics_Threaded::InvalidTexture() const
+IGraphics::CTextureHandle CGraphics_Threaded::NullTexture() const
 {
-	return m_InvalidTexture;
+	return m_NullTexture;
 }
 
 bool CGraphics_Threaded::LoadTextTextures(size_t Width, size_t Height, CTextureHandle &TextTexture, CTextureHandle &TextOutlineTexture, void *pTextData, void *pTextOutlineData)
@@ -585,7 +552,7 @@ bool CGraphics_Threaded::UpdateTextTexture(CTextureHandle TextureID, int x, int 
 	return true;
 }
 
-int CGraphics_Threaded::LoadPNG(CImageInfo *pImg, const char *pFilename, int StorageType)
+bool CGraphics_Threaded::LoadPNG(CImageInfo *pImg, const char *pFilename, int StorageType)
 {
 	char aCompleteFilename[IO_MAX_PATH_LENGTH];
 	IOHANDLE File = m_pStorage->OpenFile(pFilename, IOFLAG_READ, StorageType, aCompleteFilename, sizeof(aCompleteFilename));
@@ -608,17 +575,17 @@ int CGraphics_Threaded::LoadPNG(CImageInfo *pImg, const char *pFilename, int Sto
 		int PngliteIncompatible;
 		if(::LoadPNG(ImageByteBuffer, pFilename, PngliteIncompatible, pImg->m_Width, pImg->m_Height, pImgBuffer, ImageFormat))
 		{
-			pImg->m_pData = pImgBuffer;
-
-			if(ImageFormat == IMAGE_FORMAT_RGB) // ignore_convention
+			if(ImageFormat == IMAGE_FORMAT_RGB)
 				pImg->m_Format = CImageInfo::FORMAT_RGB;
-			else if(ImageFormat == IMAGE_FORMAT_RGBA) // ignore_convention
+			else if(ImageFormat == IMAGE_FORMAT_RGBA)
 				pImg->m_Format = CImageInfo::FORMAT_RGBA;
 			else
 			{
 				free(pImgBuffer);
-				return 0;
+				log_error("game/png", "image had unsupported image format. filename='%s' format='%d'", pFilename, (int)ImageFormat);
+				return false;
 			}
+			pImg->m_pData = pImgBuffer;
 
 			if(m_WarnPngliteIncompatibleImages && PngliteIncompatible != 0)
 			{
@@ -646,17 +613,17 @@ int CGraphics_Threaded::LoadPNG(CImageInfo *pImg, const char *pFilename, int Sto
 		}
 		else
 		{
-			dbg_msg("game/png", "image had unsupported image format. filename='%s'", pFilename);
-			return 0;
+			log_error("game/png", "failed to load file. filename='%s'", pFilename);
+			return false;
 		}
 	}
 	else
 	{
-		dbg_msg("game/png", "failed to open file. filename='%s'", pFilename);
-		return 0;
+		log_error("game/png", "failed to open file. filename='%s'", pFilename);
+		return false;
 	}
 
-	return 1;
+	return true;
 }
 
 void CGraphics_Threaded::FreePNG(CImageInfo *pImg)
@@ -696,15 +663,7 @@ bool CGraphics_Threaded::CheckImageDivisibility(const char *pFileName, CImageInf
 			NewWidth = (NewHeight / DivY) * DivX;
 		}
 
-		int ColorChannelCount = 4;
-		if(Img.m_Format == CImageInfo::FORMAT_SINGLE_COMPONENT)
-			ColorChannelCount = 1;
-		else if(Img.m_Format == CImageInfo::FORMAT_RGB)
-			ColorChannelCount = 3;
-		else if(Img.m_Format == CImageInfo::FORMAT_RGBA)
-			ColorChannelCount = 4;
-
-		uint8_t *pNewImg = ResizeImage((uint8_t *)Img.m_pData, Img.m_Width, Img.m_Height, NewWidth, NewHeight, ColorChannelCount);
+		uint8_t *pNewImg = ResizeImage((uint8_t *)Img.m_pData, Img.m_Width, Img.m_Height, NewWidth, NewHeight, Img.PixelSize());
 		free(Img.m_pData);
 		Img.m_pData = pNewImg;
 		Img.m_Width = NewWidth;
@@ -734,23 +693,23 @@ bool CGraphics_Threaded::IsImageFormatRGBA(const char *pFileName, CImageInfo &Im
 	return true;
 }
 
-void CGraphics_Threaded::CopyTextureBufferSub(uint8_t *pDestBuffer, uint8_t *pSourceBuffer, size_t FullWidth, size_t FullHeight, size_t ColorChannelCount, size_t SubOffsetX, size_t SubOffsetY, size_t SubCopyWidth, size_t SubCopyHeight)
+void CGraphics_Threaded::CopyTextureBufferSub(uint8_t *pDestBuffer, uint8_t *pSourceBuffer, size_t FullWidth, size_t FullHeight, size_t PixelSize, size_t SubOffsetX, size_t SubOffsetY, size_t SubCopyWidth, size_t SubCopyHeight)
 {
 	for(size_t Y = 0; Y < SubCopyHeight; ++Y)
 	{
-		const size_t ImgOffset = ((SubOffsetY + Y) * FullWidth * ColorChannelCount) + (SubOffsetX * ColorChannelCount);
-		const size_t CopySize = SubCopyWidth * ColorChannelCount;
+		const size_t ImgOffset = ((SubOffsetY + Y) * FullWidth * PixelSize) + (SubOffsetX * PixelSize);
+		const size_t CopySize = SubCopyWidth * PixelSize;
 		mem_copy(&pDestBuffer[ImgOffset], &pSourceBuffer[ImgOffset], CopySize);
 	}
 }
 
-void CGraphics_Threaded::CopyTextureFromTextureBufferSub(uint8_t *pDestBuffer, size_t DestWidth, size_t DestHeight, uint8_t *pSourceBuffer, size_t SrcWidth, size_t SrcHeight, size_t ColorChannelCount, size_t SrcSubOffsetX, size_t SrcSubOffsetY, size_t SrcSubCopyWidth, size_t SrcSubCopyHeight)
+void CGraphics_Threaded::CopyTextureFromTextureBufferSub(uint8_t *pDestBuffer, size_t DestWidth, size_t DestHeight, uint8_t *pSourceBuffer, size_t SrcWidth, size_t SrcHeight, size_t PixelSize, size_t SrcSubOffsetX, size_t SrcSubOffsetY, size_t SrcSubCopyWidth, size_t SrcSubCopyHeight)
 {
 	for(size_t Y = 0; Y < SrcSubCopyHeight; ++Y)
 	{
-		const size_t SrcImgOffset = ((SrcSubOffsetY + Y) * SrcWidth * ColorChannelCount) + (SrcSubOffsetX * ColorChannelCount);
-		const size_t DstImgOffset = (Y * DestWidth * ColorChannelCount);
-		const size_t CopySize = SrcSubCopyWidth * ColorChannelCount;
+		const size_t SrcImgOffset = ((SrcSubOffsetY + Y) * SrcWidth * PixelSize) + (SrcSubOffsetX * PixelSize);
+		const size_t DstImgOffset = (Y * DestWidth * PixelSize);
+		const size_t CopySize = SrcSubCopyWidth * PixelSize;
 		mem_copy(&pDestBuffer[DstImgOffset], &pSourceBuffer[SrcImgOffset], CopySize);
 	}
 }
@@ -819,7 +778,7 @@ public:
 		str_copy(m_aName, pName);
 	}
 
-	virtual ~CScreenshotSaveJob()
+	~CScreenshotSaveJob() override
 	{
 		free(m_pData);
 	}
@@ -829,7 +788,6 @@ bool CGraphics_Threaded::ScreenshotDirect()
 {
 	// add swap command
 	CImageInfo Image;
-	mem_zero(&Image, sizeof(Image));
 
 	bool DidSwap = false;
 
@@ -1132,7 +1090,7 @@ void CGraphics_Threaded::QuadsTex3DDrawTL(const CQuadItem *pArray, int Num)
 	{
 		for(int n = 0; n < VertNum; ++n)
 		{
-			if(HasTextureArrays())
+			if(Uses2DTextureArrays())
 				m_aVerticesTex3D[CurNumVert + VertNum * i + n].m_Tex.w = (float)m_CurIndex;
 			else
 				m_aVerticesTex3D[CurNumVert + VertNum * i + n].m_Tex.w = ((float)m_CurIndex + 0.5f) / 256.f;
@@ -1602,7 +1560,7 @@ void CGraphics_Threaded::RenderTileLayer(int BufferContainerIndex, const ColorRG
 	// todo max indices group check!!
 }
 
-void CGraphics_Threaded::RenderBorderTiles(int BufferContainerIndex, const ColorRGBA &Color, char *pIndexBufferOffset, const vec2 &Offset, const vec2 &Dir, int JumpIndex, unsigned int DrawNum)
+void CGraphics_Threaded::RenderBorderTiles(int BufferContainerIndex, const ColorRGBA &Color, char *pIndexBufferOffset, const vec2 &Offset, const vec2 &Scale, uint32_t DrawNum)
 {
 	if(DrawNum == 0)
 		return;
@@ -1614,32 +1572,9 @@ void CGraphics_Threaded::RenderBorderTiles(int BufferContainerIndex, const Color
 	Cmd.m_Color = Color;
 
 	Cmd.m_pIndicesOffset = pIndexBufferOffset;
-	Cmd.m_JumpIndex = JumpIndex;
 
 	Cmd.m_Offset = Offset;
-	Cmd.m_Dir = Dir;
-
-	AddCmd(Cmd);
-
-	m_pCommandBuffer->AddRenderCalls(1);
-}
-
-void CGraphics_Threaded::RenderBorderTileLines(int BufferContainerIndex, const ColorRGBA &Color, char *pIndexBufferOffset, const vec2 &Offset, const vec2 &Dir, unsigned int IndexDrawNum, unsigned int RedrawNum)
-{
-	if(IndexDrawNum == 0 || RedrawNum == 0)
-		return;
-	// Draw a border tile a lot of times
-	CCommandBuffer::SCommand_RenderBorderTileLine Cmd;
-	Cmd.m_State = m_State;
-	Cmd.m_IndexDrawNum = IndexDrawNum;
-	Cmd.m_DrawNum = RedrawNum;
-	Cmd.m_BufferContainerIndex = BufferContainerIndex;
-	Cmd.m_Color = Color;
-
-	Cmd.m_pIndicesOffset = pIndexBufferOffset;
-
-	Cmd.m_Offset = Offset;
-	Cmd.m_Dir = Dir;
+	Cmd.m_Scale = Scale;
 
 	AddCmd(Cmd);
 
@@ -2434,7 +2369,8 @@ int CGraphics_Threaded::IssueInit()
 		m_GLQuadBufferingEnabled = m_pBackend->HasQuadBuffering();
 		m_GLQuadContainerBufferingEnabled = m_pBackend->HasQuadContainerBuffering();
 		m_GLTextBufferingEnabled = (m_GLQuadContainerBufferingEnabled && m_pBackend->HasTextBuffering());
-		m_GLHasTextureArrays = m_pBackend->Has2DTextureArrays();
+		m_GLUses2DTextureArrays = m_pBackend->Uses2DTextureArrays();
+		m_GLHasTextureArraysSupport = m_pBackend->HasTextureArraysSupport();
 		m_ScreenHiDPIScale = m_ScreenWidth / (float)g_Config.m_GfxScreenWidth;
 		m_ScreenRefreshRate = g_Config.m_GfxScreenRefreshRate;
 	}
@@ -2620,9 +2556,8 @@ int CGraphics_Threaded::Init()
 	// init textures
 	m_FirstFreeTexture = 0;
 	m_vTextureIndices.resize(CCommandBuffer::MAX_TEXTURES);
-	for(size_t i = 0; i < m_vTextureIndices.size() - 1; ++i)
+	for(size_t i = 0; i < m_vTextureIndices.size(); ++i)
 		m_vTextureIndices[i] = i + 1;
-	m_vTextureIndices.back() = -1;
 
 	m_FirstFreeVertexArrayInfo = -1;
 	m_FirstFreeBufferObjectIndex = -1;
@@ -2651,27 +2586,28 @@ int CGraphics_Threaded::Init()
 		const unsigned char aGreen[] = {0x00, 0xff, 0x00, 0xff};
 		const unsigned char aBlue[] = {0x00, 0x00, 0xff, 0xff};
 		const unsigned char aYellow[] = {0xff, 0xff, 0x00, 0xff};
-		constexpr size_t InvalidTextureDimension = 16;
-		unsigned char aNullTextureData[InvalidTextureDimension * InvalidTextureDimension * PixelSize];
-		for(size_t y = 0; y < InvalidTextureDimension; ++y)
+		constexpr size_t NullTextureDimension = 16;
+		unsigned char aNullTextureData[NullTextureDimension * NullTextureDimension * PixelSize];
+		for(size_t y = 0; y < NullTextureDimension; ++y)
 		{
-			for(size_t x = 0; x < InvalidTextureDimension; ++x)
+			for(size_t x = 0; x < NullTextureDimension; ++x)
 			{
 				const unsigned char *pColor;
-				if(x < InvalidTextureDimension / 2 && y < InvalidTextureDimension / 2)
+				if(x < NullTextureDimension / 2 && y < NullTextureDimension / 2)
 					pColor = aRed;
-				else if(x >= InvalidTextureDimension / 2 && y < InvalidTextureDimension / 2)
+				else if(x >= NullTextureDimension / 2 && y < NullTextureDimension / 2)
 					pColor = aGreen;
-				else if(x < InvalidTextureDimension / 2 && y >= InvalidTextureDimension / 2)
+				else if(x < NullTextureDimension / 2 && y >= NullTextureDimension / 2)
 					pColor = aBlue;
 				else
 					pColor = aYellow;
-				mem_copy(&aNullTextureData[(y * InvalidTextureDimension + x) * PixelSize], pColor, PixelSize);
+				mem_copy(&aNullTextureData[(y * NullTextureDimension + x) * PixelSize], pColor, PixelSize);
 			}
 		}
-		const int TextureLoadFlags = HasTextureArrays() ? IGraphics::TEXLOAD_TO_2D_ARRAY_TEXTURE : IGraphics::TEXLOAD_TO_3D_TEXTURE;
-		m_InvalidTexture.Invalidate();
-		m_InvalidTexture = LoadTextureRaw(InvalidTextureDimension, InvalidTextureDimension, CImageInfo::FORMAT_RGBA, aNullTextureData, CImageInfo::FORMAT_RGBA, TextureLoadFlags);
+		const int TextureLoadFlags = Uses2DTextureArrays() ? IGraphics::TEXLOAD_TO_2D_ARRAY_TEXTURE : IGraphics::TEXLOAD_TO_3D_TEXTURE;
+		m_NullTexture.Invalidate();
+		m_NullTexture = LoadTextureRaw(NullTextureDimension, NullTextureDimension, CImageInfo::FORMAT_RGBA, aNullTextureData, TextureLoadFlags);
+		dbg_assert(m_NullTexture.IsNullTexture(), "Null texture invalid");
 	}
 
 	ColorRGBA GPUInfoPrintColor{0.6f, 0.5f, 1.0f, 1.0f};

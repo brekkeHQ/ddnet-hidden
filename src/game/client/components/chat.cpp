@@ -19,6 +19,8 @@
 
 #include "chat.h"
 
+char CChat::ms_aDisplayText[MAX_LINE_LENGTH] = {'\0'};
+
 CChat::CChat()
 {
 	for(auto &Line : m_aLines)
@@ -36,6 +38,37 @@ CChat::CChat()
 	m_Mode = MODE_NONE;
 
 	m_Input.SetClipboardLineCallback([this](const char *pStr) { SayChat(pStr); });
+	m_Input.SetCalculateOffsetCallback([this]() { return m_IsInputCensored; });
+	m_Input.SetDisplayTextCallback([this](char *pStr, size_t NumChars) {
+		m_IsInputCensored = false;
+		if(
+			g_Config.m_ClStreamerMode &&
+			(str_startswith(pStr, "/login ") ||
+				str_startswith(pStr, "/register ") ||
+				str_startswith(pStr, "/code ") ||
+				str_startswith(pStr, "/timeout ") ||
+				str_startswith(pStr, "/save ") ||
+				str_startswith(pStr, "/load ")))
+		{
+			bool Censor = false;
+			const size_t NumLetters = minimum(NumChars, sizeof(ms_aDisplayText) - 1);
+			for(size_t i = 0; i < NumLetters; ++i)
+			{
+				if(Censor)
+					ms_aDisplayText[i] = '*';
+				else
+					ms_aDisplayText[i] = pStr[i];
+				if(pStr[i] == ' ')
+				{
+					Censor = true;
+					m_IsInputCensored = true;
+				}
+			}
+			ms_aDisplayText[NumLetters] = '\0';
+			return ms_aDisplayText;
+		}
+		return pStr;
+	});
 }
 
 void CChat::RegisterCommand(const char *pName, const char *pParams, int flags, const char *pHelp)
@@ -86,6 +119,9 @@ void CChat::Reset()
 	m_PendingChatCounter = 0;
 	m_LastChatSend = 0;
 	m_CurrentLine = 0;
+	m_IsInputCensored = false;
+	m_EditingNewLine = true;
+	mem_zero(m_aCurrentInputText, sizeof(m_aCurrentInputText));
 	DisableMode();
 
 	for(int64_t &LastSoundPlayed : m_aLastSoundPlayed)
@@ -143,6 +179,22 @@ void CChat::ConchainChatOld(IConsole::IResult *pResult, void *pUserData, IConsol
 	((CChat *)pUserData)->RebuildChat();
 }
 
+void CChat::ConchainChatFontSize(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
+{
+	pfnCallback(pResult, pCallbackUserData);
+	CChat *pChat = (CChat *)pUserData;
+	pChat->EnsureCoherentWidth();
+	pChat->RebuildChat();
+}
+
+void CChat::ConchainChatWidth(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
+{
+	pfnCallback(pResult, pCallbackUserData);
+	CChat *pChat = (CChat *)pUserData;
+	pChat->EnsureCoherentFontSize();
+	pChat->RebuildChat();
+}
+
 void CChat::Echo(const char *pString)
 {
 	AddLine(CLIENT_MSG, 0, pString);
@@ -161,6 +213,8 @@ void CChat::OnInit()
 {
 	Reset();
 	Console()->Chain("cl_chat_old", ConchainChatOld, this);
+	Console()->Chain("cl_chat_size", ConchainChatFontSize, this);
+	Console()->Chain("cl_chat_width", ConchainChatWidth, this);
 }
 
 bool CChat::OnInput(const IInput::CEvent &Event)
@@ -292,7 +346,7 @@ bool CChat::OnInput(const IInput::CEvent &Event)
 			// insert the command
 			if(pCompletionCommand)
 			{
-				char aBuf[256];
+				char aBuf[MAX_LINE_LENGTH];
 				// add part before the name
 				str_truncate(aBuf, sizeof(aBuf), m_Input.GetString(), m_PlaceholderOffset);
 
@@ -353,9 +407,22 @@ bool CChat::OnInput(const IInput::CEvent &Event)
 			// insert the name
 			if(pCompletionString)
 			{
-				char aBuf[256];
+				char aBuf[MAX_LINE_LENGTH];
 				// add part before the name
 				str_truncate(aBuf, sizeof(aBuf), m_Input.GetString(), m_PlaceholderOffset);
+
+				// quote the name
+				char aQuoted[128];
+				if(m_Input.GetString()[0] == '/' && (str_find(pCompletionString, " ") || str_find(pCompletionString, "\"")))
+				{
+					// escape the name
+					str_copy(aQuoted, "\"");
+					char *pDst = aQuoted + str_length(aQuoted);
+					str_escape(&pDst, pCompletionString, aQuoted + sizeof(aQuoted));
+					str_append(aQuoted, "\"");
+
+					pCompletionString = aQuoted;
+				}
 
 				// add the name
 				str_append(aBuf, pCompletionString);
@@ -392,6 +459,12 @@ bool CChat::OnInput(const IInput::CEvent &Event)
 
 	if(Event.m_Flags & IInput::FLAG_PRESS && Event.m_Key == KEY_UP)
 	{
+		if(m_EditingNewLine)
+		{
+			str_copy(m_aCurrentInputText, m_Input.GetString());
+			m_EditingNewLine = false;
+		}
+
 		if(m_pHistoryEntry)
 		{
 			CHistoryEntry *pTest = m_History.Prev(m_pHistoryEntry);
@@ -411,9 +484,14 @@ bool CChat::OnInput(const IInput::CEvent &Event)
 			m_pHistoryEntry = m_History.Next(m_pHistoryEntry);
 
 		if(m_pHistoryEntry)
+		{
 			m_Input.Set(m_pHistoryEntry->m_aText);
-		else
-			m_Input.Clear();
+		}
+		else if(!m_EditingNewLine)
+		{
+			m_Input.Set(m_aCurrentInputText);
+			m_EditingNewLine = true;
+		}
 	}
 
 	return true;
@@ -560,7 +638,7 @@ void CChat::AddLine(int ClientID, int Team, const char *pLine)
 		else if(pEnd == 0)
 			pEnd = pStrOld;
 
-		if(++Length >= 256)
+		if(++Length >= MAX_LINE_LENGTH)
 		{
 			*(const_cast<char *>(pStr)) = 0;
 			break;
@@ -817,14 +895,17 @@ void CChat::RefindSkins()
 
 			Line.m_RenderSkinMetrics = pSkin->m_Metrics;
 		}
+		else
+		{
+			Line.m_RenderSkin.Reset();
+		}
 	}
 }
 
-void CChat::OnPrepareLines()
+void CChat::OnPrepareLines(float y)
 {
 	float x = 5.0f;
-	float y = 300.0f - 28.0f;
-	float FontSize = FONT_SIZE;
+	float FontSize = this->FontSize();
 
 	float ScreenRatio = Graphics()->ScreenAspect();
 
@@ -834,9 +915,10 @@ void CChat::OnPrepareLines()
 	m_PrevScoreBoardShowed = IsScoreBoardOpen;
 	m_PrevShowChat = ShowLargeArea;
 
-	float RealMsgPaddingX = MESSAGE_PADDING_X;
-	float RealMsgPaddingY = MESSAGE_PADDING_Y;
-	float RealMsgPaddingTee = MESSAGE_TEE_SIZE + MESSAGE_TEE_PADDING_RIGHT;
+	const int TeeSize = MessageTeeSize();
+	float RealMsgPaddingX = MessagePaddingX();
+	float RealMsgPaddingY = MessagePaddingY();
+	float RealMsgPaddingTee = TeeSize + MESSAGE_TEE_PADDING_RIGHT;
 
 	if(g_Config.m_ClChatOld)
 	{
@@ -846,9 +928,9 @@ void CChat::OnPrepareLines()
 	}
 
 	int64_t Now = time();
-	float LineWidth = (IsScoreBoardOpen ? 85.0f : 200.0f) - (RealMsgPaddingX * 1.5f) - RealMsgPaddingTee;
+	float LineWidth = (IsScoreBoardOpen ? maximum(85.f, (FontSize * 85.0f / 6.f)) : g_Config.m_ClChatWidth) - (RealMsgPaddingX * 1.5f) - RealMsgPaddingTee;
 
-	float HeightLimit = IsScoreBoardOpen ? 180.0f : m_PrevShowChat ? 50.0f : 200.0f;
+	float HeightLimit = IsScoreBoardOpen ? 180.0f : (m_PrevShowChat ? 50.0f : 200.0f);
 	float Begin = x;
 	float TextBegin = Begin + RealMsgPaddingX / 2.0f;
 	CTextCursor Cursor;
@@ -973,7 +1055,7 @@ void CChat::OnPrepareLines()
 		else if(m_aLines[r].m_NameColor == TEAM_SPECTATORS)
 			NameColor = ColorRGBA(0.75f, 0.5f, 0.75f, 1.f);
 		else if(m_aLines[r].m_ClientID >= 0 && g_Config.m_ClChatTeamColors && m_pClient->m_Teams.Team(m_aLines[r].m_ClientID))
-			NameColor = color_cast<ColorRGBA>(ColorHSLA(m_pClient->m_Teams.Team(m_aLines[r].m_ClientID) / 64.0f, 1.0f, 0.75f));
+			NameColor = m_pClient->GetDDTeamColor(m_pClient->m_Teams.Team(m_aLines[r].m_ClientID), 0.75f);
 		else
 			NameColor = ColorRGBA(0.8f, 0.8f, 0.8f, 1.f);
 
@@ -1017,13 +1099,21 @@ void CChat::OnPrepareLines()
 			OriginalWidth = Cursor.m_LongestLineWidth;
 		}
 
-		TextRender()->CreateOrAppendTextContainer(m_aLines[r].m_TextContainerIndex, &AppendCursor, m_aLines[r].m_aText);
+		const char *pText = m_aLines[r].m_aText;
+		if(Config()->m_ClStreamerMode && m_aLines[r].m_ClientID == SERVER_MSG)
+		{
+			if(str_startswith(m_aLines[r].m_aText, "Team save in progress. You'll be able to load with '/load") && str_endswith(m_aLines[r].m_aText, "if it fails"))
+				pText = "Team save in progress. You'll be able to load with '/load ***' if save is successful or with '/load *** *** ***' if it fails";
+			else if(str_startswith(m_aLines[r].m_aText, "Team successfully saved by ") && str_endswith(m_aLines[r].m_aText, " to continue"))
+				pText = "Team successfully saved by ***. Use '/load ***' to continue";
+		}
+		TextRender()->CreateOrAppendTextContainer(m_aLines[r].m_TextContainerIndex, &AppendCursor, pText);
 
 		if(!g_Config.m_ClChatOld && (m_aLines[r].m_aText[0] != '\0' || m_aLines[r].m_aName[0] != '\0'))
 		{
 			float Height = m_aLines[r].m_aYOffset[OffsetType];
 			Graphics()->SetColor(1, 1, 1, 1);
-			m_aLines[r].m_QuadContainerIndex = Graphics()->CreateRectQuadContainer(Begin, y, OriginalWidth + AppendCursor.m_LongestLineWidth + RealMsgPaddingX * 1.5f, Height, MESSAGE_ROUNDING, IGraphics::CORNER_ALL);
+			m_aLines[r].m_QuadContainerIndex = Graphics()->CreateRectQuadContainer(Begin, y, OriginalWidth + AppendCursor.m_LongestLineWidth + RealMsgPaddingX * 1.5f, Height, MessageRounding(), IGraphics::CORNER_ALL);
 		}
 
 		TextRender()->SetRenderFlags(CurRenderFlags);
@@ -1056,12 +1146,13 @@ void CChat::OnRender()
 	Graphics()->MapScreen(0.0f, 0.0f, Width, Height);
 
 	float x = 5.0f;
-	float y = 300.0f - 20.0f;
+	float y = 300.0f - 20.0f * FontSize() / 6.f;
+	float ScaledFontSize = FontSize() * (8 / 6.f);
 	if(m_Mode != MODE_NONE)
 	{
 		// render chat input
 		CTextCursor Cursor;
-		TextRender()->SetCursor(&Cursor, x, y, 8.0f, TEXTFLAG_RENDER);
+		TextRender()->SetCursor(&Cursor, x, y, ScaledFontSize, TEXTFLAG_RENDER);
 		Cursor.m_LineWidth = Width - 190.0f;
 
 		if(m_Mode == MODE_ALL)
@@ -1108,19 +1199,19 @@ void CChat::OnRender()
 #endif
 		return;
 
-	y -= 8.0f;
+	y -= ScaledFontSize;
 
-	OnPrepareLines();
+	OnPrepareLines(y);
 
 	float ScreenRatio = Graphics()->ScreenAspect();
 	bool IsScoreBoardOpen = m_pClient->m_Scoreboard.Active() && (ScreenRatio > 1.7f); // only assume scoreboard when screen ratio is widescreen(something around 16:9)
 
 	int64_t Now = time();
-	float HeightLimit = IsScoreBoardOpen ? 180.0f : m_PrevShowChat ? 50.0f : 200.0f;
+	float HeightLimit = IsScoreBoardOpen ? 180.0f : (m_PrevShowChat ? 50.0f : 200.0f);
 	int OffsetType = IsScoreBoardOpen ? 1 : 0;
 
-	float RealMsgPaddingX = MESSAGE_PADDING_X;
-	float RealMsgPaddingY = MESSAGE_PADDING_Y;
+	float RealMsgPaddingX = MessagePaddingX();
+	float RealMsgPaddingY = MessagePaddingY();
 
 	if(g_Config.m_ClChatOld)
 	{
@@ -1157,6 +1248,7 @@ void CChat::OnRender()
 		{
 			if(!g_Config.m_ClChatOld && m_aLines[r].m_HasRenderTee)
 			{
+				const int TeeSize = MessageTeeSize();
 				CTeeRenderInfo RenderInfo;
 				RenderInfo.m_CustomColoredSkin = m_aLines[r].m_CustomColoredSkin;
 				if(m_aLines[r].m_CustomColoredSkin)
@@ -1167,16 +1259,16 @@ void CChat::OnRender()
 
 				RenderInfo.m_ColorBody = m_aLines[r].m_ColorBody;
 				RenderInfo.m_ColorFeet = m_aLines[r].m_ColorFeet;
-				RenderInfo.m_Size = MESSAGE_TEE_SIZE;
+				RenderInfo.m_Size = TeeSize;
 
-				float RowHeight = FONT_SIZE + RealMsgPaddingY;
-				float OffsetTeeY = MESSAGE_TEE_SIZE / 2.0f;
-				float FullHeightMinusTee = RowHeight - MESSAGE_TEE_SIZE;
+				float RowHeight = FontSize() + RealMsgPaddingY;
+				float OffsetTeeY = TeeSize / 2.0f;
+				float FullHeightMinusTee = RowHeight - TeeSize;
 
 				const CAnimState *pIdleState = CAnimState::GetIdle();
 				vec2 OffsetToMid;
 				RenderTools()->GetRenderTeeOffsetToRenderedTee(pIdleState, &RenderInfo, OffsetToMid);
-				vec2 TeeRenderPos(x + (RealMsgPaddingX + MESSAGE_TEE_SIZE) / 2.0f, y + OffsetTeeY + FullHeightMinusTee / 2.0f + OffsetToMid.y);
+				vec2 TeeRenderPos(x + (RealMsgPaddingX + TeeSize) / 2.0f, y + OffsetTeeY + FullHeightMinusTee / 2.0f + OffsetToMid.y);
 				RenderTools()->RenderTee(pIdleState, &RenderInfo, EMOTE_NORMAL, vec2(1, 0.1f), TeeRenderPos, Blend);
 			}
 
@@ -1226,4 +1318,24 @@ void CChat::SayChat(const char *pLine)
 		pEntry->m_Team = m_Mode == MODE_ALL ? 0 : 1;
 		mem_copy(pEntry->m_aText, pLine, str_length(pLine));
 	}
+}
+
+void CChat::EnsureCoherentFontSize() const
+{
+	// Adjust font size based on width
+	if(g_Config.m_ClChatWidth / (float)g_Config.m_ClChatFontSize >= CHAT_FONTSIZE_WIDTH_RATIO)
+		return;
+
+	// We want to keep a ration between font size and font width so that we don't have a weird rendering
+	g_Config.m_ClChatFontSize = g_Config.m_ClChatWidth / CHAT_FONTSIZE_WIDTH_RATIO;
+}
+
+void CChat::EnsureCoherentWidth() const
+{
+	// Adjust width based on font size
+	if(g_Config.m_ClChatWidth / (float)g_Config.m_ClChatFontSize >= CHAT_FONTSIZE_WIDTH_RATIO)
+		return;
+
+	// We want to keep a ration between font size and font width so that we don't have a weird rendering
+	g_Config.m_ClChatWidth = CHAT_FONTSIZE_WIDTH_RATIO * g_Config.m_ClChatFontSize;
 }

@@ -15,6 +15,8 @@ CLight::CLight(CGameWorld *pGameWorld, vec2 Pos, float Rotation, int Length,
 	int Layer, int Number) :
 	CEntity(pGameWorld, CGameWorld::ENTTYPE_LASER)
 {
+	m_To = vec2(0.0f, 0.0f);
+	m_Core = vec2(0.0f, 0.0f);
 	m_Layer = Layer;
 	m_Number = Number;
 	m_Tick = (Server()->TickSpeed() * 0.15f);
@@ -112,7 +114,7 @@ void CLight::Snap(int SnappingClient)
 		pChr = GameServer()->GetPlayerChar(GameServer()->m_apPlayers[SnappingClient]->m_SpectatorID);
 
 	vec2 From = m_Pos;
-	int StartTick = 0;
+	int StartTick = -1;
 
 	if(pChr && pChr->Team() == TEAM_SUPER)
 	{

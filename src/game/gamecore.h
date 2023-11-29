@@ -10,7 +10,6 @@
 #include <set>
 #include <vector>
 
-#include <engine/console.h>
 #include <engine/shared/protocol.h>
 #include <game/generated/protocol.h>
 
@@ -46,7 +45,6 @@ class CTuningParams
 public:
 	CTuningParams()
 	{
-		const float TicksPerSecond = 50.0f;
 #define MACRO_TUNING_PARAM(Name, ScriptName, Value, Description) m_##Name.Set((int)((Value)*100.0f));
 #include "tuning.h"
 #undef MACRO_TUNING_PARAM
@@ -65,7 +63,6 @@ public:
 	bool Get(int Index, float *pValue) const;
 	bool Get(const char *pName, float *pValue) const;
 	static const char *Name(int Index) { return ms_apNames[Index]; }
-	int PossibleTunings(const char *pStr, IConsole::FPossibleCallback pfnCallback = IConsole::EmptyPossibleCommandCallback, void *pUser = nullptr);
 	float GetWeaponFireDelay(int Weapon) const;
 };
 
@@ -220,7 +217,6 @@ public:
 
 class CCharacterCore
 {
-	friend class CCharacter;
 	CWorldCore *m_pWorld = nullptr;
 	CCollision *m_pCollision;
 	std::map<int, std::vector<vec2>> *m_pTeleOuts;
@@ -236,8 +232,8 @@ public:
 	vec2 m_HookTeleBase;
 	int m_HookTick;
 	int m_HookState;
-	int m_HookedPlayer;
 	std::set<int> m_AttachedPlayers;
+	int HookedPlayer() const { return m_HookedPlayer; }
 	void SetHookedPlayer(int HookedPlayer);
 
 	int m_ActiveWeapon;
@@ -272,6 +268,7 @@ public:
 	int m_TriggeredEvents;
 
 	void Init(CWorldCore *pWorld, CCollision *pCollision, CTeamsCore *pTeams = nullptr, std::map<int, std::vector<vec2>> *pTeleOuts = nullptr);
+	void SetCoreWorld(CWorldCore *pWorld, CCollision *pCollision, CTeamsCore *pTeams);
 	void Reset();
 	void TickDeferred();
 	void Tick(bool UseInput, bool DoDeferredTick = true);
@@ -286,7 +283,6 @@ public:
 	bool m_Reset;
 	CCollision *Collision() { return m_pCollision; }
 
-	vec2 m_LastVel;
 	int m_Colliding;
 	bool m_LeftWall;
 
@@ -318,6 +314,7 @@ public:
 private:
 	CTeamsCore *m_pTeams;
 	int m_MoveRestrictions;
+	int m_HookedPlayer;
 	static bool IsSwitchActiveCb(int Number, void *pUser);
 };
 

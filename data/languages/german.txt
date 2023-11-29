@@ -121,9 +121,6 @@ Delete
 Delete demo
 == Aufnahme löschen
 
-Demo details
-== Aufnahmedetails:
-
 Demofile: %s
 == Aufnahmedatei: %s
 
@@ -163,9 +160,6 @@ Favorites
 Feet
 == Füße
 
-Filter
-== Filter
-
 Fire
 == Feuern
 
@@ -177,9 +171,6 @@ Force vote
 
 Free-View
 == Freie Ansicht
-
-Friends
-== Freunde
 
 Fullscreen
 == Vollbild
@@ -286,9 +277,6 @@ No servers match your filter criteria
 Ok
 == OK
 
-Open
-== Öffnen
-
 Parent Folder
 == Übergeordneter Ordner
 
@@ -303,10 +291,6 @@ Ping
 
 Pistol
 == Pistole
-
-[Demo browser]
-Play
-== Abspielen
 
 Play background music
 == Hintergrundmusik abspielen
@@ -341,9 +325,6 @@ Red team
 Red team wins!
 == Rotes Team gewinnt!
 
-Refresh
-== Aktualisieren
-
 Remote console
 == Remote-Konsole
 
@@ -352,9 +333,6 @@ Remove
 
 Remove friend
 == Freund entfernen
-
-Rename
-== Umbenennen
 
 Rename demo
 == Aufnahme umbenennen
@@ -376,12 +354,6 @@ Screenshot
 
 Server address:
 == Serveradresse:
-
-Server details
-== Serverdetails
-
-Server filter
-== Filter
 
 Server info
 == Serverinfo
@@ -551,23 +523,8 @@ FSAA samples
 Sound volume
 == Lautstärke
 
-Created:
-== Erstellt:
-
 Max Screenshots
 == Maximale Anzahl an Bildschirmfotos
-
-Length:
-== Länge:
-
-Netversion:
-== Netzwerkversion:
-
-Map:
-== Karte:
-
-Info
-== Info
 
 Hue
 == Farb.
@@ -578,17 +535,11 @@ Record demo
 Your skin
 == Dein Skin
 
-Size:
-== Größe:
-
 Reset to defaults
 == Standardeinstellung
 
 Quit anyway?
 == Trotzdem beenden?
-
-Version:
-== Version:
 
 Round
 == Runde
@@ -599,9 +550,6 @@ Lht.
 UI Color
 == Menüfarbe
 
-Crc:
-== Prüfsumme:
-
 Alpha
 == Alpha
 
@@ -610,9 +558,6 @@ LAN
 
 Name plates size
 == Größe der Spielernamen
-
-Type:
-== Typ:
 
 Ratio
 == Verhältnis
@@ -788,8 +733,8 @@ Grabs
 Automatically take game over screenshot
 == Automatisches Bildschirmfoto am Spielende
 
-Please use a different name
-== Bitte anderen Namen wählen
+Please use a different filename
+== 
 
 Gameplay
 == Gameplay
@@ -983,9 +928,6 @@ Enable replays
 Toggle dummy
 == Dummy wechseln
 
-Markers:
-== Markierungen:
-
 Converse
 == Unterhalten
 
@@ -1045,9 +987,6 @@ Kill
 
 Please enter your nickname below.
 == Bitte gib deinen Spitznamen unten ein.
-
-Render
-== Rendern
 
 It's recommended that you check the settings to adjust them to your liking before joining a server.
 == Es wird empfohlen die Einstellungen nach deinem Geschmack anzupassen bevor du einem Server beitrittst.
@@ -1208,12 +1147,6 @@ Preview
 
 Background
 == Hintergrund
-
-Entities Background color
-== Entities-Hintergrundfarbe
-
-Regular Background Color
-== Normale Hintergrundfarbe
 
 Chat command
 == Chat-Befehl
@@ -1760,3 +1693,78 @@ Unable to delete the folder '%s'. Make sure it's empty first.
 
 Moved ingame
 == Im Spiel bewegt
+
+Go back the specified duration
+== Gesetzte Dauer zurück
+
+[Demo player duration]
+%d min.
+== %d Min.
+
+[Demo player duration]
+%d sec.
+== %d Sek.
+
+Change the skip duration
+== Überspring-Dauer ändern
+
+Go forward the specified duration
+== Gesetzte Dauer vorwärts
+
+Render cut to video
+== Schnitt zu Video rendern
+
+Error playing demo
+== Fehler beim Abspielen der Demo
+
+Some map images could not be loaded. Check the local console for details.
+== Einige Karten-Bilder konnten nicht geladen werden. Prüf die lokale Konsole für Details.
+
+Some map sounds could not be loaded. Check the local console for details.
+== Einige Karten-Töne konnten nicht geladen werden. Prüf die lokale Konsole für Details.
+
+Loading menu themes
+== Menü-Themes laden
+
+Render complete
+== Fertig gerendert
+
+Videos directory
+== Video-Ordner
+
+Video was saved to '%s'
+== Video wurde gespeichert als '%s'
+
+No demo selected
+== Keine Demo ausgewählt
+
+Created
+== Erstellt
+
+Netversion
+== Netz-Version
+
+[Demo details]
+map not included
+== Karte nicht inbegriffen
+
+Ghosts directory
+== Geister-Ordner
+
+Activate all
+== Alle aktivieren
+
+Deactivate all
+== Alle deaktivieren
+
+Enable ghost
+== Geist aktivieren
+
+Only save improvements
+== Nur Verbesserungen speichern
+
+Regular background color
+== Normale Hintergrundfarbe
+
+Entities background color
+== Entities-Hintergrundfarbe

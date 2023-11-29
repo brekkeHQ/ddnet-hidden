@@ -68,7 +68,7 @@ Usage:
 	s_ScrollRegion.AddRect(Rect);
 
 	-- [Optional] Knowing if a rect is clipped --
-	s_ScrollRegion.IsRectClipped(Rect);
+	s_ScrollRegion.RectClipped(Rect);
 
 	-- [Optional] Scroll to a rect (to the last added rect)--
 	...
@@ -117,7 +117,7 @@ private:
 	CUIRect m_ClipRect;
 	CUIRect m_RailRect;
 	CUIRect m_LastAddedRect; // saved for ScrollHere()
-	vec2 m_SliderGrabPos; // where did user grab the slider
+	float m_SliderGrabPos; // where did user grab the slider
 	vec2 m_ContentScrollOff;
 	CScrollRegionParams m_Params;
 
@@ -137,9 +137,9 @@ public:
 	void ScrollRelative(EScrollRelative Direction, float SpeedMultiplier = 1.0f);
 	const CUIRect *ClipRect() const { return &m_ClipRect; }
 	void DoEdgeScrolling();
-	bool IsRectClipped(const CUIRect &Rect) const;
-	bool IsScrollbarShown() const;
-	bool IsAnimating() const;
+	bool RectClipped(const CUIRect &Rect) const;
+	bool ScrollbarShown() const;
+	bool Animating() const;
 	const CScrollRegionParams &Params() const { return m_Params; }
 };
 

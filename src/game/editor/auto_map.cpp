@@ -47,10 +47,15 @@ CAutoMapper::CAutoMapper(CEditor *pEditor)
 void CAutoMapper::Load(const char *pTileName)
 {
 	char aPath[IO_MAX_PATH_LENGTH];
-	str_format(aPath, sizeof(aPath), "editor/%s.rules", pTileName);
+	str_format(aPath, sizeof(aPath), "editor/automap/%s.rules", pTileName);
 	IOHANDLE RulesFile = Storage()->OpenFile(aPath, IOFLAG_READ | IOFLAG_SKIP_BOM, IStorage::TYPE_ALL);
 	if(!RulesFile)
+	{
+		char aBuf[IO_MAX_PATH_LENGTH + 32];
+		str_format(aBuf, sizeof(aBuf), "failed to load %s", aPath);
+		Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "editor/automap", aBuf);
 		return;
+	}
 
 	CLineReader LineReader;
 	LineReader.Init(RulesFile);
@@ -168,9 +173,9 @@ void CAutoMapper::Load(const char *pTileName)
 				{
 					Value = CPosRule::NOTINDEX;
 					CIndexInfo NewIndexInfo1 = {0, 0, false};
-					//CIndexInfo NewIndexInfo2 = {-1, 0};
+					// CIndexInfo NewIndexInfo2 = {-1, 0};
 					vNewIndexList.push_back(NewIndexInfo1);
-					//vNewIndexList.push_back(NewIndexInfo2);
+					// vNewIndexList.push_back(NewIndexInfo2);
 				}
 				else if(!str_comp(aValue, "INDEX") || !str_comp(aValue, "NOTINDEX"))
 				{
@@ -399,7 +404,7 @@ void CAutoMapper::ProceedLocalized(CLayerTiles *pLayer, int ConfigID, int Seed, 
 	int UpdateToX = clamp(X + Width + 3 * pConf->m_EndX, 0, pLayer->m_Width);
 	int UpdateToY = clamp(Y + Height + 3 * pConf->m_EndY, 0, pLayer->m_Height);
 
-	CLayerTiles *pUpdateLayer = new CLayerTiles(UpdateToX - UpdateFromX, UpdateToY - UpdateFromY);
+	CLayerTiles *pUpdateLayer = new CLayerTiles(Editor(), UpdateToX - UpdateFromX, UpdateToY - UpdateFromY);
 
 	for(int y = UpdateFromY; y < UpdateToY; y++)
 	{
@@ -447,7 +452,7 @@ void CAutoMapper::Proceed(CLayerTiles *pLayer, int ConfigID, int Seed, int SeedO
 		CLayerTiles *pReadLayer;
 		if(pRun->m_AutomapCopy)
 		{
-			pReadLayer = new CLayerTiles(pLayer->m_Width, pLayer->m_Height);
+			pReadLayer = new CLayerTiles(Editor(), pLayer->m_Width, pLayer->m_Height);
 
 			for(int y = 0; y < pLayer->m_Height; y++)
 			{

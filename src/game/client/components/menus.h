@@ -7,6 +7,7 @@
 #include <base/vmath.h>
 
 #include <chrono>
+#include <deque>
 #include <unordered_set>
 #include <vector>
 
@@ -15,6 +16,7 @@
 #include <engine/friends.h>
 #include <engine/serverbrowser.h>
 #include <engine/shared/config.h>
+#include <engine/shared/http.h>
 #include <engine/shared/linereader.h>
 #include <engine/textrender.h>
 
@@ -169,9 +171,7 @@ protected:
 		IGraphics::CTextureHandle m_GreyTexture;
 	};
 	std::vector<CMenuImage> m_vMenuImages;
-
 	static int MenuImageScan(const char *pName, int IsDir, int DirType, void *pUser);
-
 	const CMenuImage *FindMenuImage(const char *pName);
 
 	// loading
@@ -249,7 +249,6 @@ protected:
 	enum
 	{
 		SORT_DEMONAME = 0,
-		SORT_MARKERS,
 		SORT_LENGTH,
 		SORT_DATE,
 	};
@@ -308,8 +307,6 @@ protected:
 			if(!m_InfosLoaded)
 				return !Other.m_InfosLoaded;
 
-			if(g_Config.m_BrDemoSort == SORT_MARKERS)
-				return Left.NumMarkers() < Right.NumMarkers();
 			if(g_Config.m_BrDemoSort == SORT_LENGTH)
 				return Left.Length() < Right.Length();
 
@@ -346,6 +343,7 @@ protected:
 		const CServerInfo *m_pServerInfo;
 		int m_FriendState;
 		bool m_IsPlayer;
+		bool m_IsAfk;
 		// skin
 		char m_aSkin[24 + 1];
 		bool m_CustomSkinColors;
@@ -357,6 +355,7 @@ protected:
 		CFriendItem(const CFriendInfo *pFriendInfo) :
 			m_pServerInfo(nullptr),
 			m_IsPlayer(false),
+			m_IsAfk(false),
 			m_CustomSkinColors(false),
 			m_CustomSkinColorBody(0),
 			m_CustomSkinColorFeet(0)
@@ -370,6 +369,7 @@ protected:
 			m_pServerInfo(pServerInfo),
 			m_FriendState(CurrentClient.m_FriendState),
 			m_IsPlayer(CurrentClient.m_Player),
+			m_IsAfk(CurrentClient.m_Afk),
 			m_CustomSkinColors(CurrentClient.m_CustomSkinColors),
 			m_CustomSkinColorBody(CurrentClient.m_CustomSkinColorBody),
 			m_CustomSkinColorFeet(CurrentClient.m_CustomSkinColorFeet)
@@ -384,6 +384,7 @@ protected:
 		const CServerInfo *ServerInfo() const { return m_pServerInfo; }
 		int FriendState() const { return m_FriendState; }
 		bool IsPlayer() const { return m_IsPlayer; }
+		bool IsAfk() const { return m_IsAfk; }
 		const char *Skin() const { return m_aSkin; }
 		bool CustomSkinColors() const { return m_CustomSkinColors; }
 		int CustomSkinColorBody() const { return m_CustomSkinColorBody; }
@@ -391,6 +392,7 @@ protected:
 
 		const void *ListItemId() const { return &m_aName; }
 		const void *RemoveButtonId() const { return &m_FriendState; }
+		const void *CommunityTooltipId() const { return &m_IsPlayer; }
 
 		bool operator<(const CFriendItem &Other) const
 		{
@@ -408,8 +410,6 @@ protected:
 	};
 	std::vector<CFriendItem> m_avFriends[NUM_FRIEND_TYPES];
 	const CFriendItem *m_pRemoveFriend = nullptr;
-
-	void FriendlistOnUpdate();
 
 	// found in menus.cpp
 	int Render();
@@ -431,7 +431,11 @@ protected:
 	void HandleDemoSeeking(float PositionToSeek, float TimeToSeek);
 	void RenderDemoPlayer(CUIRect MainView);
 	void RenderDemoPlayerSliceSavePopup(CUIRect MainView);
-	void RenderDemoList(CUIRect MainView);
+	bool m_DemoBrowserListInitialized = false;
+	void RenderDemoBrowser(CUIRect MainView);
+	void RenderDemoBrowserList(CUIRect ListView, bool &WasListboxItemActivated);
+	void RenderDemoBrowserDetails(CUIRect DetailsView);
+	void RenderDemoBrowserButtons(CUIRect ButtonsView, bool WasListboxItemActivated);
 	void PopupConfirmDeleteDemo();
 	void PopupConfirmDeleteFolder();
 
@@ -454,11 +458,22 @@ protected:
 	// found in menus_browser.cpp
 	int m_SelectedIndex;
 	bool m_ServerBrowserShouldRevealSelection;
-	void RenderServerbrowserServerList(CUIRect View);
+	std::vector<CUIElement *> m_avpServerBrowserUiElements[IServerBrowser::NUM_TYPES];
+	void RenderServerbrowserServerList(CUIRect View, bool &WasListboxItemActivated);
+	void RenderServerbrowserStatusBox(CUIRect StatusBox, bool WasListboxItemActivated);
 	void Connect(const char *pAddress);
 	void PopupConfirmSwitchServer();
-	void RenderServerbrowserServerDetail(CUIRect View);
 	void RenderServerbrowserFilters(CUIRect View);
+	void RenderServerbrowserDDNetFilter(CUIRect View,
+		IFilterList &Filter,
+		float ItemHeight, int MaxItems, int ItemsPerRow,
+		CScrollRegion &ScrollRegion, std::vector<unsigned char> &vItemIds,
+		bool UpdateCommunityCacheOnChange,
+		const std::function<const char *(int ItemIndex)> &GetItemName,
+		const std::function<void(int ItemIndex, CUIRect Item, const void *pItemId, bool Active)> &RenderItem);
+	void RenderServerbrowserCommunitiesFilter(CUIRect View);
+	void RenderServerbrowserCountriesFilter(CUIRect View);
+	void RenderServerbrowserTypesFilter(CUIRect View);
 	struct SPopupCountrySelectionContext
 	{
 		CMenus *m_pMenus;
@@ -466,13 +481,86 @@ protected:
 		bool m_New;
 	};
 	static CUI::EPopupMenuFunctionResult PopupCountrySelection(void *pContext, CUIRect View, bool Active);
+	void RenderServerbrowserInfo(CUIRect View);
+	void RenderServerbrowserInfoScoreboard(CUIRect View, const CServerInfo *pSelectedServer);
 	void RenderServerbrowserFriends(CUIRect View);
+	void FriendlistOnUpdate();
 	void PopupConfirmRemoveFriend();
+	void RenderServerbrowserTabBar(CUIRect TabBar);
+	void RenderServerbrowserToolBox(CUIRect ToolBox);
 	void RenderServerbrowser(CUIRect MainView);
 	template<typename F>
 	bool PrintHighlighted(const char *pName, F &&PrintFn);
+	CTeeRenderInfo GetTeeRenderInfo(vec2 Size, const char *pSkinName, bool CustomSkinColors, int CustomSkinColorBody, int CustomSkinColorFeet) const;
 	static void ConchainFriendlistUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
-	static void ConchainServerbrowserUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
+	static void ConchainFavoritesUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
+	static void ConchainCommunitiesUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
+	struct SCommunityCache
+	{
+		int64_t m_UpdateTime = 0;
+		bool m_PageWithCommunities;
+		std::vector<const CCommunity *> m_vpSelectedCommunities;
+		std::vector<const CCommunityCountry *> m_vpSelectableCountries;
+		std::vector<const CCommunityType *> m_vpSelectableTypes;
+		bool m_AnyRanksAvailable;
+	};
+	SCommunityCache m_CommunityCache;
+	void UpdateCommunityCache(bool Force);
+
+	// community icons
+	class CAbstractCommunityIconJob
+	{
+	protected:
+		CMenus *m_pMenus;
+		char m_aCommunityId[CServerInfo::MAX_COMMUNITY_ID_LENGTH];
+		char m_aPath[IO_MAX_PATH_LENGTH];
+		int m_StorageType;
+		bool m_Success = false;
+		CImageInfo m_ImageInfo;
+		SHA256_DIGEST m_Sha256;
+
+		CAbstractCommunityIconJob(CMenus *pMenus, const char *pCommunityId, int StorageType);
+		virtual ~CAbstractCommunityIconJob();
+
+	public:
+		const char *CommunityId() const { return m_aCommunityId; }
+		bool Success() const { return m_Success; }
+		CImageInfo &&ImageInfo() { return std::move(m_ImageInfo); }
+		SHA256_DIGEST &&Sha256() { return std::move(m_Sha256); }
+	};
+	class CCommunityIconLoadJob : public IJob, public CAbstractCommunityIconJob
+	{
+	protected:
+		void Run() override;
+
+	public:
+		CCommunityIconLoadJob(CMenus *pMenus, const char *pCommunityId, int StorageType);
+	};
+	class CCommunityIconDownloadJob : public CHttpRequest, public CAbstractCommunityIconJob
+	{
+	protected:
+		int OnCompletion(int State) override;
+
+	public:
+		CCommunityIconDownloadJob(CMenus *pMenus, const char *pCommunityId, const char *pUrl);
+	};
+	struct SCommunityIcon
+	{
+		char m_aCommunityId[CServerInfo::MAX_COMMUNITY_ID_LENGTH];
+		SHA256_DIGEST m_Sha256;
+		IGraphics::CTextureHandle m_OrgTexture;
+		IGraphics::CTextureHandle m_GreyTexture;
+	};
+	std::vector<SCommunityIcon> m_vCommunityIcons;
+	std::deque<std::shared_ptr<CCommunityIconLoadJob>> m_CommunityIconLoadJobs;
+	std::deque<std::shared_ptr<CCommunityIconDownloadJob>> m_CommunityIconDownloadJobs;
+	int64_t m_CommunityIconsUpdateTime = 0;
+	static int CommunityIconScan(const char *pName, int IsDir, int DirType, void *pUser);
+	const SCommunityIcon *FindCommunityIcon(const char *pCommunityId);
+	bool LoadCommunityIconFile(const char *pPath, int DirType, CImageInfo &Info, SHA256_DIGEST &Sha256);
+	void LoadCommunityIconFinish(const char *pCommunityId, CImageInfo &&Info, SHA256_DIGEST &&Sha256);
+	void RenderCommunityIcon(const SCommunityIcon *pIcon, CUIRect Rect, bool Active);
+	void UpdateCommunityIcons();
 
 	// skin favorite list
 	bool m_SkinFavoritesChanged = false;
@@ -544,8 +632,8 @@ public:
 		PAGE_INTERNET,
 		PAGE_LAN,
 		PAGE_FAVORITES,
-		PAGE_DDNET,
-		PAGE_KOG,
+		PAGE_DDNET_LEGACY, // removed, redirects to PAGE_INTERNET
+		PAGE_KOG_LEGACY, // removed, redirects to PAGE_INTERNET
 		PAGE_DEMOS,
 		PAGE_SETTINGS,
 		PAGE_SYSTEM,
@@ -571,8 +659,6 @@ public:
 		BIG_TAB_INTERNET,
 		BIG_TAB_LAN,
 		BIG_TAB_FAVORITES,
-		BIG_TAB_DDNET,
-		BIG_TAB_KOG,
 		BIG_TAB_DEMOS,
 
 		BIG_TAB_LENGTH,
@@ -583,6 +669,9 @@ public:
 		SMALL_TAB_EDITOR,
 		SMALL_TAB_DEMOBUTTON,
 		SMALL_TAB_SERVER,
+		SMALL_TAB_BROWSER_FILTER,
+		SMALL_TAB_BROWSER_INFO,
+		SMALL_TAB_BROWSER_FRIENDS,
 
 		SMALL_TAB_LENGTH,
 	};
@@ -608,9 +697,11 @@ public:
 		char m_aFilename[IO_MAX_PATH_LENGTH];
 		char m_aPlayer[MAX_NAME_LENGTH];
 
+		bool m_Failed;
 		int m_Time;
 		int m_Slot;
 		bool m_Own;
+		time_t m_Date;
 
 		CGhostItem() :
 			m_Slot(-1), m_Own(false) { m_aFilename[0] = 0; }
@@ -652,6 +743,7 @@ public:
 		POPUP_LANGUAGE,
 		POPUP_RENAME_DEMO,
 		POPUP_RENDER_DEMO,
+		POPUP_RENDER_DONE,
 		POPUP_PASSWORD,
 		POPUP_QUIT,
 		POPUP_WARNING,
@@ -662,7 +754,7 @@ public:
 	};
 
 private:
-	static int GhostlistFetchCallback(const char *pName, int IsDir, int StorageType, void *pUser);
+	static int GhostlistFetchCallback(const CFsFileInfo *pInfo, int IsDir, int StorageType, void *pUser);
 	void SetMenuPage(int NewPage);
 	void RefreshBrowserTab(int UiPage);
 

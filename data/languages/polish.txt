@@ -107,9 +107,6 @@ Delete
 Delete demo
 == Usuń demo
 
-Demo details
-== Szczegóły dema
-
 Demofile: %s
 == Plik dema: %s
 
@@ -149,9 +146,6 @@ Favorites
 Feet
 == Stopy
 
-Filter
-== Filtr
-
 Fire
 == Strzał
 
@@ -163,9 +157,6 @@ Force vote
 
 Free-View
 == Wolna kamera
-
-Friends
-== Znajomi
 
 Fullscreen
 == Pełny ekran
@@ -269,9 +260,6 @@ No servers match your filter criteria
 Ok
 == Ok
 
-Open
-== Otwórz
-
 Parent Folder
 == Nadrzędny katalog
 
@@ -286,10 +274,6 @@ Ping
 
 Pistol
 == Pistolet
-
-[Demo browser]
-Play
-== Graj
 
 Play background music
 == Odtwarzaj muzykę w tle
@@ -324,9 +308,6 @@ Red team
 Red team wins!
 == Czerwoni wygrali!
 
-Refresh
-== Odśwież
-
 Remote console
 == Zdalna konsola
 
@@ -335,9 +316,6 @@ Remove
 
 Remove friend
 == Usuń znajomego
-
-Rename
-== Zmień nazwę
 
 Rename demo
 == Zmień nazwę dema
@@ -359,12 +337,6 @@ Screenshot
 
 Server address:
 == Adres serwera:
-
-Server details
-== Szczegóły serwera
-
-Server filter
-== Filtr serwerów
 
 Server info
 == Info serwera
@@ -536,23 +508,8 @@ FSAA samples
 Sound volume
 == Głośność ogólna
 
-Created:
-== Utworzono:
-
 Max Screenshots
 == Maksymalnie zrzutów ekranu
-
-Length:
-== Długość:
-
-Netversion:
-== Wersja sieciowa:
-
-Map:
-== Mapa:
-
-Info
-== Info
 
 Hue
 == Kolor
@@ -563,17 +520,11 @@ Record demo
 Your skin
 == Twój wygląd
 
-Size:
-== Rozmiar:
-
 Reset to defaults
 == Przywróć domyślne
 
 Quit anyway?
 == Wyjść mimo wszystko?
-
-Version:
-== Wersja:
 
 Round
 == Runda
@@ -584,9 +535,6 @@ Lht.
 UI Color
 == Kolor menu
 
-Crc:
-== Crc:
-
 Alpha
 == Alfa
 
@@ -595,9 +543,6 @@ LAN
 
 Name plates size
 == Wielkość wyświetlanych nicków
-
-Type:
-== Typ:
 
 Show others
 == Pokazuj innych
@@ -809,9 +754,6 @@ Frags
 Net
 == Przechwycenia
 
-Render
-== Renderuj
-
 Suicides
 == Samobójstwa
 
@@ -821,8 +763,8 @@ Show clan above name plates
 Loading DDNet Client
 == Ładowanie klienta DDNet
 
-Please use a different name
-== Użyj innej nazwy
+Please use a different filename
+== 
 
 HUD
 == HUD
@@ -928,9 +870,6 @@ Max CSVs
 
 Unfinished map
 == Pokazuj tylko nieukończone mapy
-
-Markers:
-== Znaczniki
 
 %d new mentions
 == %d razy wspomniano o tobie
@@ -1266,12 +1205,6 @@ Show local player's key presses
 Background
 == Tło
 
-Entities Background color
-== Kolor tła stworzeń
-
-Regular Background Color
-== Kolor tła normalnego
-
 Run on join
 == Uruchom po dołączeniu
 
@@ -1335,6 +1268,9 @@ Could not initialize the given graphics backend, this is probably because you di
 Could not save downloaded map. Try manually deleting this file: %s
 == 
 
+Error playing demo
+== 
+
 Preparing demo playback
 == 
 
@@ -1377,7 +1313,16 @@ Angle:
 Multi-View
 == 
 
+Some map images could not be loaded. Check the local console for details.
+== 
+
 Uploading map data to GPU
+== 
+
+Some map sounds could not be loaded. Check the local console for details.
+== 
+
+Loading menu themes
 == 
 
 Trying to determine UDP connectivity...
@@ -1401,6 +1346,9 @@ Requesting to join the game
 Rename folder
 == 
 
+Render complete
+== 
+
 A demo with this name already exists
 == 
 
@@ -1414,6 +1362,12 @@ File '%s' already exists, do you want to overwrite it?
 == 
 
 (paused)
+== 
+
+Videos directory
+== 
+
+Video was saved to '%s'
 == 
 
 Loading menu images
@@ -1465,10 +1419,33 @@ Pause the current demo
 Stop the current demo
 == 
 
+Go back the specified duration
+== 
+
+[Demo player duration]
+%d min.
+== 
+
+[Demo player duration]
+%d sec.
+== 
+
+Change the skip duration
+== 
+
+Go forward the specified duration
+== 
+
 Go back one tick
 == 
 
 Go forward one tick
+== 
+
+Go back one marker
+== 
+
+Go forward one marker
 == 
 
 Slow down the demo
@@ -1486,12 +1463,6 @@ Mark the end of a cut (right click to reset)
 Export cut as a separate demo
 == 
 
-Go back one marker
-== 
-
-Go forward one marker
-== 
-
 Close the demo player
 == 
 
@@ -1507,13 +1478,29 @@ Cut interval
 Cut length
 == 
 
+Render cut to video
+== 
+
 Loading demo files
 == 
 
 All combined
 == 
 
+No demo selected
+== 
+
 Folder Link
+== 
+
+Created
+== 
+
+Netversion
+== 
+
+[Demo details]
+map not included
 == 
 
 Open the directory that contains the demo files
@@ -1535,6 +1522,15 @@ Unable to delete the folder '%s'. Make sure it's empty first.
 == 
 
 Loading ghost files
+== 
+
+Ghosts directory
+== 
+
+Activate all
+== 
+
+Deactivate all
 == 
 
 Menu opened. Press Esc key again to close menu.
@@ -1726,6 +1722,18 @@ Freeze Laser Inner Color
 == 
 
 Set all to Rifle
+== 
+
+Enable ghost
+== 
+
+Only save improvements
+== 
+
+Regular background color
+== 
+
+Entities background color
 == 
 
 Unregister protocol and file extensions
