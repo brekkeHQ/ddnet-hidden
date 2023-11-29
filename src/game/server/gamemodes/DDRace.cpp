@@ -565,10 +565,12 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 				}
 
 				// 全局广播	受害者出局
-				str_format(aBuf, sizeof(aBuf), "%s %s %d", Server()->ClientName(pPlayer->GetCID()), Config()->m_HiddenStepPlayerGameOverMSG, alivePlayerNum); // <playername>出局了!剩余人数:<num>
+				str_format(aBuf, sizeof(aBuf), "%s %s", Server()->ClientName(pPlayer->GetCID()), Config()->m_HiddenStepPlayerGameOverMSG); // <playername>出局了!
 				GameServer()->SendBroadcast(aBuf, -1);
 				// 聊天消息
 				str_format(aBuf, sizeof(aBuf), "%s:%s", Server()->ClientName(pPlayer->GetCID()), Config()->m_HiddenStepPlayerGameOverChatMSG);
+				GameServer()->SendChatTarget(-1, aBuf);
+				str_format(aBuf, sizeof(aBuf), "%s:%d", Config()->m_HiddenStepPlayerGameOverChatMSG2, alivePlayerNum); // 剩余人数:<num>
 				GameServer()->SendChatTarget(-1, aBuf);
 			}
 			else if(!isInGame && !isInSpectator)
@@ -746,13 +748,14 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 
 				if(pPlayer->m_Hidden.m_IsWin)
 					TeleportPlayerToCheckPoint(pPlayer, 251);
-				else if(pPlayer->m_Hidden.m_IsLose)
+				else
 					TeleportPlayerToCheckPoint(pPlayer, 252);
 			}
 		}
 
 		HiddenStateReset();
 		m_Hidden.stepDurationTime = Config()->m_HiddenStepDurationS0;
+		m_Hidden.stepStartTick = tickNow;
 		m_Hidden.stepEndTick = tickNow + tickSpeed * m_Hidden.stepDurationTime;
 
 		// 关闭Hidden Mode
@@ -775,6 +778,7 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 		}
 		m_Hidden.nowStep = STEP_S1;
 		m_Hidden.stepDurationTime = GameServer()->Config()->m_HiddenStepDurationS1;
+		m_Hidden.stepStartTick = tickNow;
 		m_Hidden.stepEndTick = tickNow + tickSpeed * m_Hidden.stepDurationTime;
 		m_Hidden.iS1PlayerNum = iPlayerNum;
 
@@ -798,6 +802,7 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 		}
 		m_Hidden.nowStep = STEP_S2;
 		m_Hidden.stepDurationTime = GameServer()->Config()->m_HiddenStepDurationS2;
+		m_Hidden.stepStartTick = tickNow;
 		m_Hidden.stepEndTick = tickNow + tickSpeed * m_Hidden.stepDurationTime;
 
 		printf("STEP_S2: init done\n");
@@ -813,8 +818,14 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 				continue;
 			pController->TeleportPlayerToCheckPoint(pPlayer, 221);
 		}
+		// 传送假人当配置提示
+		TeleportPlayerToCheckPoint(GameServer()->m_apPlayers[0], 222);
+		TeleportPlayerToCheckPoint(GameServer()->m_apPlayers[1], 223);
+		TeleportPlayerToCheckPoint(GameServer()->m_apPlayers[2], 224);
+
 		m_Hidden.nowStep = STEP_S3;
 		m_Hidden.stepDurationTime = GameServer()->Config()->m_HiddenStepDurationS3;
+		m_Hidden.stepStartTick = tickNow;
 		m_Hidden.stepEndTick = tickNow + tickSpeed * m_Hidden.stepDurationTime;
 
 		printf("STEP_S3: init done\n");
@@ -883,6 +894,7 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 
 		m_Hidden.nowStep = STEP_S4;
 		m_Hidden.stepDurationTime = GameServer()->Config()->m_HiddenStepDurationS4;
+		m_Hidden.stepStartTick = tickNow;
 		m_Hidden.stepEndTick = tickNow + tickSpeed * m_Hidden.stepDurationTime;
 
 		printf("STEP_S4: init done\n");
@@ -935,6 +947,7 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 
 		m_Hidden.nowStep = STEP_S5;
 		m_Hidden.stepDurationTime = 4;
+		m_Hidden.stepStartTick = tickNow;
 		m_Hidden.stepEndTick = tickNow + tickSpeed * m_Hidden.stepDurationTime;
 
 		printf("STEP_S5: init done\n");

@@ -585,8 +585,9 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 
 				// 需要修改内容
 				// 当说话的人出局而接收的人没有出局
+				// 仅限step 4
 				bool IsCase1 =
-					isChatterGameOver && !isReceiverGameOver;
+					isChatterGameOver && !isReceiverGameOver && pController->m_Hidden.nowStep == STEP_S4;
 				// 说话人没出局但是接收的出局了
 				bool IsCase2 =
 					!isChatterGameOver && isReceiverGameOver;

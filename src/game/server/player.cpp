@@ -362,8 +362,28 @@ void CPlayer::Snap(int SnappingClient)
 			str_copy(aSkin, GameServer()->m_Hidden.aSkins[id].c_str(), sizeof(aSkin));
 		}
 		else
-		{ // 名字
-			str_copy(aName, "DEVICE");
+		{
+			if(pController->m_Hidden.nowStep == STEP_S3)
+			{
+				// 显示S3配置名
+				if(this->GetCID() == 0)
+				{
+					str_format(aName, sizeof(aName), "%d", GameServer()->Config()->m_HiddenStepVoteS3BValue);
+				}
+				else if(this->GetCID() == 1)
+				{
+					str_format(aName, sizeof(aName), "%d", GameServer()->Config()->m_HiddenStepVoteS3CValue);
+				}
+				else if(this->GetCID() == 2)
+				{
+					str_format(aName, sizeof(aName), "%d", GameServer()->Config()->m_HiddenStepVoteS3DValue);
+				}
+			}
+			else
+			{
+				// 名字
+				str_copy(aName, "DEVICE");
+			}
 			// 皮肤
 			str_copy(aSkin, "Robot");
 		}

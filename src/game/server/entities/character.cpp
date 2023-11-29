@@ -474,8 +474,12 @@ void CCharacter::FireWeapon()
 
 				if(isTurnOnKillHammer && isNotMachine)
 				{
-					if(pController->m_Hidden.nowStep >= STEP_S4)
-					{ // 投票进入了S4以后的房间
+					// 判断是否开始躲猫猫
+					bool case1 = pController->m_Hidden.nowStep == STEP_S4;
+					/* case2 避免了在S4房间直接淘汰玩家 */
+					bool case2 = pController->m_Hidden.stepStartTick != Server()->Tick();
+					if(case1 && case2)
+					{ // 进入了S4房间
 					  // 受害者状态改变->被杀(淘汰、出局)
 						pTarget->GetPlayer()->m_Hidden.m_HasBeenKilled = true;
 						// 受害者旁观ID设置为杀手ID
@@ -488,7 +492,7 @@ void CCharacter::FireWeapon()
 						Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, -1);
 					}
 					else if(pController->m_Hidden.nowStep == STEP_S0)
-					{ // 未开始投票
+					{ // 未开始
 						// 受害者死亡
 						pTarget->Die(pTarget->GetPlayer()->GetCID(), WEAPON_HAMMER, false);
 

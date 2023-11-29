@@ -18,7 +18,7 @@ enum
 	STEP_S1, // 开始游戏房间
 	STEP_S2, // 猎人数量房间
 	STEP_S3, // 机器数量房间
-	STEP_S4, // 开始游戏房间
+	STEP_S4, // 游戏进行房间
 	STEP_S5, // 结束游戏，给玩家做win标记。
 
 	NONE_WIN = 0, // 没人赢
@@ -106,6 +106,7 @@ public:
 	{ // Hidden Mode 模式数据
 		int nowStep = STEP_S0; // 当前阶段
 		int stepDurationTime = -1; // 阶段持续时间 秒计数
+		int stepStartTick = -1; // 阶段开始时的Tick
 		int stepEndTick = -1; // 阶段结束时的Tick
 		int whoWin = NONE_WIN; // 哪边赢了
 
@@ -123,6 +124,7 @@ public:
 	{
 		m_Hidden.nowStep = STEP_S0;
 		m_Hidden.stepDurationTime = -1;
+		m_Hidden.stepStartTick = -1;
 		m_Hidden.stepEndTick = -1;
 		m_Hidden.whoWin = NONE_WIN;
 
