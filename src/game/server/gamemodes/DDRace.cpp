@@ -541,7 +541,7 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 				GameServer()->SendChatTarget(-1, aBuf);
 			}
 			else if(!isInGame && !isInSpectator)
-			{
+			{ // 新入服务器玩家
 				// 移动到旁观列表
 				pPlayer->SetTeam(TEAM_SPECTATORS, false);
 
@@ -553,8 +553,7 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 				GameServer()->SendChatTarget(pPlayer->GetCID(), aBuf);
 			}
 			else if(!isInSpectator && isLose)
-			{
-				// 其余奇葩情况
+			{ // 其余奇葩情况
 				// 移动到旁观列表
 				pPlayer->SetTeam(TEAM_SPECTATORS, false);
 			}
