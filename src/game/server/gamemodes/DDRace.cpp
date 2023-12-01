@@ -552,6 +552,12 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 				str_format(aBuf, sizeof(aBuf), "%s:%s", Server()->ClientName(pPlayer->GetCID()), Config()->m_HiddenStepPlayerWaitingMSG);
 				GameServer()->SendChatTarget(pPlayer->GetCID(), aBuf);
 			}
+			else if(!isInSpectator && isLose)
+			{
+				// 其余奇葩情况
+				// 移动到旁观列表
+				pPlayer->SetTeam(TEAM_SPECTATORS, false);
+			}
 		}
 
 		// 人数计算
