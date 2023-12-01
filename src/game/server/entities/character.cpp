@@ -477,8 +477,10 @@ void CCharacter::FireWeapon()
 				{
 					// 判断是否开始躲猫猫
 					bool case1 = pController->m_Hidden.nowStep == STEP_S4;
-					/* case2 避免了在S4房间直接淘汰玩家 */
-					bool case2 = pController->m_Hidden.stepStartTick != Server()->Tick();
+					// case2 避免了在S4房间直接淘汰玩家
+					// 计算的是距离S4开始是否大于某个时间段
+					// 以此来避免玩家在即将进入S4之前开火导致玩家被淘汰
+					bool case2 = pController->m_Hidden.stepStartTick <= Server()->Tick() + Server()->TickSpeed() * 10;
 					if(case1 && case2)
 					{ // 进入了S4房间
 					  // 受害者状态改变->被杀(淘汰、出局)
