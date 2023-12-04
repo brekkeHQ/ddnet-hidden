@@ -45,15 +45,39 @@ void CPickup::Tick()
 			return;
 		vec2 vPos = pPlayer->GetCharacter()->m_Pos;
 		float min = INFINITY;
-		for(int i = 0; i < pController->m_Hidden.deviceNum; i++)
+		if(!pPlayer->m_Hidden.m_IsSeeker)
 		{
-			float dis = distance(vPos, GameServer()->m_apPlayers[i]->GetCharacter()->m_Pos);
-			if(dis < min)
+			for(int i = 0; i < pController->m_Hidden.deviceNum; i++)
 			{
-				pTarget = GameServer()->m_apPlayers[i];
-				min = dis;
+				auto *pTemp = GameServer()->m_apPlayers[i];
+				if(!pTemp || !pTemp->GetCharacter())
+					continue;
+				float dis = distance(vPos, pTemp->GetCharacter()->m_Pos);
+				if(dis < min)
+				{
+					pTarget = pTemp;
+					min = dis;
+				}
 			}
 		}
+		else
+		{
+			for(int i = pController->m_Hidden.deviceNum; i < MAX_CLIENTS; i++)
+			{
+				auto *pTemp = GameServer()->m_apPlayers[i];
+				if(!pTemp || !pTemp->GetCharacter())
+					continue;
+				if(pTemp->GetCID() == this->m_HiddenBindPlayerClient)
+					continue;
+				float dis = distance(vPos, pTemp->GetCharacter()->m_Pos);
+				if(dis < min)
+				{
+					pTarget = pTemp;
+					min = dis;
+				}
+			}
+		}
+
 		// 根据方向设定health位置，使health位于pPlayers与pTarget之间
 		vec2 dir = normalize(pTarget->GetCharacter()->m_Pos - vPos);
 		vPos = vPos + dir * 64;
