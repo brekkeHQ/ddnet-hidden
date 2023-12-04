@@ -475,6 +475,8 @@ void CCharacter::FireWeapon()
 
 				if(isTurnOnKillHammer && isNotMachine)
 				{
+					// 发送击杀消息标识
+					bool sendKillMsg = false;
 					// 判断是否开始躲猫猫
 					bool case1 = pController->m_Hidden.nowStep == STEP_S4;
 					// case2 避免了在S4房间直接淘汰玩家
@@ -491,8 +493,7 @@ void CCharacter::FireWeapon()
 						pController->m_Hidden.lastActiveClientID = this->GetPlayer()->GetCID();
 
 						Msg.m_Killer = pTarget->GetPlayer()->GetCID();
-						Msg.m_Victim = pTarget->GetPlayer()->GetCID();
-						Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, -1);
+						sendKillMsg = true;
 					}
 					else if(pController->m_Hidden.nowStep == STEP_S0)
 					{ // 未开始
@@ -500,8 +501,12 @@ void CCharacter::FireWeapon()
 						pTarget->Die(pTarget->GetPlayer()->GetCID(), WEAPON_HAMMER, false);
 
 						Msg.m_Killer = this->GetPlayer()->GetCID();
-						Msg.m_Victim = pTarget->GetPlayer()->GetCID();
+						sendKillMsg = true;
+					}
 
+					if(sendKillMsg)
+					{
+						Msg.m_Victim = pTarget->GetPlayer()->GetCID();
 						Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, -1);
 					}
 				}
