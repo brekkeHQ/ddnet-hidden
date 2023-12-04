@@ -322,6 +322,7 @@ void CPlayer::Snap(int SnappingClient)
 	CPlayer *pPlayerSnapTo = GameServer()->m_apPlayers[SnappingClient]; // 接收数据的玩家
 
 	bool hiddenState = pController->m_HiddenState;
+	bool isHiddenModeCanTurnOn = pController->HiddenModeCanTurnOn();
 
 	bool isInGame = m_Hidden.m_InGame;
 	bool isPassedS1 = pController->m_Hidden.nowStep > STEP_S1;
@@ -453,6 +454,18 @@ void CPlayer::Snap(int SnappingClient)
 	if(SnappingClient != m_ClientID && g_Config.m_SvHideScore)
 		Score = -9999;
 
+	// hidden mode 处理分数
+	if(isHiddenModeCanTurnOn)
+	{
+		if(isNotMachine)
+		{
+			Score *= -1;
+		}
+		else
+		{
+			Score = 8888;
+		}
+	}
 	if(!Server()->IsSixup(SnappingClient))
 	{
 		CNetObj_PlayerInfo *pPlayerInfo = Server()->SnapNewItem<CNetObj_PlayerInfo>(id);

@@ -138,6 +138,8 @@ public:
 
 		// 添加到最后一次行动
 		m_Hidden.lastActiveClientID = pPlayer->GetCID();
+		// 增加分数
+		pPlayer->m_Score = pPlayer->m_Score.value() + 1;
 
 		// 击杀MSG提示
 		CNetMsg_Sv_KillMsg Msg;

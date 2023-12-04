@@ -744,6 +744,7 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 				continue;
 
 			HiddenTeleportPlayerToCheckPoint(pPlayer, 200);
+			pPlayer->m_Score = 0;
 			iPlayerNum++;
 		}
 		m_Hidden.nowStep = STEP_S1;
