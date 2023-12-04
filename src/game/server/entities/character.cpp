@@ -460,7 +460,6 @@ void CCharacter::FireWeapon()
 			// set his velocity to fast upward (for now)
 			if(length(pTarget->m_Pos - ProjStartPos) > 0.0f)
 			{
-				// hidden mode
 				// 受害者被锤
 				GameServer()->CreateHammerHit(pTarget->m_Pos - normalize(pTarget->m_Pos - ProjStartPos) * GetProximityRadius() * 0.5f, TeamMask());
 				// Hidden Mode相关
