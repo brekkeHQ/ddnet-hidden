@@ -29,8 +29,10 @@ CGameControllerDDRace::CGameControllerDDRace(class CGameContext *pGameServer) :
 	// hidden mode
 	InitTeleporter();
 	if(HiddenModeCanTurnOn())
+	{
+		m_HiddenModeCanTurnOn = true;
 		m_pGameType = g_Config.m_SvTestingCommands ? HIDDEN_TEST_TYPE_NAME : HIDDEN_TYPE_NAME;
-
+	}
 	srand((unsigned)time(NULL)); // 用当前时间作为种子
 }
 

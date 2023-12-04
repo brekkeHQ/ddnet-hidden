@@ -86,6 +86,7 @@ public:
 
 	bool m_HiddenState = false; // Hidden Mode状态
 	bool m_KillHammer = false; // 杀人锤子状态
+	bool m_HiddenModeCanTurnOn = false; // 是否可开启hidden mode
 
 	struct
 	{ // Hidden Mode 模式数据
