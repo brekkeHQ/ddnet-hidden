@@ -247,12 +247,12 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 	{
 	case STEP_S0:
 	{
-		if(isShowRemainTime)
-		{ // 剩余时间提示
-			double tipRemainTime = (double)(endTick - nowTick) / tickSpeed;
-			str_format(aBuf, sizeof(aBuf), "%s %.2f %s", Config()->m_HiddenTimeLeftStartPrefix, tipRemainTime, Config()->m_HiddenTimeLeftStartSuffix);
-			GameServer()->SendBroadcast(aBuf, -1);
-		}
+		if(remainTick)
+			if(isShowRemainTime)
+			{ // 剩余时间提示
+				str_format(aBuf, sizeof(aBuf), "%s %.2f %s", Config()->m_HiddenTimeLeftStartPrefix, remainTime, Config()->m_HiddenTimeLeftStartSuffix);
+				GameServer()->SendBroadcast(aBuf, -1);
+			}
 
 		if(nowTick == endTick)
 		{
@@ -684,7 +684,6 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 	case STEP_S0:
 	{ // 大厅
 		printf("STEP_S0: init setup\n");
-		CGameControllerDDRace *pController = (CGameControllerDDRace *)GameServer()->m_pController;
 		// 如果没有到S4，则玩家重生
 		if(m_Hidden.nowStep < STEP_S4)
 		{
@@ -705,7 +704,7 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 				if(!HiddenIsMachine(pPlayer))
 					continue; // 是玩家
 
-				pController->TeleportPlayerToCheckPoint(pPlayer, 241);
+				HiddenTeleportPlayerToCheckPoint(pPlayer, 241);
 			}
 		}
 
@@ -719,9 +718,9 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 					continue; // 未加入游戏玩家不传送
 
 				if(pPlayer->m_Hidden.m_IsWin)
-					TeleportPlayerToCheckPoint(pPlayer, 251);
+					HiddenTeleportPlayerToCheckPoint(pPlayer, 251);
 				else
-					TeleportPlayerToCheckPoint(pPlayer, 252);
+					HiddenTeleportPlayerToCheckPoint(pPlayer, 252);
 			}
 		}
 
@@ -738,14 +737,13 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 	case STEP_S1:
 	{ // 玩家传送到S1 开始游戏房间
 		printf("STEP_S1: init setup\n");
-		CGameControllerDDRace *pController = (CGameControllerDDRace *)GameServer()->m_pController;
 		int iPlayerNum = 0;
 		for(auto &pPlayer : GameServer()->m_apPlayers)
 		{
 			if(HiddenIsPlayerGameOver(pPlayer))
 				continue;
 
-			pController->TeleportPlayerToCheckPoint(pPlayer, 201);
+			HiddenTeleportPlayerToCheckPoint(pPlayer, 200);
 			iPlayerNum++;
 		}
 		m_Hidden.nowStep = STEP_S1;
@@ -770,8 +768,13 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 				continue;
 			// 取消旁观
 			pPlayer->Pause(CPlayer::PAUSE_NONE, true);
-			pController->TeleportPlayerToCheckPoint(pPlayer, 211);
+			pController->HiddenTeleportPlayerToCheckPoint(pPlayer, 210);
 		}
+		// 传送假人当配置提示
+		HiddenTeleportPlayerToCheckPoint(GameServer()->m_apPlayers[0], 212);
+		HiddenTeleportPlayerToCheckPoint(GameServer()->m_apPlayers[1], 213);
+		HiddenTeleportPlayerToCheckPoint(GameServer()->m_apPlayers[2], 214);
+
 		m_Hidden.nowStep = STEP_S2;
 		m_Hidden.stepDurationTime = GameServer()->Config()->m_HiddenStepDurationS2;
 		m_Hidden.stepStartTick = tickNow;
@@ -783,17 +786,16 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 	case STEP_S3:
 	{ // 玩家传送到S3 机器数量房间
 		printf("STEP_S3: init setup\n");
-		CGameControllerDDRace *pController = (CGameControllerDDRace *)GameServer()->m_pController;
 		for(auto &pPlayer : GameServer()->m_apPlayers)
 		{
 			if(HiddenIsPlayerGameOver(pPlayer))
 				continue;
-			pController->TeleportPlayerToCheckPoint(pPlayer, 221);
+			HiddenTeleportPlayerToCheckPoint(pPlayer, 220);
 		}
 		// 传送假人当配置提示
-		TeleportPlayerToCheckPoint(GameServer()->m_apPlayers[0], 222);
-		TeleportPlayerToCheckPoint(GameServer()->m_apPlayers[1], 223);
-		TeleportPlayerToCheckPoint(GameServer()->m_apPlayers[2], 224);
+		HiddenTeleportPlayerToCheckPoint(GameServer()->m_apPlayers[0], 222);
+		HiddenTeleportPlayerToCheckPoint(GameServer()->m_apPlayers[1], 223);
+		HiddenTeleportPlayerToCheckPoint(GameServer()->m_apPlayers[2], 224);
 
 		m_Hidden.nowStep = STEP_S3;
 		m_Hidden.stepDurationTime = GameServer()->Config()->m_HiddenStepDurationS3;
@@ -804,10 +806,8 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 		break;
 	}
 	case STEP_S4:
-	{ // 玩家传送到S4 猎人房间
+	{ // 玩家传送到S4 正式游戏房间
 		printf("STEP_S4: init setup\n");
-		CGameControllerDDRace *pController = (CGameControllerDDRace *)GameServer()->m_pController;
-
 		// 随机选取猎人
 		std::vector<int> randomVector = unique_random_numbers(m_Hidden.iS1PlayerNum, m_Hidden.seekerNum);
 		printf("猎人分配如下: ");
@@ -828,14 +828,14 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 
 			if(pPlayer->m_Hidden.m_IsSeeker)
 			{ // 玩家是猎人
-				pController->TeleportPlayerToCheckPoint(pPlayer, 232);
+				HiddenTeleportPlayerToCheckPoint(pPlayer, 232);
 				printf("%s ", Server()->ClientName(pPlayer->GetCID()));
 				GameServer()->SendBroadcast(Config()->m_HiddenStepTipsS4A1, pPlayer->GetCID());
 				GameServer()->WhisperID(0, pPlayer->GetCID(), Config()->m_HiddenStepTipsS4A2);
 			}
 			else
 			{ // 不是猎人
-				pController->TeleportPlayerToCheckPoint(pPlayer, 231);
+				HiddenTeleportPlayerToCheckPoint(pPlayer, 231);
 				GameServer()->SendBroadcast(Config()->m_HiddenStepTipsS4B1, pPlayer->GetCID());
 				GameServer()->WhisperID(0, pPlayer->GetCID(), Config()->m_HiddenStepTipsS4B2);
 			}
@@ -861,8 +861,11 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 			if(!pPlayer->m_Hidden.m_IsDummyMachine)
 				continue; // 不是机器人
 
-			pController->TeleportPlayerToCheckPoint(pPlayer, 242);
+			HiddenTeleportPlayerToCheckPoint(pPlayer, 242);
 		}
+
+		// 开始游戏
+		HiddenStartGame();
 
 		m_Hidden.nowStep = STEP_S4;
 		m_Hidden.stepDurationTime = GameServer()->Config()->m_HiddenStepDurationS4;
@@ -928,7 +931,7 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 	}
 }
 
-void CGameControllerDDRace::TeleportPlayerToCheckPoint(CPlayer *pPlayer, int TeleTo)
+void CGameControllerDDRace::HiddenTeleportPlayerToCheckPoint(CPlayer *pPlayer, int TeleTo)
 {
 	if(!pPlayer)
 		return;
@@ -939,7 +942,7 @@ void CGameControllerDDRace::TeleportPlayerToCheckPoint(CPlayer *pPlayer, int Tel
 		int TeleOutIndex = GameServer()->m_World.m_Core.RandomOr0(m_TeleOuts[TeleTo - 1].size());
 		if(pChr)
 		{
-			Teleport(pChr, m_TeleOuts[TeleTo - 1][TeleOutIndex]);
+			HiddenTeleportPlayerToPosition(pChr, m_TeleOuts[TeleTo - 1][TeleOutIndex]);
 		}
 		else
 		{
@@ -950,11 +953,21 @@ void CGameControllerDDRace::TeleportPlayerToCheckPoint(CPlayer *pPlayer, int Tel
 }
 
 // 传送角色到Pos
-void CGameControllerDDRace::Teleport(CCharacter *pChr, vec2 Pos)
+void CGameControllerDDRace::HiddenTeleportPlayerToPosition(CCharacter *pChr, vec2 Pos)
 {
 	pChr->Core()->m_Pos = Pos;
 	pChr->m_Pos = Pos;
 	pChr->m_PrevPos = Pos;
+}
+void CGameControllerDDRace::HiddenPauseGame(bool isPause)
+{
+	GameServer()->m_World.m_Paused = isPause;
+}
+void CGameControllerDDRace::HiddenStartGame()
+{
+	IGameController::m_RoundStartTick = Server()->Tick();
+	m_SuddenDeath = 0;
+	m_GameOverTick = -1;
 }
 
 void CGameControllerDDRace::DoTeamChange(class CPlayer *pPlayer, int Team, bool DoChatMsg)

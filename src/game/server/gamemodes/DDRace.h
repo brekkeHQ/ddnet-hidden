@@ -9,7 +9,6 @@
 // Hidden Mode各阶段状态枚举
 enum
 {
-
 	STEP_S0 = 0, // 大厅
 	STEP_S1, // 开始游戏房间
 	STEP_S2, // 猎人数量房间
@@ -78,8 +77,8 @@ public:
 		// 返回数组
 		return result;
 	}
-	static void Teleport(CCharacter *pChr, vec2 Pos); // 传送角色到Pos
-	void TeleportPlayerToCheckPoint(CPlayer *pPlayer, int TeleTo); // 传送角色到CP点
+	static void HiddenTeleportPlayerToPosition(CCharacter *pChr, vec2 Pos); // 传送角色到Pos
+	void HiddenTeleportPlayerToCheckPoint(CPlayer *pPlayer, int TeleTo); // 传送角色到CP点
 	void HiddenStepUpdate(int toStep); // 阶段更新
 	void HiddenTick(int nowTick, int endTick, int tickSpeed, int nowStep); // Tick处理
 	bool HiddenIsPlayerGameOver(CPlayer *pPlayer); // 判断玩家是否被淘汰
@@ -135,7 +134,7 @@ public:
 		double process = (double)m_Hidden.activedMachine / m_Hidden.machineNum * 100;
 		str_format(aBuf, sizeof(aBuf), "%s %.2f%%", Config()->m_HiddenStepDeviceActivatedProgressMSG, process);
 		GameServer()->SendBroadcast(aBuf, -1);
-		TeleportPlayerToCheckPoint(pMachine, 242);
+		HiddenTeleportPlayerToCheckPoint(pMachine, 242);
 
 		// 添加到最后一次行动
 		m_Hidden.lastActiveClientID = pPlayer->GetCID();
@@ -154,26 +153,52 @@ public:
 	bool HiddenModeCanTurnOn()
 	{ /* 地图检索判断
 			如果地图不是躲猫猫地图则不能开启Hidden Mode
+			在step投票环节中，个位数为0的CP点均是玩家传送点，其余为投票判定点
 		 */
+		bool HasTele200 = !m_TeleOuts[200 - 1].empty();
 		bool HasTele201 = !m_TeleOuts[201 - 1].empty();
-		bool HasTele211 = !m_TeleOuts[211 - 1].empty();
-		bool HasTele221 = !m_TeleOuts[221 - 1].empty();
-		bool HasTele231 = !m_TeleOuts[231 - 1].empty();
-		bool HasTele241 = !m_TeleOuts[241 - 1].empty();
-		bool HasTele251 = !m_TeleOuts[251 - 1].empty();
+		bool HasTele202 = !m_TeleOuts[202 - 1].empty();
+		bool step1 = HasTele200 && HasTele201 && HasTele202;
 
-		if(!HasTele201 ||
-			!HasTele211 ||
-			!HasTele221 ||
-			!HasTele231 ||
-			!HasTele241 ||
-			!HasTele251)
+		bool HasTele210 = !m_TeleOuts[210 - 1].empty();
+		bool HasTele211 = !m_TeleOuts[211 - 1].empty();
+		bool HasTele212 = !m_TeleOuts[212 - 1].empty();
+		bool HasTele213 = !m_TeleOuts[213 - 1].empty();
+		bool HasTele214 = !m_TeleOuts[214 - 1].empty();
+		bool step2 = HasTele210 && HasTele211 && HasTele212 && HasTele213 && HasTele214;
+
+		bool HasTele220 = !m_TeleOuts[220 - 1].empty();
+		bool HasTele221 = !m_TeleOuts[221 - 1].empty();
+		bool HasTele222 = !m_TeleOuts[222 - 1].empty();
+		bool HasTele223 = !m_TeleOuts[223 - 1].empty();
+		bool HasTele224 = !m_TeleOuts[224 - 1].empty();
+		bool step3 = HasTele220 && HasTele221 && HasTele222 && HasTele223 && HasTele224;
+
+		bool HasTele231 = !m_TeleOuts[231 - 1].empty();
+		bool HasTele232 = !m_TeleOuts[232 - 1].empty();
+		bool HasTele241 = !m_TeleOuts[241 - 1].empty();
+		bool HasTele242 = !m_TeleOuts[242 - 1].empty();
+		bool step4 = HasTele231 && HasTele232 && HasTele241 && HasTele242;
+
+		bool HasTele251 = !m_TeleOuts[251 - 1].empty();
+		bool HasTele252 = !m_TeleOuts[252 - 1].empty();
+		bool step5 = HasTele251 && HasTele252;
+
+		if(!step1 ||
+			!step2 ||
+			!step3 ||
+			!step4 ||
+			!step5)
 		{
 			return false;
 		}
 
 		return true;
 	}
+	// 暂停游戏
+	void HiddenPauseGame(bool isPause);
+	// 开始游戏
+	void HiddenStartGame();
 };
 
 #endif // GAME_SERVER_GAMEMODES_DDRACE_H

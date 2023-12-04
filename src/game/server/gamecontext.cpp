@@ -3528,7 +3528,7 @@ void CGameContext::ConMachineSpawn(IConsole::IResult *pResult, void *pUserData)
 		pPlayer->SetAfk(false);
 		pPlayer->m_Hidden.m_IsPlaceholder = true;
 
-		pController->TeleportPlayerToCheckPoint(pPlayer, checkpoint);
+		pController->HiddenTeleportPlayerToCheckPoint(pPlayer, checkpoint);
 	}
 }
 
@@ -3669,13 +3669,13 @@ void CGameContext::ConHiddenTeleportPlayerToCheckPoint(IConsole::IResult *pResul
 	}
 
 	if(pResult->NumArguments())
-		pController->TeleportPlayerToCheckPoint(pSelf->m_apPlayers[clientID], checkPoint);
+		pController->HiddenTeleportPlayerToCheckPoint(pSelf->m_apPlayers[clientID], checkPoint);
 	else
 	{
 		CCharacter *pChr = pSelf->GetPlayerChar(clientID);
 		if(pChr)
 		{
-			pController->Teleport(pChr, pSelf->m_apPlayers[clientID]->m_ViewPos);
+			pController->HiddenTeleportPlayerToPosition(pChr, pSelf->m_apPlayers[clientID]->m_ViewPos);
 		}
 	}
 }
@@ -4023,7 +4023,7 @@ void CGameContext::OnInit(const void *pPersistentData)
 		pPlayer->SetAfk(false);
 
 		// 假人传送到241
-		pController->TeleportPlayerToCheckPoint(pPlayer, 241);
+		pController->HiddenTeleportPlayerToCheckPoint(pPlayer, 241);
 	}
 	printf("假人生成完毕\n");
 
