@@ -411,6 +411,7 @@ public:
 	void StartRecord(int ClientID) override;
 	void StopRecord(int ClientID) override;
 	bool IsRecording(int ClientID) override;
+	void StopDemos() override;
 
 	int Run();
 

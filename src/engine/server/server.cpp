@@ -2614,23 +2614,6 @@ int CServer::LoadMap(const char *pMapName)
 	if(!m_pMap->Load(aBuf))
 		return 0;
 
-	// stop recording when we change map
-	for(int i = 0; i < MAX_CLIENTS + 1; i++)
-	{
-		if(!m_aDemoRecorder[i].IsRecording())
-			continue;
-
-		m_aDemoRecorder[i].Stop();
-
-		// remove tmp demos
-		if(i < MAX_CLIENTS)
-		{
-			char aPath[256];
-			str_format(aPath, sizeof(aPath), "demos/%s_%d_%d_tmp.demo", m_aCurrentMap, m_NetServer.Address().port, i);
-			Storage()->RemoveFile(aPath, IStorage::TYPE_SAVE);
-		}
-	}
-
 	// reinit snapshot ids
 	m_IDPool.TimeoutIDs();
 
@@ -3129,22 +3112,6 @@ int CServer::Run()
 	return ErrorShutdown();
 }
 
-void CServer::ConTestingCommands(CConsole::IResult *pResult, void *pUser)
-{
-	CConsole *pThis = static_cast<CConsole *>(pUser);
-	char aBuf[128];
-	str_format(aBuf, sizeof(aBuf), "Value: %d", pThis->Config()->m_SvTestingCommands);
-	pThis->Print(CConsole::OUTPUT_LEVEL_STANDARD, "console", aBuf);
-}
-
-void CServer::ConRescue(CConsole::IResult *pResult, void *pUser)
-{
-	CConsole *pThis = static_cast<CConsole *>(pUser);
-	char aBuf[128];
-	str_format(aBuf, sizeof(aBuf), "Value: %d", pThis->Config()->m_SvRescue);
-	pThis->Print(CConsole::OUTPUT_LEVEL_STANDARD, "console", aBuf);
-}
-
 // 皮肤配置
 void CServer::ConHiddenSkin(IConsole::IResult *pResult, void *pUser)
 {
@@ -3513,10 +3480,35 @@ bool CServer::IsRecording(int ClientID)
 	return m_aDemoRecorder[ClientID].IsRecording();
 }
 
+void CServer::StopDemos()
+{
+	for(int i = 0; i < MAX_CLIENTS + 1; i++)
+	{
+		if(!m_aDemoRecorder[i].IsRecording())
+			continue;
+
+		m_aDemoRecorder[i].Stop();
+
+		// remove tmp demos
+		if(i < MAX_CLIENTS)
+		{
+			char aPath[256];
+			str_format(aPath, sizeof(aPath), "demos/%s_%d_%d_tmp.demo", m_aCurrentMap, m_NetServer.Address().port, i);
+			Storage()->RemoveFile(aPath, IStorage::TYPE_SAVE);
+		}
+	}
+}
+
 void CServer::ConRecord(IConsole::IResult *pResult, void *pUser)
 {
 	CServer *pServer = (CServer *)pUser;
 	char aFilename[IO_MAX_PATH_LENGTH];
+
+	if(pServer->IsRecording(MAX_CLIENTS))
+	{
+		pServer->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "demo_recorder", "Demo recorder already recording");
+		return;
+	}
 
 	if(pResult->NumArguments())
 		str_format(aFilename, sizeof(aFilename), "demos/%s.demo", pResult->GetString(0));
