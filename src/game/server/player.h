@@ -115,6 +115,8 @@ public:
 		bool m_IsDummyMachine = false;
 		// 是占位假人，用以提高排名
 		bool m_IsPlaceholder = false;
+		// 被警告AFK
+		bool m_IsWarnedAFK = false;
 	} m_Hidden;
 	// 状态重置
 	void HiddenStateReset()

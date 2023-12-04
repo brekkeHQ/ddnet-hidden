@@ -343,14 +343,31 @@ void CPlayer::Snap(int SnappingClient)
 				str_format(aName, sizeof(aName), ">>>%s<<<", GameServer()->Config()->m_HiddenSpectatorSeekerName);
 			}
 			else
+			{ // 正常显示
 				str_copy(aName, Server()->ClientName(m_ClientID));
-
+			}
 			// 指定皮肤
 			str_copy(aSkin, GameServer()->m_Hidden.aSkins[id].c_str(), sizeof(aSkin));
 		}
 		else
 		{
-			if(pController->m_Hidden.nowStep == STEP_S3)
+			if(pController->m_Hidden.nowStep == STEP_S2)
+			{
+				// 显示S2配置名
+				if(this->GetCID() == 0)
+				{
+					str_format(aName, sizeof(aName), "%d", GameServer()->Config()->m_HiddenStepVoteS2BValue);
+				}
+				else if(this->GetCID() == 1)
+				{
+					str_format(aName, sizeof(aName), "%d", GameServer()->Config()->m_HiddenStepVoteS2CValue);
+				}
+				else if(this->GetCID() == 2)
+				{
+					str_format(aName, sizeof(aName), "%d", GameServer()->Config()->m_HiddenStepVoteS2DValue);
+				}
+			}
+			else if(pController->m_Hidden.nowStep == STEP_S3)
 			{
 				// 显示S3配置名
 				if(this->GetCID() == 0)
@@ -446,7 +463,6 @@ void CPlayer::Snap(int SnappingClient)
 		pPlayerInfo->m_Score = Score;
 
 		// hidden mode
-
 		// 不显示玩家信息
 		bool isNotShowPlayerInfo =
 			hiddenState && isPassedS1 && pPlayerSnapTo &&
@@ -814,6 +830,21 @@ void CPlayer::UpdatePlaytime()
 
 void CPlayer::AfkTimer()
 {
+	// hidden mode
+	CGameControllerDDRace *pController = (CGameControllerDDRace *)GameServer()->m_pController;
+	if(pController->m_Hidden.nowStep == STEP_S4)
+	{
+		if(!m_Hidden.m_IsWarnedAFK && m_LastPlaytime < time_get() - time_freq() * 20)
+		{
+			m_Hidden.m_IsWarnedAFK = true;
+			GameServer()->WhisperID(0, this->GetCID(), "AFK WARNING: immediately move your character in 10 seconds, otherwise you will be thought AFK");
+		}
+		else if(m_LastPlaytime > time_get() - time_freq() * 20)
+		{
+			m_Hidden.m_IsWarnedAFK = false;
+		}
+	}
+
 	SetAfk(g_Config.m_SvMaxAfkTime != 0 && m_LastPlaytime < time_get() - time_freq() * g_Config.m_SvMaxAfkTime);
 }
 
