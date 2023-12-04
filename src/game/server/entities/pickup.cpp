@@ -8,6 +8,7 @@
 #include <game/teamscore.h>
 
 #include <game/server/gamecontext.h>
+#include <game/server/gamemodes/DDRace.h>
 #include <game/server/player.h>
 
 static constexpr int gs_PickupPhysSize = 14;
@@ -32,7 +33,32 @@ void CPickup::Reset()
 
 void CPickup::Tick()
 {
+	CGameControllerDDRace *pController = (CGameControllerDDRace *)GameServer()->m_pController;
 	Move();
+	// hidden mode
+	// HIDDEN_POWERUP_HEALTH
+	if(m_Subtype == HIDDEN_POWERUP_HEALTH)
+	{
+		CPlayer *pPlayer = GameServer()->m_apPlayers[this->m_HiddenBindPlayerClient];
+		CPlayer *pTarget = GameServer()->m_apPlayers[0];
+		if(!pPlayer || !pPlayer->GetCharacter() || !pTarget || !pTarget->GetCharacter())
+			return;
+		vec2 vPos = pPlayer->GetCharacter()->m_Pos;
+		float min = INFINITY;
+		for(int i = 0; i < pController->m_Hidden.deviceNum; i++)
+		{
+			float dis = distance(vPos, GameServer()->m_apPlayers[i]->GetCharacter()->m_Pos);
+			if(dis < min)
+			{
+				pTarget = GameServer()->m_apPlayers[i];
+				min = dis;
+			}
+		}
+		// 根据方向设定health位置，使health位于pPlayers与pTarget之间
+		vec2 dir = normalize(pTarget->GetCharacter()->m_Pos - vPos);
+		vPos = vPos + dir * 64;
+		this->m_Pos = vPos;
+	}
 
 	// Check if a player intersected us
 	CEntity *apEnts[MAX_CLIENTS];
@@ -50,6 +76,9 @@ void CPickup::Tick()
 			switch(m_Type)
 			{
 			case POWERUP_HEALTH:
+				// hidden mode
+				if(m_Subtype == HIDDEN_POWERUP_HEALTH)
+					break;
 				if(pChr->Freeze())
 					GameServer()->CreateSound(m_Pos, SOUND_PICKUP_HEALTH, pChr->TeamMask());
 				break;

@@ -7,6 +7,7 @@
 #include <engine/shared/config.h>
 #include <game/mapitems.h>
 #include <game/server/entities/character.h>
+#include <game/server/entities/pickup.h>
 #include <game/server/gamecontext.h>
 #include <game/server/player.h>
 #include <game/server/score.h>
@@ -34,6 +35,8 @@ CGameControllerDDRace::CGameControllerDDRace(class CGameContext *pGameServer) :
 		m_pGameType = g_Config.m_SvTestingCommands ? HIDDEN_TEST_TYPE_NAME : HIDDEN_TYPE_NAME;
 	}
 	srand((unsigned)time(NULL)); // 用当前时间作为种子
+	for(auto &pHealth : m_Hidden.a_pHealthPointerList)
+		pHealth = 0;
 }
 
 CGameControllerDDRace::~CGameControllerDDRace() = default;
@@ -211,7 +214,7 @@ void CGameControllerDDRace::Tick()
 	if(Server()->Tick() % 500 == 0) // 机器人每10s进行一次保活操作(50tick * 10)
 	{
 		CServer *pServer = (CServer *)Server();
-		for(int i = 0; i < 4; i++)
+		for(int i = 0; i < m_Hidden.deviceNum; i++)
 		{
 			if(!GameServer()->m_apPlayers[0])
 				break; // 假人已被踢出，不能继续了
@@ -613,6 +616,15 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 			GameServer()->SendBroadcast(aBuf, -1);
 		}
 
+		if(nowTick >= endTick - tickSpeed * 30)
+		{
+			HiddenCreateHealthPointer();
+		}
+		else
+		{
+			HiddenRemoveHealthPointer();
+		}
+
 		if(nowTick == endTick)
 		{ // 求生者没有在规定时间内激活机器
 			for(auto &pPlayer : GameServer()->m_apPlayers)
@@ -627,6 +639,7 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 
 				pPlayer->m_Hidden.m_HasBeenKilled = true;
 			}
+			HiddenRemoveHealthPointer();
 		}
 		break;
 	}
@@ -746,8 +759,9 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 				continue;
 
 			HiddenTeleportPlayerToCheckPoint(pPlayer, 200);
-			pPlayer->m_Score = 0;
 			iPlayerNum++;
+			// 分数重置
+			pPlayer->m_Score = 0;
 		}
 		m_Hidden.nowStep = STEP_S1;
 		m_Hidden.stepDurationTime = GameServer()->Config()->m_HiddenStepDurationS1;
@@ -835,12 +849,14 @@ void CGameControllerDDRace::HiddenStepUpdate(int toStep)
 				printf("%s ", Server()->ClientName(pPlayer->GetCID()));
 				GameServer()->SendBroadcast(Config()->m_HiddenStepTipsS4A1, pPlayer->GetCID());
 				GameServer()->WhisperID(0, pPlayer->GetCID(), Config()->m_HiddenStepTipsS4A2);
+				pPlayer->m_Score = 1000;
 			}
 			else
 			{ // 不是猎人
 				HiddenTeleportPlayerToCheckPoint(pPlayer, 231);
 				GameServer()->SendBroadcast(Config()->m_HiddenStepTipsS4B1, pPlayer->GetCID());
 				GameServer()->WhisperID(0, pPlayer->GetCID(), Config()->m_HiddenStepTipsS4B2);
+				pPlayer->m_Score = 0;
 			}
 
 			currentIndex++;
@@ -971,6 +987,36 @@ void CGameControllerDDRace::HiddenStartGame()
 	IGameController::m_RoundStartTick = Server()->Tick();
 	m_SuddenDeath = 0;
 	m_GameOverTick = -1;
+}
+void CGameControllerDDRace::HiddenCreateHealthPointer()
+{
+	if(m_Hidden.isCreatedHealthList)
+		return;
+	m_Hidden.isCreatedHealthList = true;
+	for(int i = 0; i < MAX_CLIENTS; i++)
+	{
+		auto *pPlayer = GameServer()->m_apPlayers[i];
+		if(HiddenIsMachine(pPlayer))
+			continue;
+		if(!pPlayer->GetCharacter())
+			continue;
+		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_HEALTH, HIDDEN_POWERUP_HEALTH);
+		pPickup->m_HiddenBindPlayerClient = pPlayer->GetCID();
+		m_Hidden.a_pHealthPointerList[i] = pPickup;
+	}
+}
+void CGameControllerDDRace::HiddenRemoveHealthPointer()
+{
+	if(!m_Hidden.isCreatedHealthList)
+		return;
+	m_Hidden.isCreatedHealthList = false;
+	for(auto &pHealth : m_Hidden.a_pHealthPointerList)
+	{
+		if(!pHealth)
+			continue;
+		GameServer()->m_World.RemoveEntity(pHealth);
+		pHealth = nullptr;
+	}
 }
 
 void CGameControllerDDRace::DoTeamChange(class CPlayer *pPlayer, int Team, bool DoChatMsg)

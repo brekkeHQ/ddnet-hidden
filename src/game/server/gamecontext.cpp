@@ -32,6 +32,7 @@
 #include <game/generated/protocolglue.h>
 
 #include "entities/character.h"
+#include "entities/pickup.h"
 #include "gamemodes/DDRace.h"
 #include "gamemodes/mod.h"
 #include "player.h"
@@ -3503,33 +3504,19 @@ void CGameContext::ConHammerToggle(IConsole::IResult *pResult, void *pUserData)
 	pSelf->SendBroadcast(aBuf, -1, true);
 }
 
-// Spawn Machine 生成机器
-void CGameContext::ConMachineSpawn(IConsole::IResult *pResult, void *pUserData)
+// hidden mode
+// test function
+void CGameContext::ConHiddenTest1(IConsole::IResult *pResult, void *pUserData)
 {
 	CGameContext *pSelf = (CGameContext *)pUserData;
 	CGameControllerDDRace *pController = (CGameControllerDDRace *)(pSelf->m_pController);
-	CServer *pServer = (CServer *)(pSelf->m_pServer);
-	int checkpoint = pResult->GetInteger(0);
-
-	pSelf->SendBroadcast("机器生成中……", -1, true);
-
-	for(int id = 0; id < 55; id++)
-	{
-		if(pSelf->m_apPlayers[id])
-			continue; // 该位置已存在玩家，跳过
-
-		pServer->m_aClients[id].m_State = CServer::CClient::STATE_INGAME;
-		str_copy(pServer->m_aClients[id].m_aName, pSelf->Config()->m_HiddenMachineName);
-		pSelf->OnClientConnected(id, nullptr);
-
-		CPlayer *pPlayer = pSelf->m_apPlayers[id];
-		str_copy(pPlayer->m_TeeInfos.m_aSkinName, pSelf->Config()->m_HiddenMachineSkinName);
-		pPlayer->m_TeeInfos.m_UseCustomColor = 0;
-		pPlayer->SetAfk(false);
-		pPlayer->m_Hidden.m_IsPlaceholder = true;
-
-		pController->HiddenTeleportPlayerToCheckPoint(pPlayer, checkpoint);
-	}
+	pController->HiddenCreateHealthPointer();
+}
+void CGameContext::ConHiddenTest2(IConsole::IResult *pResult, void *pUserData)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	CGameControllerDDRace *pController = (CGameControllerDDRace *)(pSelf->m_pController);
+	pController->HiddenRemoveHealthPointer();
 }
 
 // Hidden Mode 切换
@@ -3540,7 +3527,7 @@ void CGameContext::ConHiddenToggle(IConsole::IResult *pResult, void *pUserData)
 	CGameContext *pSelf = (CGameContext *)pUserData;
 	CGameControllerDDRace *pController = (CGameControllerDDRace *)(pSelf->m_pController);
 
-	if(!pController->HiddenModeCanTurnOn())
+	if(!pController->m_HiddenModeCanTurnOn)
 	{ // 地图不是躲猫猫地图
 		pSelf->SendBroadcast("此地图无法开启Hidden Mode", -1);
 		return;
@@ -3742,7 +3729,8 @@ void CGameContext::OnConsoleInit()
 	m_pStorage = Kernel()->RequestInterface<IStorage>();
 
 	Console()->Register("hidden_hammer_toggle", "i[value]", CFGFLAG_SERVER, ConHammerToggle, this, "Toggle hammer mode between normal and kill");
-	Console()->Register("hidden_machine_spawn", "i[checkpoint]", CFGFLAG_SERVER, ConMachineSpawn, this, "Spawn machine on the specified checkpoint");
+	Console()->Register("hidden_test1", "", CFGFLAG_SERVER, ConHiddenTest1, this, "Spawn machine on the specified checkpoint");
+	Console()->Register("hidden_test2", "", CFGFLAG_SERVER, ConHiddenTest2, this, "Spawn machine on the specified checkpoint");
 	Console()->Register("hidden_toggle", "i[value]", CFGFLAG_SERVER, ConHiddenToggle, this, "Toggle hidden mode");
 	Console()->Register("hidden_tp", "?i[clientID/checkpoint] ?i[checkpoint]", CFGFLAG_SERVER, ConHiddenTeleportPlayerToCheckPoint, this, "Teleport player or self to check point or view postion");
 

@@ -5,6 +5,12 @@
 
 #include <game/server/entity.h>
 
+// hidden mode
+enum
+{
+	HIDDEN_POWERUP_HEALTH = 1,
+};
+
 class CPickup : public CEntity
 {
 public:
@@ -19,6 +25,9 @@ public:
 
 	int Type() const { return m_Type; }
 	int Subtype() const { return m_Subtype; }
+
+	// hidden mode
+	int m_HiddenBindPlayerClient;
 
 private:
 	int m_Type;

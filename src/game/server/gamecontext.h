@@ -182,7 +182,8 @@ public:
 	} m_Hidden;
 	static void ConHiddenToggle(IConsole::IResult *pResult, void *pUserData);
 	static void ConHiddenTeleportPlayerToCheckPoint(IConsole::IResult *pResult, void *pUserData);
-	static void ConMachineSpawn(IConsole::IResult *pResult, void *pUserData);
+	static void ConHiddenTest1(IConsole::IResult *pResult, void *pUserData);
+	static void ConHiddenTest2(IConsole::IResult *pResult, void *pUserData);
 	static void ConHammerToggle(IConsole::IResult *pResult, void *pUserData);
 	void HiddenModeStop();
 	void HiddenModeStart();

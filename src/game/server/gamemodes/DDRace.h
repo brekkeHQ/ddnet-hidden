@@ -3,6 +3,7 @@
 #define GAME_SERVER_GAMEMODES_DDRACE_H
 
 #include <game/server/entities/character.h>
+#include <game/server/entities/pickup.h>
 #include <game/server/gamecontroller.h>
 #include <game/server/player.h>
 
@@ -104,6 +105,10 @@ public:
 		int lastActiveClientID = 0; // 最后行动的ClientID
 
 		bool canZoom = true; // 可以缩放、旁观、spec等操作
+		int deviceNum = 4; // 设备数量
+
+		CPickup *a_pHealthPointerList[MAX_CLIENTS]; // health指南针列表
+		bool isCreatedHealthList = false; // 是否创建了health指南针列表
 	} m_Hidden;
 	// 重置Hidden Mode各种状态
 	void HiddenStateReset()
@@ -202,6 +207,10 @@ public:
 	void HiddenPauseGame(bool isPause);
 	// 开始游戏
 	void HiddenStartGame();
+	// 创建health指南针
+	void HiddenCreateHealthPointer();
+	// 移除health指南针
+	void HiddenRemoveHealthPointer();
 };
 
 #endif // GAME_SERVER_GAMEMODES_DDRACE_H
