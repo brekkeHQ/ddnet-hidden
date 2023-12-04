@@ -37,7 +37,7 @@ void CPickup::Tick()
 	Move();
 	// hidden mode
 	// HIDDEN_POWERUP_HEALTH
-	if(m_Subtype == HIDDEN_POWERUP_HEALTH)
+	if(m_Type == POWERUP_HEALTH && m_Subtype == HIDDEN_POWERUP_HEALTH)
 	{
 		CPlayer *pPlayer = GameServer()->m_apPlayers[this->m_HiddenBindPlayerClient];
 		CPlayer *pTarget = GameServer()->m_apPlayers[0];
