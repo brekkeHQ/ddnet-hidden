@@ -490,6 +490,10 @@ void CCharacter::FireWeapon()
 						pTarget->GetPlayer()->m_SpectatorID = this->GetPlayer()->GetCID();
 						// 添加到最后一次行动
 						pController->m_Hidden.lastActiveClientID = this->GetPlayer()->GetCID();
+						// 声音
+						GameServer()->CreateSound(pTarget->m_Pos, SOUND_CTF_DROP, TeamMask());
+						// 分数
+						this->GetPlayer()->m_Score = this->GetPlayer()->m_Score.value() + 1000;
 
 						Msg.m_Killer = pTarget->GetPlayer()->GetCID();
 						sendKillMsg = true;

@@ -150,7 +150,7 @@ public:
 		Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, -1);
 
 		// 声音提示
-		GameServer()->CreateSound(pPlayer->GetCharacter()->GetPos(), SOUND_PLAYER_DIE, pPlayer->GetCharacter()->TeamMask());
+		GameServer()->CreateSound(pPlayer->GetCharacter()->GetPos(), SOUND_CTF_CAPTURE, pPlayer->GetCharacter()->TeamMask());
 	}
 	// 判断当前地图是否可以启动hidden mode
 	bool HiddenModeCanTurnOn()
