@@ -502,6 +502,8 @@ void CCharacter::FireWeapon()
 						}
 						// 分数
 						this->GetPlayer()->m_Score = this->GetPlayer()->m_Score.value() + 1;
+						// 施暴者冻结
+						this->Freeze(1);
 
 						Msg.m_Killer = pTarget->GetPlayer()->GetCID();
 						sendKillMsg = true;
