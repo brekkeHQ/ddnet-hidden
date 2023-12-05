@@ -620,14 +620,17 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 		// 如果超过则全员启动指南针，否则仅在倒计时15秒时启动
 		if(nowTick >= m_Hidden.stepStartTick + tickSpeed * Config()->m_HiddenStepDurationS4Normal)
 		{
+			// 启动指南针
 			HiddenCreateHealthPointer(-1);
 		}
-		else if(nowTick == endTick - tickSpeed * 15)
+		else if(nowTick >= endTick - tickSpeed * 15)
 		{
+			// 启动指南针
 			HiddenCreateHealthPointer(-1);
 		}
 		else if(nowTick < endTick - tickSpeed * 15)
 		{
+			// 关闭指南针
 			HiddenRemoveHealthPointer(-1);
 		}
 
@@ -1043,7 +1046,7 @@ void CGameControllerDDRace::HiddenRemoveHealthPointer(int clientID)
 		if(!pHealth)
 			continue;
 		GameServer()->m_World.RemoveEntity(pHealth);
-		pHealth = nullptr;
+		m_Hidden.a_pHealthPointerList[i] = nullptr;
 	}
 }
 
