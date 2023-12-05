@@ -852,7 +852,7 @@ void CPlayer::AfkTimer()
 {
 	// hidden mode
 	CGameControllerDDRace *pController = (CGameControllerDDRace *)GameServer()->m_pController;
-	if(pController->m_Hidden.nowStep == STEP_S4)
+	if(pController->m_Hidden.nowStep == STEP_S4 && this->IsPlaying())
 	{
 		if(!m_Hidden.m_IsWarnedAFK && m_LastPlaytime < time_get() - time_freq() * 20)
 		{
