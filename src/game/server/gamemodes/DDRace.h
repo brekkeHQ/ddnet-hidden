@@ -108,7 +108,7 @@ public:
 		int deviceNum = 4; // 设备数量
 
 		CPickup *a_pHealthPointerList[MAX_CLIENTS]; // health指南针列表
-		bool isCreatedHealthList = false; // 是否创建了health指南针列表
+		bool isCreatedGlobalHealthList = false; // 是否创建了health指南针列表
 	} m_Hidden;
 	// 重置Hidden Mode各种状态
 	void HiddenStateReset()
@@ -208,9 +208,9 @@ public:
 	// 开始游戏
 	void HiddenStartGame();
 	// 创建health指南针
-	void HiddenCreateHealthPointer();
+	void HiddenCreateHealthPointer(int clientID = -1);
 	// 移除health指南针
-	void HiddenRemoveHealthPointer();
+	void HiddenRemoveHealthPointer(int clientID = -1);
 };
 
 #endif // GAME_SERVER_GAMEMODES_DDRACE_H

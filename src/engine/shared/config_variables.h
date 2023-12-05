@@ -249,6 +249,7 @@ MACRO_CONFIG_INT(HiddenStepDurationS1, hidden_duration_s1, 10, 0, 60, CFGFLAG_SE
 MACRO_CONFIG_INT(HiddenStepDurationS2, hidden_duration_s2, 10, 0, 60, CFGFLAG_SERVER, "The duration of the step s2")
 MACRO_CONFIG_INT(HiddenStepDurationS3, hidden_duration_s3, 10, 0, 60, CFGFLAG_SERVER, "The duration of the step s3")
 MACRO_CONFIG_INT(HiddenStepDurationS4, hidden_duration_s4, 120, 0, 600, CFGFLAG_SERVER, "The duration of the step s4")
+MACRO_CONFIG_INT(HiddenStepDurationS4Normal, hidden_duration_s4_normal, 300, 0, 600, CFGFLAG_SERVER, "step s4何时全局持有指南针")
 
 MACRO_CONFIG_STR(HiddenMachineName, hidden_machine_name, 256, "DEVICE", CFGFLAG_SERVER, "The name of the dummy machine")
 MACRO_CONFIG_STR(HiddenMachineSkinName, hidden_machine_skin_name, 256, "Robot", CFGFLAG_SERVER, "The name of the dummy machine skin")

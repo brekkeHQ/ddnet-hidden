@@ -522,10 +522,10 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 
 			if(isInGame && isBeenKilled && !isInSpectator && !isLose)
 			{ // 玩家被猎人锤中
-				// 受害者移动到旁观列表
-				pPlayer->SetTeam(TEAM_SPECTATORS, false);
 				// 该玩家标记为失败
 				pPlayer->m_Hidden.m_IsLose = true;
+				// 受害者移动到旁观列表
+				pPlayer->SetTeam(TEAM_SPECTATORS, false);
 
 				// 存活玩家数量(猎人+求生者)
 				int alivePlayerNum = 0;
@@ -615,14 +615,20 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 			str_format(aBuf, sizeof(aBuf), "%s %.2f %s", Config()->m_HiddenStepLeftTimeToActiveDeviceMSGPrefix, tipRemainTime, Config()->m_HiddenStepLeftTimeToActiveDeviceMSGSuffix);
 			GameServer()->SendBroadcast(aBuf, -1);
 		}
-
-		if(nowTick >= endTick - tickSpeed * 30)
+		// health指南针判断
+		// 游戏时长是否超过了hidden_duration_s4_normal时间
+		// 如果超过则全员启动指南针，否则仅在倒计时15秒时启动
+		if(nowTick >= m_Hidden.stepStartTick + tickSpeed * Config()->m_HiddenStepDurationS4Normal)
 		{
-			HiddenCreateHealthPointer();
+			HiddenCreateHealthPointer(-1);
 		}
-		else
+		else if(nowTick == endTick - tickSpeed * 15)
 		{
-			HiddenRemoveHealthPointer();
+			HiddenCreateHealthPointer(-1);
+		}
+		else if(nowTick < endTick - tickSpeed * 15)
+		{
+			HiddenRemoveHealthPointer(-1);
 		}
 
 		if(nowTick == endTick)
@@ -639,7 +645,6 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 
 				pPlayer->m_Hidden.m_HasBeenKilled = true;
 			}
-			HiddenRemoveHealthPointer();
 		}
 		break;
 	}
@@ -988,13 +993,25 @@ void CGameControllerDDRace::HiddenStartGame()
 	m_SuddenDeath = 0;
 	m_GameOverTick = -1;
 }
-void CGameControllerDDRace::HiddenCreateHealthPointer()
+void CGameControllerDDRace::HiddenCreateHealthPointer(int clientID)
 {
-	if(m_Hidden.isCreatedHealthList)
-		return;
-	m_Hidden.isCreatedHealthList = true;
-	for(int i = 0; i < MAX_CLIENTS; i++)
+	int max = MAX_CLIENTS;
+	int min = 0;
+	if(clientID == -1) // 全局增加指南针
 	{
+		if(m_Hidden.isCreatedGlobalHealthList)
+			return;
+		m_Hidden.isCreatedGlobalHealthList = true;
+	}
+	else // 个人
+	{
+		max = clientID + 1;
+		min = clientID;
+	}
+	for(int i = min; i < max; i++)
+	{
+		if(m_Hidden.a_pHealthPointerList[i])
+			continue;
 		auto *pPlayer = GameServer()->m_apPlayers[i];
 		if(HiddenIsMachine(pPlayer))
 			continue;
@@ -1005,13 +1022,24 @@ void CGameControllerDDRace::HiddenCreateHealthPointer()
 		m_Hidden.a_pHealthPointerList[i] = pPickup;
 	}
 }
-void CGameControllerDDRace::HiddenRemoveHealthPointer()
+void CGameControllerDDRace::HiddenRemoveHealthPointer(int clientID)
 {
-	if(!m_Hidden.isCreatedHealthList)
-		return;
-	m_Hidden.isCreatedHealthList = false;
-	for(auto &pHealth : m_Hidden.a_pHealthPointerList)
+	int max = MAX_CLIENTS;
+	int min = 0;
+	if(clientID == -1)
 	{
+		if(!m_Hidden.isCreatedGlobalHealthList)
+			return;
+		m_Hidden.isCreatedGlobalHealthList = false;
+	}
+	else
+	{
+		max = clientID + 1;
+		min = clientID;
+	}
+	for(int i = min; i < max; i++)
+	{
+		CPickup *pHealth = m_Hidden.a_pHealthPointerList[i];
 		if(!pHealth)
 			continue;
 		GameServer()->m_World.RemoveEntity(pHealth);
