@@ -477,12 +477,12 @@ void CCharacter::FireWeapon()
 					// 发送击杀消息标识
 					bool sendKillMsg = false;
 					// 判断是否开始躲猫猫
-					bool case1 = pController->m_Hidden.nowStep == STEP_S4;
+					bool isHiddenMode = pController->m_Hidden.nowStep == STEP_S4;
 					// case2 避免了在S4房间直接淘汰玩家
 					// 计算的是距离S4开始是否大于某个时间段
 					// 以此来避免玩家在即将进入S4之前开火导致玩家被淘汰
-					bool case2 = pController->m_Hidden.stepStartTick <= Server()->Tick() + Server()->TickSpeed() * 10;
-					if(case1 && case2)
+					bool isLoading = pController->m_Hidden.stepStartTick >= Server()->Tick() + Server()->TickSpeed() * 3;
+					if(isHiddenMode && isLoading)
 					{ // 进入了S4房间
 					  // 受害者状态改变->被杀(淘汰、出局)
 						pTarget->GetPlayer()->m_Hidden.m_HasBeenKilled = true;
