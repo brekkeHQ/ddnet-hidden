@@ -1,7 +1,6 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include "gamecontext.h"
-
 #include <cstring>
 #include <vector>
 
@@ -1696,8 +1695,8 @@ void CGameContext::OnClientConnected(int ClientID, void *pData)
 					if(str_comp(pClientIP, pIP) == 0)
 					{ // 相同IP
 						// 是否允许连接
-						int isAllowConnect =
-							pServer->ClientAuthed(i) > AUTHED_NO; // 管理员
+						bool isAllowConnect =
+							pServer->GetAuthedState(i) > AUTHED_NO; // 管理员
 
 						if(!isAllowConnect) // 不允许连接
 						{
