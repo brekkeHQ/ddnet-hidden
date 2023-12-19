@@ -296,6 +296,7 @@ MACRO_CONFIG_STR(HiddenStepPlayerNumErrorMSG, hidden_step_player_num_error_msg, 
 MACRO_CONFIG_STR(HiddenStepLeftTimeToActiveDeviceMSGPrefix, hidden_step_left_time_to_active_device_msg_prefix, 256, "必须有设备在", CFGFLAG_SERVER, "激活设备剩余时间字首")
 MACRO_CONFIG_STR(HiddenStepLeftTimeToActiveDeviceMSGSuffix, hidden_step_left_time_to_active_device_msg_suffix, 256, "秒内激活", CFGFLAG_SERVER, "激活设备剩余时间字尾")
 MACRO_CONFIG_STR(HiddenStepDeviceActivatedProgressMSG, hidden_step_device_activated_progress_msg, 256, "设备激活进度:", CFGFLAG_SERVER, "设备激活进度")
+MACRO_CONFIG_STR(HiddenStepDeviceCompassActivatedWhisperMSG, hidden_step_device_compass_activated_whisper_msg, 256, "指南针已激活", CFGFLAG_SERVER, "指南针激活时DEVICE私聊内容")
 
 MACRO_CONFIG_STR(HiddenSpectatorSeekerName, hidden_spectator_seeker_name, 256, "猎手", CFGFLAG_SERVER, "旁观玩家显示猎手的名字")
 

@@ -1023,6 +1023,10 @@ void CGameControllerDDRace::HiddenCreateHealthPointer(int clientID)
 		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_HEALTH, HIDDEN_POWERUP_HEALTH);
 		pPickup->m_HiddenBindPlayerClient = pPlayer->GetCID();
 		m_Hidden.a_pHealthPointerList[i] = pPickup;
+
+		// whisper
+		// 私聊通知内容：指南针已开启
+		GameServer()->WhisperID(0, pPlayer->GetCID(), Config()->m_HiddenStepDeviceCompassActivatedWhisperMSG);
 	}
 }
 void CGameControllerDDRace::HiddenRemoveHealthPointer(int clientID)
