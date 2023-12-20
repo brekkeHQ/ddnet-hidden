@@ -51,12 +51,12 @@ struct SConfigVariable
 	virtual void ResetToOld() = 0;
 
 protected:
-	void ExecuteLine(const char *pLine)
+	void ExecuteLine(const char *pLine) const
 	{
 		m_pConsole->ExecuteLine(pLine, (m_Flags & CFGFLAG_GAME) != 0 ? IConsole::CLIENT_ID_GAME : -1);
 	}
 
-	bool CheckReadOnly()
+	bool CheckReadOnly() const
 	{
 		if(!m_ReadOnly)
 			return false;
@@ -156,7 +156,7 @@ struct SIntConfigVariable : public SConfigVariable
 
 	void ResetToOld() override
 	{
-		SetValue(m_OldValue);
+		*m_pVariable = m_OldValue;
 	}
 };
 
@@ -257,7 +257,7 @@ struct SColorConfigVariable : public SConfigVariable
 
 	void ResetToOld() override
 	{
-		SetValue(m_OldValue);
+		*m_pVariable = m_OldValue;
 	}
 };
 
@@ -362,7 +362,7 @@ struct SStringConfigVariable : public SConfigVariable
 
 	void ResetToOld() override
 	{
-		SetValue(m_pOldValue);
+		str_copy(m_pStr, m_pOldValue, m_MaxSize);
 	}
 };
 
@@ -388,7 +388,8 @@ void CConfigManager::Init()
 
 #define MACRO_CONFIG_INT(Name, ScriptName, Def, Min, Max, Flags, Desc) \
 	{ \
-		const char *pHelp = Min == Max ? Desc " (default: " #Def ")" : Max == 0 ? Desc " (default: " #Def ", min: " #Min ")" : Desc " (default: " #Def ", min: " #Min ", max: " #Max ")"; \
+		const char *pHelp = Min == Max ? Desc " (default: " #Def ")" : Max == 0 ? Desc " (default: " #Def ", min: " #Min ")" : \
+											  Desc " (default: " #Def ", min: " #Min ", max: " #Max ")"; \
 		AddVariable(m_ConfigHeap.Allocate<SIntConfigVariable>(m_pConsole, #ScriptName, SConfigVariable::VAR_INT, Flags, pHelp, &g_Config.m_##Name, Def, Min, Max)); \
 	}
 
@@ -396,7 +397,7 @@ void CConfigManager::Init()
 	{ \
 		const size_t HelpSize = (size_t)str_length(Desc) + 32; \
 		char *pHelp = static_cast<char *>(m_ConfigHeap.Allocate(HelpSize)); \
-		const bool Alpha = ((Flags)&CFGFLAG_COLALPHA) != 0; \
+		const bool Alpha = ((Flags) & CFGFLAG_COLALPHA) != 0; \
 		str_format(pHelp, HelpSize, "%s (default: $%0*X)", Desc, Alpha ? 8 : 6, color_cast<ColorRGBA>(ColorHSLA(Def, Alpha)).Pack(Alpha)); \
 		AddVariable(m_ConfigHeap.Allocate<SColorConfigVariable>(m_pConsole, #ScriptName, SConfigVariable::VAR_COLOR, Flags, pHelp, &g_Config.m_##Name, Def)); \
 	}

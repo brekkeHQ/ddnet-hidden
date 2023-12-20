@@ -39,8 +39,8 @@ void CControls::OnReset()
 void CControls::ResetInput(int Dummy)
 {
 	m_aLastData[Dummy].m_Direction = 0;
-	//m_aLastData[Dummy].m_Hook = 0;
-	// simulate releasing the fire button
+	// m_aLastData[Dummy].m_Hook = 0;
+	//  simulate releasing the fire button
 	if((m_aLastData[Dummy].m_Fire & 1) != 0)
 		m_aLastData[Dummy].m_Fire++;
 	m_aLastData[Dummy].m_Fire &= INPUT_STATE_MASK;
@@ -53,7 +53,7 @@ void CControls::ResetInput(int Dummy)
 
 void CControls::OnRelease()
 {
-	//OnReset();
+	// OnReset();
 }
 
 void CControls::OnPlayerDeath()
@@ -267,8 +267,11 @@ int CControls::SnapInput(int *pData)
 			m_aInputData[g_Config.m_ClDummy].m_Direction = 1;
 
 		// scale TargetX, TargetY by zoom.
-		m_aInputData[g_Config.m_ClDummy].m_TargetX *= m_pClient->m_Camera.m_Zoom;
-		m_aInputData[g_Config.m_ClDummy].m_TargetY *= m_pClient->m_Camera.m_Zoom;
+		if(!m_pClient->m_Snap.m_SpecInfo.m_Active)
+		{
+			m_aInputData[g_Config.m_ClDummy].m_TargetX *= m_pClient->m_Camera.m_Zoom;
+			m_aInputData[g_Config.m_ClDummy].m_TargetY *= m_pClient->m_Camera.m_Zoom;
+		}
 
 		// dummy copy moves
 		if(g_Config.m_ClDummyCopyMoves)
