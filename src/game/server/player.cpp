@@ -159,7 +159,7 @@ static int PlayerFlags_SixToSeven(int Flags)
 
 void CPlayer::Tick()
 {
-	if(m_ScoreQueryResult != nullptr && m_ScoreQueryResult->m_Completed)
+	if(m_ScoreQueryResult != nullptr && m_ScoreQueryResult->m_Completed && m_SentSnaps >= 3)
 	{
 		ProcessScoreResult(*m_ScoreQueryResult);
 		m_ScoreQueryResult = nullptr;
@@ -210,7 +210,7 @@ void CPlayer::Tick()
 
 	if(Server()->GetNetErrorString(m_ClientID)[0])
 	{
-		SetAfk(true);
+		SetInitialAfk(true);
 
 		char aBuf[512];
 		str_format(aBuf, sizeof(aBuf), "'%s' would have timed out, but can use timeout protection now", Server()->ClientName(m_ClientID));
@@ -599,6 +599,7 @@ void CPlayer::Snap(int SnappingClient)
 
 void CPlayer::FakeSnap()
 {
+	m_SentSnaps++;
 	if(GetClientVersion() >= VERSION_DDNET_OLD)
 		return;
 
@@ -777,6 +778,11 @@ void CPlayer::SetTeam(int Team, bool DoChatMsg)
 			if(pPlayer && pPlayer->m_SpectatorID == m_ClientID)
 				pPlayer->m_SpectatorID = SPEC_FREEVIEW;
 		}
+	}
+
+	if(!GameServer()->m_pController->IsTeamPlay())
+	{
+		Server()->ExpireServerInfo();
 	}
 }
 

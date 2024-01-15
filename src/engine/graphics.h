@@ -335,6 +335,7 @@ public:
 
 	virtual int UnloadTexture(CTextureHandle *pIndex) = 0;
 	virtual CTextureHandle LoadTextureRaw(size_t Width, size_t Height, CImageInfo::EImageFormat Format, const void *pData, int Flags, const char *pTexName = nullptr) = 0;
+	virtual CTextureHandle LoadTextureRawMove(size_t Width, size_t Height, CImageInfo::EImageFormat Format, void *pData, int Flags, const char *pTexName = nullptr) = 0;
 	virtual int LoadTextureRawSub(CTextureHandle TextureID, int x, int y, size_t Width, size_t Height, CImageInfo::EImageFormat Format, const void *pData) = 0;
 	virtual CTextureHandle LoadTexture(const char *pFilename, int StorageType, int Flags = 0) = 0;
 	virtual CTextureHandle NullTexture() const = 0;
@@ -503,14 +504,25 @@ public:
 		CColorVertex() {}
 		CColorVertex(int i, float r, float g, float b, float a) :
 			m_Index(i), m_R(r), m_G(g), m_B(b), m_A(a) {}
+		CColorVertex(int i, ColorRGBA Color) :
+			m_Index(i), m_R(Color.r), m_G(Color.g), m_B(Color.b), m_A(Color.a) {}
 	};
-	virtual void SetColorVertex(const CColorVertex *pArray, int Num) = 0;
+	virtual void SetColorVertex(const CColorVertex *pArray, size_t Num) = 0;
 	virtual void SetColor(float r, float g, float b, float a) = 0;
 	virtual void SetColor(ColorRGBA Color) = 0;
 	virtual void SetColor4(ColorRGBA TopLeft, ColorRGBA TopRight, ColorRGBA BottomLeft, ColorRGBA BottomRight) = 0;
 	virtual void ChangeColorOfCurrentQuadVertices(float r, float g, float b, float a) = 0;
-	virtual void ChangeColorOfQuadVertices(int QuadOffset, unsigned char r, unsigned char g, unsigned char b, unsigned char a) = 0;
+	virtual void ChangeColorOfQuadVertices(size_t QuadOffset, unsigned char r, unsigned char g, unsigned char b, unsigned char a) = 0;
 
+	/**
+	 * Reads the color at the specified position from the backbuffer once,
+	 * after the next swap operation.
+	 *
+	 * @param Position The pixel position to read.
+	 * @param pColor Pointer that will receive the read pixel color.
+	 * The pointer must be valid until the next swap operation.
+	 */
+	virtual void ReadPixel(ivec2 Position, ColorRGBA *pColor) = 0;
 	virtual void TakeScreenshot(const char *pFilename) = 0;
 	virtual void TakeCustomScreenshot(const char *pFilename) = 0;
 	virtual int GetVideoModes(CVideoMode *pModes, int MaxModes, int Screen) = 0;

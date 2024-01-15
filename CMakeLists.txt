@@ -1391,6 +1391,7 @@ set(EXPECTED_DATA
   editor/background.png
   editor/checker.png
   editor/cursor.png
+  editor/cursor_resize.png
   editor/entities/DDNet.png
   editor/entities/FNG.png
   editor/entities/Race.png
@@ -1999,6 +2000,8 @@ set_src(GAME_SHARED GLOB src/game
   version.h
   voting.h
 )
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "src/game/version.h")
+
 # A bit hacky, but these are needed to register all the UUIDs, even for stuff
 # that doesn't link game.
 set(ENGINE_UUID_SHARED
@@ -2765,6 +2768,7 @@ if(GTEST_FOUND OR DOWNLOAD_GTEST)
     test.cpp
     test.h
     thread.cpp
+    timestamp.cpp
     unix.cpp
     uuid.cpp
   )

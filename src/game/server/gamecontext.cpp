@@ -1504,10 +1504,22 @@ void CGameContext::ProgressVoteOptions(int ClientID)
 	}
 
 	// send msg
+	if(pPl->m_SendVoteIndex == 0)
+	{
+		CNetMsg_Sv_VoteOptionGroupStart StartMsg;
+		Server()->SendPackMsg(&StartMsg, MSGFLAG_VITAL, ClientID);
+	}
+
 	OptionMsg.m_NumOptions = NumVotesToSend;
 	Server()->SendPackMsg(&OptionMsg, MSGFLAG_VITAL, ClientID);
 
 	pPl->m_SendVoteIndex += NumVotesToSend;
+
+	if(pPl->m_SendVoteIndex == m_NumVoteOptions)
+	{
+		CNetMsg_Sv_VoteOptionGroupEnd EndMsg;
+		Server()->SendPackMsg(&EndMsg, MSGFLAG_VITAL, ClientID);
+	}
 }
 
 void CGameContext::OnClientEnter(int ClientID)
@@ -1538,6 +1550,10 @@ void CGameContext::OnClientEnter(int ClientID)
 		}
 	}
 
+	{
+		CNetMsg_Sv_CommandInfoGroupStart Msg;
+		Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, ClientID);
+	}
 	for(const IConsole::CCommandInfo *pCmd = Console()->FirstCommandInfo(IConsole::ACCESS_LEVEL_USER, CFGFLAG_CHAT);
 		pCmd; pCmd = pCmd->NextCommandInfo(IConsole::ACCESS_LEVEL_USER, CFGFLAG_CHAT))
 	{
@@ -1565,6 +1581,10 @@ void CGameContext::OnClientEnter(int ClientID)
 			Msg.m_pHelpText = pCmd->m_pHelp;
 			Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, ClientID);
 		}
+	}
+	{
+		CNetMsg_Sv_CommandInfoGroupEnd Msg;
+		Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, ClientID);
 	}
 
 	{
@@ -3791,15 +3811,15 @@ void CGameContext::OnConsoleInit()
 	Console()->Register("hidden_toggle", "i[value]", CFGFLAG_SERVER, ConHiddenToggle, this, "Toggle hidden mode");
 	Console()->Register("hidden_tp", "?i[clientID/checkpoint] ?i[checkpoint]", CFGFLAG_SERVER, ConHiddenTeleportPlayerToCheckPoint, this, "Teleport player or self to check point or view postion");
 
-	Console()->Register("tune", "s[tuning] ?i[value]", CFGFLAG_SERVER | CFGFLAG_GAME, ConTuneParam, this, "Tune variable to value or show current value");
-	Console()->Register("toggle_tune", "s[tuning] i[value 1] i[value 2]", CFGFLAG_SERVER | CFGFLAG_GAME, ConToggleTuneParam, this, "Toggle tune variable");
+	Console()->Register("tune", "s[tuning] ?f[value]", CFGFLAG_SERVER | CFGFLAG_GAME, ConTuneParam, this, "Tune variable to value or show current value");
+	Console()->Register("toggle_tune", "s[tuning] f[value 1] f[value 2]", CFGFLAG_SERVER, ConToggleTuneParam, this, "Toggle tune variable");
 	Console()->Register("tune_reset", "?s[tuning]", CFGFLAG_SERVER, ConTuneReset, this, "Reset all or one tuning variable to default");
 	Console()->Register("tunes", "", CFGFLAG_SERVER, ConTunes, this, "List all tuning variables and their values");
-	Console()->Register("tune_zone", "i[zone] s[tuning] i[value]", CFGFLAG_SERVER | CFGFLAG_GAME, ConTuneZone, this, "Tune in zone a variable to value");
+	Console()->Register("tune_zone", "i[zone] s[tuning] f[value]", CFGFLAG_SERVER | CFGFLAG_GAME, ConTuneZone, this, "Tune in zone a variable to value");
 	Console()->Register("tune_zone_dump", "i[zone]", CFGFLAG_SERVER, ConTuneDumpZone, this, "Dump zone tuning in zone x");
-	Console()->Register("tune_zone_reset", "?i[zone]", CFGFLAG_SERVER, ConTuneResetZone, this, "reset zone tuning in zone x or in all zones");
-	Console()->Register("tune_zone_enter", "i[zone] r[message]", CFGFLAG_SERVER | CFGFLAG_GAME, ConTuneSetZoneMsgEnter, this, "which message to display on zone enter; use 0 for normal area");
-	Console()->Register("tune_zone_leave", "i[zone] r[message]", CFGFLAG_SERVER | CFGFLAG_GAME, ConTuneSetZoneMsgLeave, this, "which message to display on zone leave; use 0 for normal area");
+	Console()->Register("tune_zone_reset", "?i[zone]", CFGFLAG_SERVER, ConTuneResetZone, this, "Reset zone tuning in zone x or in all zones");
+	Console()->Register("tune_zone_enter", "i[zone] r[message]", CFGFLAG_SERVER | CFGFLAG_GAME, ConTuneSetZoneMsgEnter, this, "Which message to display on zone enter; use 0 for normal area");
+	Console()->Register("tune_zone_leave", "i[zone] r[message]", CFGFLAG_SERVER | CFGFLAG_GAME, ConTuneSetZoneMsgLeave, this, "Which message to display on zone leave; use 0 for normal area");
 	Console()->Register("mapbug", "s[mapbug]", CFGFLAG_SERVER | CFGFLAG_GAME, ConMapbug, this, "Enable map compatibility mode using the specified bug (example: grenade-doubleexplosion@ddnet.tw)");
 	Console()->Register("switch_open", "i[switch]", CFGFLAG_SERVER | CFGFLAG_GAME, ConSwitchOpen, this, "Whether a switch is deactivated by default (otherwise activated)");
 	Console()->Register("pause_game", "", CFGFLAG_SERVER, ConPause, this, "Pause/unpause game");
@@ -4038,6 +4058,8 @@ void CGameContext::OnInit(const void *pPersistentData)
 			}
 		}
 	}
+
+	Server()->DemoRecorder_HandleAutoStart();
 
 	if(!m_pScore)
 	{
@@ -5072,6 +5094,8 @@ void CGameContext::OnUpdatePlayerServerInfo(char *aBuf, int BufSize, int ID)
 		}
 	}
 
+	const int Team = m_pController->IsTeamPlay() ? m_apPlayers[ID]->GetTeam() : m_apPlayers[ID]->GetTeam() == TEAM_SPECTATORS ? -1 :
+																    GetDDRaceTeam(ID);
 	str_format(aBuf, BufSize,
 		",\"skin\":{"
 		"%s"
@@ -5080,5 +5104,5 @@ void CGameContext::OnUpdatePlayerServerInfo(char *aBuf, int BufSize, int ID)
 		"\"team\":%d",
 		aJsonSkin,
 		JsonBool(m_apPlayers[ID]->IsAfk()),
-		m_apPlayers[ID]->GetTeam());
+		Team);
 }

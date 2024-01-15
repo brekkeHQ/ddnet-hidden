@@ -300,6 +300,7 @@ class CEditor : public IEditor
 	};
 
 	std::shared_ptr<CLayerGroup> m_apSavedBrushes[10];
+	static const ColorRGBA ms_DefaultPropColor;
 
 public:
 	class IInput *Input() { return m_pInput; }
@@ -380,6 +381,7 @@ public:
 		m_AnimateStart = 0;
 		m_AnimateTime = 0;
 		m_AnimateSpeed = 1;
+		m_AnimateUpdatePopup = false;
 
 		m_ShowEnvelopePreview = SHOWENV_NONE;
 		m_SelectedQuadEnvelope = -1;
@@ -394,15 +396,24 @@ public:
 		m_QuadKnifeCount = 0;
 		mem_zero(m_aQuadKnifePoints, sizeof(m_aQuadKnifePoints));
 
+		for(size_t i = 0; i < std::size(m_aSavedColors); ++i)
+		{
+			m_aSavedColors[i] = color_cast<ColorRGBA>(ColorHSLA(i / (float)std::size(m_aSavedColors), 1.0f, 0.5f));
+		}
+
 		m_CheckerTexture.Invalidate();
 		m_BackgroundTexture.Invalidate();
-		m_CursorTexture.Invalidate();
+		for(int i = 0; i < NUM_CURSORS; i++)
+			m_aCursorTextures[i].Invalidate();
+
+		m_CursorType = CURSOR_NORMAL;
 
 		ms_pUiGotContext = nullptr;
 
 		// DDRace
 
 		m_TeleNumber = 1;
+		m_TeleCheckpointNumber = 1;
 		m_SwitchNum = 1;
 		m_TuningNum = 1;
 		m_SwitchDelay = 0;
@@ -461,6 +472,7 @@ public:
 	void RenderPressedKeys(CUIRect View);
 	void RenderSavingIndicator(CUIRect View);
 	void FreeDynamicPopupMenus();
+	void UpdateColorPipette();
 	void RenderMousePointer();
 
 	std::vector<CQuad *> GetSelectedQuads();
@@ -499,8 +511,8 @@ public:
 	std::pair<int, int> EnvGetSelectedTimeAndValue() const;
 
 	template<typename E>
-	SEditResult<E> DoPropertiesWithState(CUIRect *pToolbox, CProperty *pProps, int *pIDs, int *pNewVal, ColorRGBA Color = ColorRGBA(1, 1, 1, 0.5f));
-	int DoProperties(CUIRect *pToolbox, CProperty *pProps, int *pIDs, int *pNewVal, ColorRGBA Color = ColorRGBA(1, 1, 1, 0.5f));
+	SEditResult<E> DoPropertiesWithState(CUIRect *pToolbox, CProperty *pProps, int *pIDs, int *pNewVal, const std::vector<ColorRGBA> &vColors = {});
+	int DoProperties(CUIRect *pToolbox, CProperty *pProps, int *pIDs, int *pNewVal, const std::vector<ColorRGBA> &vColors = {});
 
 	CUI::SColorPickerPopupContext m_ColorPickerPopupContext;
 	const void *m_pColorPickerPopupActiveID = nullptr;
@@ -680,6 +692,8 @@ public:
 	float m_MouseDeltaY;
 	float m_MouseDeltaWx;
 	float m_MouseDeltaWy;
+	const void *m_pContainerPanned;
+	const void *m_pContainerPannedLast;
 
 	enum EShowTile
 	{
@@ -689,10 +703,12 @@ public:
 	};
 	EShowTile m_ShowTileInfo;
 	bool m_ShowDetail;
+
 	bool m_Animate;
 	int64_t m_AnimateStart;
 	float m_AnimateTime;
 	float m_AnimateSpeed;
+	bool m_AnimateUpdatePopup;
 
 	enum EExtraEditor
 	{
@@ -704,6 +720,7 @@ public:
 	};
 	EExtraEditor m_ActiveExtraEditor = EXTRAEDITOR_NONE;
 	float m_aExtraEditorSplits[NUM_EXTRAEDITORS] = {250.0f, 250.0f, 250.0f};
+	float m_ToolBoxWidth = 100.0f;
 
 	enum EShowEnvelope
 	{
@@ -735,9 +752,23 @@ public:
 	int m_QuadKnifeCount;
 	vec2 m_aQuadKnifePoints[4];
 
+	// Color palette and pipette
+	ColorRGBA m_aSavedColors[8];
+	ColorRGBA m_PipetteColor = ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f);
+	bool m_ColorPipetteActive = false;
+
 	IGraphics::CTextureHandle m_CheckerTexture;
 	IGraphics::CTextureHandle m_BackgroundTexture;
-	IGraphics::CTextureHandle m_CursorTexture;
+
+	enum ECursorType
+	{
+		CURSOR_NORMAL,
+		CURSOR_RESIZE_V,
+		CURSOR_RESIZE_H,
+		NUM_CURSORS
+	};
+	IGraphics::CTextureHandle m_aCursorTextures[ECursorType::NUM_CURSORS];
+	ECursorType m_CursorType;
 
 	IGraphics::CTextureHandle GetEntitiesTexture();
 
@@ -785,7 +816,7 @@ public:
 
 	void RenderBackground(CUIRect View, IGraphics::CTextureHandle Texture, float Size, float Brightness);
 
-	SEditResult<int> UiDoValueSelector(void *pID, CUIRect *pRect, const char *pLabel, int Current, int Min, int Max, int Step, float Scale, const char *pToolTip, bool IsDegree = false, bool IsHex = false, int corners = IGraphics::CORNER_ALL, ColorRGBA *pColor = nullptr, bool ShowValue = true);
+	SEditResult<int> UiDoValueSelector(void *pID, CUIRect *pRect, const char *pLabel, int Current, int Min, int Max, int Step, float Scale, const char *pToolTip, bool IsDegree = false, bool IsHex = false, int corners = IGraphics::CORNER_ALL, const ColorRGBA *pColor = nullptr, bool ShowValue = true);
 
 	static CUI::EPopupMenuFunctionResult PopupMenuFile(void *pContext, CUIRect View, bool Active);
 	static CUI::EPopupMenuFunctionResult PopupMenuTools(void *pContext, CUIRect View, bool Active);
@@ -821,6 +852,7 @@ public:
 	static CUI::EPopupMenuFunctionResult PopupGoto(void *pContext, CUIRect View, bool Active);
 	static CUI::EPopupMenuFunctionResult PopupEntities(void *pContext, CUIRect View, bool Active);
 	static CUI::EPopupMenuFunctionResult PopupProofMode(void *pContext, CUIRect View, bool Active);
+	static CUI::EPopupMenuFunctionResult PopupAnimateSettings(void *pContext, CUIRect View, bool Active);
 
 	static bool CallbackOpenMap(const char *pFileName, int StorageType, void *pUser);
 	static bool CallbackAppendMap(const char *pFileName, int StorageType, void *pUser);
@@ -844,14 +876,14 @@ public:
 
 	void DoQuadEnvelopes(const std::vector<CQuad> &vQuads, IGraphics::CTextureHandle Texture = IGraphics::CTextureHandle());
 	void DoQuadEnvPoint(const CQuad *pQuad, int QIndex, int pIndex);
-	void DoQuadPoint(const std::shared_ptr<CLayerQuads> &pLayer, CQuad *pQuad, int QuadIndex, int v);
+	void DoQuadPoint(int LayerIndex, const std::shared_ptr<CLayerQuads> &pLayer, CQuad *pQuad, int QuadIndex, int v);
 	void SetHotQuadPoint(const std::shared_ptr<CLayerQuads> &pLayer);
 
 	float TriangleArea(vec2 A, vec2 B, vec2 C);
 	bool IsInTriangle(vec2 Point, vec2 A, vec2 B, vec2 C);
 	void DoQuadKnife(int QuadIndex);
 
-	void DoSoundSource(CSoundSource *pSource, int Index);
+	void DoSoundSource(int LayerIndex, CSoundSource *pSource, int Index);
 
 	enum class EAxis
 	{
@@ -875,7 +907,7 @@ public:
 	void DoMapEditor(CUIRect View);
 	void DoToolbarLayers(CUIRect Toolbar);
 	void DoToolbarSounds(CUIRect Toolbar);
-	void DoQuad(const std::shared_ptr<CLayerQuads> &pLayer, CQuad *pQuad, int Index);
+	void DoQuad(int LayerIndex, const std::shared_ptr<CLayerQuads> &pLayer, CQuad *pQuad, int Index);
 	void PreparePointDrag(const std::shared_ptr<CLayerQuads> &pLayer, CQuad *pQuad, int QuadIndex, int PointIndex);
 	void DoPointDrag(const std::shared_ptr<CLayerQuads> &pLayer, CQuad *pQuad, int QuadIndex, int PointIndex, int OffsetX, int OffsetY);
 	EAxis GetDragAxis(int OffsetX, int OffsetY);
@@ -933,7 +965,14 @@ public:
 	void RenderServerSettingsEditor(CUIRect View, bool ShowServerSettingsEditorLast);
 	void RenderEditorHistory(CUIRect View);
 
-	void RenderExtraEditorDragBar(CUIRect View, CUIRect DragBar);
+	enum class EDragSide // Which side is the drag bar on
+	{
+		SIDE_BOTTOM,
+		SIDE_LEFT,
+		SIDE_TOP,
+		SIDE_RIGHT
+	};
+	void DoEditorDragBar(CUIRect View, CUIRect *pDragBar, EDragSide Side, float *pValue, float MinValue = 100.0f, float MaxValue = 400.0f);
 
 	void SetHotEnvelopePoint(const CUIRect &View, const std::shared_ptr<CEnvelope> &pEnvelope, int ActiveChannels);
 
@@ -1051,6 +1090,7 @@ public:
 	IGraphics::CTextureHandle GetTuneTexture();
 
 	unsigned char m_TeleNumber;
+	unsigned char m_TeleCheckpointNumber;
 
 	unsigned char m_TuningNum;
 
@@ -1060,6 +1100,10 @@ public:
 
 	unsigned char m_SwitchNum;
 	unsigned char m_SwitchDelay;
+
+	void AdjustBrushSpecialTiles(bool UseNextFree, int Adjust = 0);
+	int FindNextFreeSwitchNumber();
+	int FindNextFreeTeleNumber(bool IsCheckpoint = false);
 
 public:
 	// Undo/Redo

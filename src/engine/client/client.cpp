@@ -63,7 +63,7 @@
 #endif
 
 #include <chrono>
-#include <climits>
+#include <limits>
 #include <new>
 #include <stack>
 #include <thread>
@@ -438,7 +438,11 @@ void CClient::GenerateTimeoutCodes(const NETADDR *pAddrs, int NumAddrs)
 
 void CClient::Connect(const char *pAddress, const char *pPassword)
 {
+	// Disconnect will not change the state if we are already quitting/restarting
+	if(m_State == IClient::STATE_QUITTING || m_State == IClient::STATE_RESTARTING)
+		return;
 	Disconnect();
+	dbg_assert(m_State == IClient::STATE_OFFLINE, "Disconnect must ensure that client is offline");
 
 	m_ConnectionID = RandomUuid();
 	if(pAddress != m_aConnectAddressStr)
@@ -502,19 +506,10 @@ void CClient::Connect(const char *pAddress, const char *pPassword)
 		str_copy(m_aPassword, pPassword);
 
 	m_CanReceiveServerCapabilities = true;
-	// Deregister Rcon commands from last connected server, might not have called
-	// DisconnectWithReason if the server was shut down
-	m_aRconAuthed[0] = 0;
-	m_UseTempRconCommands = 0;
-	m_pConsole->DeregisterTempAll();
 
 	m_aNetClient[CONN_MAIN].Connect(aConnectAddrs, NumConnectAddrs);
 	m_aNetClient[CONN_MAIN].RefreshStun();
 	SetState(IClient::STATE_CONNECTING);
-
-	for(int i = 0; i < RECORDER_MAX; i++)
-		if(m_aDemoRecorder[i].IsRecording())
-			DemoRecorder_Stop(i);
 
 	m_InputtimeMarginGraph.Init(-150.0f, 150.0f);
 	m_GametimeMarginGraph.Init(-150.0f, 150.0f);
@@ -2997,7 +2992,11 @@ void CClient::Run()
 			{
 				// write down the config and quit
 				if(!m_pConfigManager->Save())
-					m_vWarnings.emplace_back(Localize("Saving ddnet-settings.cfg failed"));
+				{
+					char aWarning[128];
+					str_format(aWarning, sizeof(aWarning), Localize("Saving settings to '%s' failed"), CONFIG_FILE);
+					m_vWarnings.emplace_back(aWarning);
+				}
 				s_SavedConfig = true;
 			}
 
@@ -3800,7 +3799,7 @@ int CClient::HandleChecksum(int Conn, CUuid Uuid, CUnpacker *pUnpacker)
 	{
 		return 1;
 	}
-	if(Start < 0 || Length < 0 || Start > INT_MAX - Length)
+	if(Start < 0 || Length < 0 || Start > std::numeric_limits<int>::max() - Length)
 	{
 		return 2;
 	}
@@ -4304,6 +4303,8 @@ int main(int argc, const char **argv)
 	pKernel->RegisterInterface(pClient, false);
 	pClient->RegisterInterfaces();
 	CleanerFunctions.emplace([pKernel, pClient]() {
+		// Ensure that the assert handler doesn't use the client/graphics after they've been destroyed
+		dbg_assert_set_handler(nullptr);
 		pKernel->Shutdown();
 		delete pKernel;
 		delete pClient;

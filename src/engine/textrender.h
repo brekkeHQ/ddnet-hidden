@@ -66,6 +66,7 @@ enum class EFontPreset
 namespace FontIcons {
 // Each font icon is named according to its official name in Font Awesome
 MAYBE_UNUSED static const char *FONT_ICON_PLUS = "+";
+MAYBE_UNUSED static const char *FONT_ICON_MINUS = "-";
 MAYBE_UNUSED static const char *FONT_ICON_LOCK = "\xEF\x80\xA3";
 MAYBE_UNUSED static const char *FONT_ICON_MAGNIFYING_GLASS = "\xEF\x80\x82";
 MAYBE_UNUSED static const char *FONT_ICON_HEART = "\xEF\x80\x84";
@@ -131,6 +132,7 @@ MAYBE_UNUSED static const char *FONT_ICON_CIRCLE_PLAY = "\xEF\x85\x84";
 MAYBE_UNUSED static const char *FONT_ICON_BORDER_ALL = "\xEF\xA1\x8C";
 MAYBE_UNUSED static const char *FONT_ICON_EYE = "\xEF\x81\xAE";
 MAYBE_UNUSED static const char *FONT_ICON_EYE_SLASH = "\xEF\x81\xB0";
+MAYBE_UNUSED static const char *FONT_ICON_EYE_DROPPER = "\xEF\x87\xBB";
 
 MAYBE_UNUSED static const char *FONT_ICON_DICE_ONE = "\xEF\x94\xA5";
 MAYBE_UNUSED static const char *FONT_ICON_DICE_TWO = "\xEF\x94\xA8";
@@ -212,6 +214,7 @@ public:
 	float m_FontSize;
 	float m_AlignedFontSize;
 	float m_LineSpacing;
+	float m_AlignedLineSpacing;
 
 	ETextCursorSelectionMode m_CalculateSelectionMode;
 	float m_SelectionHeightFactor;
@@ -237,7 +240,7 @@ public:
 
 	float Height() const
 	{
-		return m_LineCount * m_AlignedFontSize + std::max(0, m_LineCount - 1) * m_LineSpacing;
+		return m_LineCount * (m_AlignedFontSize + m_AlignedLineSpacing);
 	}
 
 	STextBoundingBox BoundingBox() const

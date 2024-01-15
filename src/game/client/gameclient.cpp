@@ -2211,6 +2211,8 @@ void CGameClient::CClientData::Reset()
 	m_aName[0] = 0;
 	m_aClan[0] = 0;
 	m_Country = -1;
+	m_aSkinName[0] = '\0';
+	m_SkinColor = 0;
 	m_Team = 0;
 	m_Angle = 0;
 	m_Emoticon = 0;
@@ -3739,7 +3741,7 @@ bool CGameClient::InitMultiView(int Team)
 			CurPosition.y = CurCharacter.m_Y;
 		}
 
-		int ClosestDistance = INT_MAX;
+		int ClosestDistance = std::numeric_limits<int>::max();
 		for(int i = 0; i < MAX_CLIENTS; i++)
 		{
 			if(!m_Snap.m_apPlayerInfos[i] || m_Snap.m_apPlayerInfos[i]->m_Team == TEAM_SPECTATORS || m_Teams.Team(i) != m_MultiViewTeam)
