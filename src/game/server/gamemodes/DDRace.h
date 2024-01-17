@@ -211,6 +211,9 @@ public:
 	void HiddenCreateHealthPointer(int clientID = -1);
 	// 移除health指南针
 	void HiddenRemoveHealthPointer(int clientID = -1);
+	// 定义一个可变参数模板函数，用来根据玩家距离telePos的距离，返回玩家选择的telePos编号，默认返回第一个telePos
+	template<typename... Args>
+	int HiddenGetPlayerVoteByTelePos(CPlayer *pPlayer, Args... args);
 };
 
 #endif // GAME_SERVER_GAMEMODES_DDRACE_H

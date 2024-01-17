@@ -227,7 +227,6 @@ void CGameControllerDDRace::Tick()
 void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, int nowStep)
 {
 	char aBuf[256];
-	CGameControllerDDRace *pController = (CGameControllerDDRace *)GameServer()->m_pController;
 	// 本阶段剩余时间
 	double remainTime = static_cast<double>(endTick - nowTick) / tickSpeed;
 	if(remainTime) // 仅防止未使用变量警告
@@ -287,7 +286,7 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 	{
 		if(nowTick == endTick)
 		{
-			HiddenRemoveHealthPointer(-1);	// 关闭指南针
+			HiddenRemoveHealthPointer(-1); // 关闭指南针
 			printf(">>> STEP_S5 DONE\n");
 			HiddenStepUpdate(STEP_S0);
 		}
@@ -300,20 +299,22 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 		static int lastVote201Num = 0;
 		static int lastVote202Num = 0;
 
-		vec2 tele201Pos = pController->m_TeleOuts[201 - 1][0];
-		vec2 tele202Pos = pController->m_TeleOuts[202 - 1][0];
+		int tele201 = 201;
+		int tele202 = 202;
 
 		for(auto &pPlayer : GameServer()->m_apPlayers)
 		{
 			if(HiddenIsPlayerGameOver(pPlayer))
 				continue;
-			vec2 vPlayerPos = pPlayer->GetCharacter()->GetPos();
-			double distance201 = sqrt(pow(vPlayerPos.x - tele201Pos.x, 2) + pow(vPlayerPos.y - tele201Pos.y, 2));
-			double distance202 = sqrt(pow(vPlayerPos.x - tele202Pos.x, 2) + pow(vPlayerPos.y - tele202Pos.y, 2));
-			if(distance201 < distance202)
+			int resTele = HiddenGetPlayerVoteByTelePos(pPlayer, tele201, tele202);
+			if(resTele == tele201)
+			{
 				vote201Num++;
-			else
+			}
+			else if(resTele == tele202)
+			{
 				vote202Num++;
+			}
 		}
 
 		if(vote201Num != lastVote201Num || vote202Num != lastVote202Num)
@@ -355,34 +356,32 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 		static int lastVote213Num = 0;
 		static int lastVote214Num = 0;
 
-		vec2 tele211Pos = pController->m_TeleOuts[211 - 1][0];
-		vec2 tele212Pos = pController->m_TeleOuts[212 - 1][0];
-		vec2 tele213Pos = pController->m_TeleOuts[213 - 1][0];
-		vec2 tele214Pos = pController->m_TeleOuts[214 - 1][0];
+		int tele211 = 211;
+		int tele212 = 212;
+		int tele213 = 213;
+		int tele214 = 214;
 
 		for(auto &pPlayer : GameServer()->m_apPlayers)
 		{
 			if(HiddenIsPlayerGameOver(pPlayer))
 				continue;
-			vec2 vPlayerPos = pPlayer->GetCharacter()->GetPos();
-			double distance211 = sqrt(pow(vPlayerPos.x - tele211Pos.x, 2) + pow(vPlayerPos.y - tele211Pos.y, 2));
-			double distance212 = sqrt(pow(vPlayerPos.x - tele212Pos.x, 2) + pow(vPlayerPos.y - tele212Pos.y, 2));
-			double distance213 = sqrt(pow(vPlayerPos.x - tele213Pos.x, 2) + pow(vPlayerPos.y - tele213Pos.y, 2));
-			double distance214 = sqrt(pow(vPlayerPos.x - tele214Pos.x, 2) + pow(vPlayerPos.y - tele214Pos.y, 2));
+			int resTele = HiddenGetPlayerVoteByTelePos(pPlayer, tele211, tele212, tele213, tele214);
 
-			if(distance212 < distance213)
-			{ // 更靠近左边
-				if(distance211 < distance212)
-					vote211Num++;
-				else
-					vote212Num++;
+			if(resTele == tele211)
+			{
+				vote211Num++;
 			}
-			else
-			{ // 更靠近右边
-				if(distance213 < distance214)
-					vote213Num++;
-				else
-					vote214Num++;
+			else if(resTele == tele212)
+			{
+				vote212Num++;
+			}
+			else if(resTele == tele213)
+			{
+				vote213Num++;
+			}
+			else if(resTele == tele214)
+			{
+				vote214Num++;
 			}
 		}
 
@@ -441,34 +440,32 @@ void CGameControllerDDRace::HiddenTick(int nowTick, int endTick, int tickSpeed, 
 		static int lastVote223Num = 0;
 		static int lastVote224Num = 0;
 
-		vec2 tele221Pos = pController->m_TeleOuts[221 - 1][0];
-		vec2 tele222Pos = pController->m_TeleOuts[222 - 1][0];
-		vec2 tele223Pos = pController->m_TeleOuts[223 - 1][0];
-		vec2 tele224Pos = pController->m_TeleOuts[224 - 1][0];
+		int tele221 = 221;
+		int tele222 = 222;
+		int tele223 = 223;
+		int tele224 = 224;
 
 		for(auto &pPlayer : GameServer()->m_apPlayers)
 		{
 			if(HiddenIsPlayerGameOver(pPlayer))
 				continue;
-			vec2 vPlayerPos = pPlayer->GetCharacter()->GetPos();
-			double distance221 = sqrt(pow(vPlayerPos.x - tele221Pos.x, 2) + pow(vPlayerPos.y - tele221Pos.y, 2));
-			double distance222 = sqrt(pow(vPlayerPos.x - tele222Pos.x, 2) + pow(vPlayerPos.y - tele222Pos.y, 2));
-			double distance223 = sqrt(pow(vPlayerPos.x - tele223Pos.x, 2) + pow(vPlayerPos.y - tele223Pos.y, 2));
-			double distance224 = sqrt(pow(vPlayerPos.x - tele224Pos.x, 2) + pow(vPlayerPos.y - tele224Pos.y, 2));
+			int resTele = HiddenGetPlayerVoteByTelePos(pPlayer, tele221, tele222, tele223, tele224);
 
-			if(distance222 < distance223)
-			{ // 更靠近左边
-				if(distance221 < distance222)
-					vote221Num++;
-				else
-					vote222Num++;
+			if(resTele == tele221)
+			{
+				vote221Num++;
 			}
-			else
-			{ // 更靠近右边
-				if(distance223 < distance224)
-					vote223Num++;
-				else
-					vote224Num++;
+			else if(resTele == tele222)
+			{
+				vote222Num++;
+			}
+			else if(resTele == tele223)
+			{
+				vote223Num++;
+			}
+			else if(resTele == tele224)
+			{
+				vote224Num++;
 			}
 		}
 
@@ -1076,4 +1073,34 @@ void CGameControllerDDRace::DoTeamChange(class CPlayer *pPlayer, int Team, bool 
 	}
 
 	IGameController::DoTeamChange(pPlayer, Team, DoChatMsg);
+}
+
+template<typename... Args>
+int CGameControllerDDRace::HiddenGetPlayerVoteByTelePos(CPlayer *pPlayer, Args... args)
+{
+	// 将可变参数转换为一个数组
+	int aTelePos[] = {args...};
+	int voteTele = aTelePos[0];
+
+	if(!pPlayer)
+		return voteTele;
+	if(!pPlayer->GetCharacter())
+		return voteTele;
+
+	CGameControllerDDRace *pController = (CGameControllerDDRace *)GameServer()->m_pController;
+	vec2 vPlayerPos = pPlayer->GetCharacter()->GetPos();
+
+	// 遍历数组中的每个元素
+	double minDistance = INFINITY;
+	for(int i = 0; i < int(sizeof(aTelePos) / sizeof(int)); i++)
+	{
+		vec2 telePos = pController->m_TeleOuts[aTelePos[i] - 1][0];
+		double dis = distance(vPlayerPos, telePos);
+		if(dis < minDistance)
+		{
+			minDistance = dis;
+			voteTele = aTelePos[i];
+		}
+	}
+	return voteTele;
 }
