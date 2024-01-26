@@ -1,3 +1,4 @@
+# 00 test
 FROM debian:11
 
 RUN apt-get update && apt-get install -y mingw-w64 \
